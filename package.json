@@ -44,5 +44,9 @@
 		"*.{js,ts,vue,mjs,cjs}": [
 			"eslint --fix"
 		]
+	},
+	"overrides": {
+		"nitropack": "2.13.4",
+		"simple-git": "3.36.0"
 	}
 }
