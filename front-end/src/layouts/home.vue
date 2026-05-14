@@ -2,7 +2,7 @@
   <main class="px-10 py-20 text-center">
     <slot />
     <Footer />
-    <div class="text-sm mx-auto mt-5 text-center opacity-25">
+    <div class="text-sm text-[#767676] mx-auto mt-5 text-center">
       [Home Layout]
     </div>
   </main>

@@ -24,7 +24,7 @@ definePageMeta({
 
     <template v-if="user.otherNames.length">
       <div text-sm my-4>
-        <span op-50>Also as known as:</span>
+        <span class="text-gray-700 dark:text-gray-300">Also as known as:</span>
         <ul>
           <li v-for="otherName in user.otherNames" :key="otherName">
             <router-link :to="`/hi/${otherName}`" replace>

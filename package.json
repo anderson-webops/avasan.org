@@ -26,7 +26,8 @@
 		"lint-fix": "npm run -w front-end lint-fix && npm run -w back-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck",
 		"clean": "rm -rf node_modules package-lock.json front-end/node_modules front-end/.nuxt front-end/.output back-end/node_modules back-end/dist",
-		"up": "taze major -I && npm run -w front-end up && npm run -w back-end up"
+		"up": "taze major -I && npm run -w front-end up && npm run -w back-end up",
+		"a11y": "node scripts/a11y-smoke.mjs"
 	},
 	"devDependencies": {
 		"@antfu/eslint-config": "^8.2.0",
@@ -35,7 +36,9 @@
 		"lint-staged": "^16.4.0",
 		"simple-git-hooks": "^2.13.1",
 		"taze": "^19.11.0",
-		"typescript": "^6.0.3"
+		"typescript": "^6.0.3",
+		"axe-core": "^4.11.4",
+		"puppeteer": "^24.43.1"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"

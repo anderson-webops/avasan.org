@@ -3,11 +3,13 @@ import { appName } from '~/constants'
 
 useHead({
   title: appName,
+  htmlAttrs: {
+    lang: 'en',
+  },
 })
 </script>
 
 <template>
-  <VitePwaManifest />
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>

@@ -24,17 +24,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div text-gray:80>
+  <div class="text-gray-700 dark:text-gray-300">
     <template v-if="loading">
-      <span op50 italic>Loading API stats...</span>
+      <span italic>Loading API stats...</span>
     </template>
     <template v-else-if="failed">
-      <span text-gray>Back-end offline</span>
+      <span>Back-end offline</span>
     </template>
     <template v-else>
-      <span text-gray font-500>{{ pageview }}</span>
+      <span font-500>{{ pageview }}</span>
       page views since
-      <span text-gray>{{ time }}</span>
+      <span>{{ time }}</span>
     </template>
   </div>
 </template>
