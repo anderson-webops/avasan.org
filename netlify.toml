@@ -3,7 +3,7 @@ publish = "front-end/.output/public"
 command = "npm run -w front-end build"
 
 [build.environment]
-NODE_VERSION = "20"
+NODE_VERSION = "24.18.0"
 
 [[redirects]]
 from = "/*"

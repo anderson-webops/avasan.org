@@ -1,7 +1,7 @@
-FROM node:20-alpine AS build-stage
+FROM node:24.18.0-alpine AS build-stage
 
 WORKDIR /app
-RUN npm install --global npm@11.12.0
+RUN npm install --global npm@11.16.0
 
 COPY .npmrc package.json package-lock.json ./
 COPY front-end/package.json ./front-end/package.json
