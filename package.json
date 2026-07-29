@@ -1,10 +1,10 @@
 {
-	"name": "vitesse-nuxt-monorepo",
+	"name": "avasan-org",
 	"type": "module",
 	"version": "1.0.0",
 	"private": true,
 	"packageManager": "npm@11.12.0",
-	"description": "Monorepo template based on antfu's vitesse-nuxt",
+	"description": "Julio's math and computer science teaching homepage",
 	"author": "Jacob Anderson",
 	"license": "ISC",
 	"keywords": [],
@@ -14,6 +14,7 @@
 	],
 	"scripts": {
 		"build": "npm run -w front-end build && npm run -w back-end build",
+		"build:sites": "npm run -w front-end build && node scripts/build-sites.mjs",
 		"dev": "npm run -w front-end dev",
 		"server": "npm run -w back-end server",
 		"server:once": "npm run -w back-end server:once",

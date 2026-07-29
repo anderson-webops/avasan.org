@@ -2,12 +2,19 @@
 
 ## Project Structure & Module Organization
 
-- `front-end/` contains the Nuxt 4 application. UI lives in `app/components`, layouts in `app/layouts`, routes in
-  `app/pages`, composables in `app/composables`, and app-level config under `app/config` and `app/constants`.
+- `front-end/` contains the Nuxt 4 application. UI lives in `src/components`, layouts in `src/layouts`, routes in
+  `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
 - `back-end/` contains the standalone Express API. Keep route wiring and middleware in `src/`, and emit compiled output
   to `dist/`.
 - Root files (`package.json`, `tsconfig.base.json`, `eslint.config.js`, `Dockerfile`, `netlify.toml`) define the shared
   monorepo toolchain and deployment defaults.
+
+## Site Scope
+
+- Keep the public site intentionally small: one homepage for Julio as a grade-school math and computer science
+  teacher, with one primary link to `https://cs.avasan.org`.
+- Do not add navigation, booking, testimonials, course catalogs, contact forms, or extra routes unless the user asks.
+- Preserve the Vitesse-derived typography, color-mode support, responsive layout, and accessible interaction states.
 
 ## Build, Test, and Development Commands
 
@@ -26,21 +33,19 @@
   back-end files follow the shared monorepo lint rules.
 - Prefer descriptive component and composable names. Use PascalCase for Vue components and camelCase for utility and
   composable exports.
-- Keep route-facing files in `app/pages` aligned with Nuxt’s file-based routing conventions.
+- Keep route-facing files in `src/pages` aligned with Nuxt’s file-based routing conventions.
 
 ## Testing & Verification
 
-- Run `npm run lint`, `npm run typecheck`, and `npm run build` before pushing template changes.
+- Run `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run a11y` before pushing site changes.
 - When changing API behavior, verify both the front-end call site and the Express route behavior together.
-- Treat template breakage as high impact: small config changes can affect every downstream repo created from this
-  template.
+- Treat homepage regressions as high impact because this single page is the site’s entire public experience.
 
 ## Template Workflow
 
-- `origin` is the published template repo for this monorepo pattern.
-- `upstream` must continue to point to `antfu/vitesse-nuxt`.
-- Preserve the front-end/back-end workspace structure when evolving the template unless a deliberate template version
-  change is being made.
+- `template` points to `anderson-webops/vitesse-nuxt-template`, the validated source this site was initialized from.
+- `origin` is the published `anderson-webops/avasan.org` repository.
+- Review template updates before merging them so site-specific content and metadata are preserved.
 
 ## Agent Delivery Workflow
 

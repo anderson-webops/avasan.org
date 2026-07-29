@@ -1,11 +1,13 @@
 # Workspace Instructions
 
-- This repository is the Nuxt monorepo template derived from `antfu/vitesse-nuxt`.
-- Keep `origin` pointed at the template repository and `upstream` pointed at `antfu/vitesse-nuxt`.
+- This repository is the `avasan.org` teaching homepage, initialized from
+  `anderson-webops/vitesse-nuxt-template`.
+- Keep `origin` pointed at `anderson-webops/avasan.org` and `template` pointed at the validated Vitesse fork.
+- Keep the public experience intentionally limited to one homepage and one primary link to `https://cs.avasan.org`.
 - Maintain the root npm workspace pattern with exactly two primary workspaces: `front-end` and `back-end`.
-- Validate template changes with `npm run lint`, `npm run typecheck`, and `npm run build` before pushing.
+- Validate changes with `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run a11y` before pushing.
 - Keep `package-lock.json` up to date whenever dependencies or workspace manifests change.
-- Do not leave completed template work uncommitted or unpushed.
+- Do not leave completed work uncommitted or unpushed.
 
 ## Dependency & Lockfile Discipline
 

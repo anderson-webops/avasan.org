@@ -14,7 +14,7 @@ const projectRoot = resolve(scriptDir, '..')
 const frontendPackagePath = resolve(projectRoot, 'front-end/package.json')
 const frontendPackage = JSON.parse(readFileSync(frontendPackagePath, 'utf8'))
 
-const siteName = 'Vitesse Nuxt Template'
+const siteName = 'avasan.org'
 const frontendKind = 'nuxt'
 const frontendPort = Number(process.env.A11Y_FRONTEND_PORT || 3356)
 const apiPort = Number(process.env.A11Y_API_PORT || 3056)
@@ -22,7 +22,6 @@ const baseUrl = `http://127.0.0.1:${frontendPort}`
 const apiUrl = `http://127.0.0.1:${apiPort}/api`
 const routes = [
   '/',
-  '/hi/a11y',
 ]
 const colorSchemes = (process.env.A11Y_COLOR_SCHEMES || 'light,dark')
   .split(',')

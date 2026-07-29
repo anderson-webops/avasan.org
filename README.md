@@ -1,52 +1,28 @@
-# Vitesse Nuxt Monorepo Template
+# avasan.org
 
-This repo starts from [antfu/vitesse-nuxt](https://github.com/antfu/vitesse-nuxt) and reshapes it into the monorepo pattern used by the other sites in this directory.
+The personal teaching homepage for Julio, a grade-school math and computer science teacher.
 
-## Structure
+The public site is intentionally one page with one primary destination:
+[cs.avasan.org](https://cs.avasan.org).
 
-- `front-end`: Nuxt 4 app derived from Vitesse Nuxt
-- `back-end`: separate Express API package
-- root `package.json`: npm workspace entrypoint
-- root `tsconfig.base.json`: shared TypeScript settings
-- root `Dockerfile` and `netlify.toml`: deploy helpers for the static front-end build
+## Development
 
-## Scripts
+This project is based on
+[anderson-webops/vitesse-nuxt-template](https://github.com/anderson-webops/vitesse-nuxt-template) and retains its Nuxt
+front-end plus optional Express back-end workspace.
 
-From the repo root:
+From the repository root:
 
 ```bash
-npm install
+npm ci
 npm run dev
-npm run server
 ```
 
-Useful root commands:
+Useful checks:
 
-- `npm run build`: generate the front-end and compile the back-end
-- `npm run typecheck`: run front-end and back-end typechecks
-- `npm run lint`: lint both workspaces
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+- `npm run a11y`
 
-## Front-End
-
-The Nuxt app lives in `front-end` and keeps the upstream Vitesse Nuxt app structure:
-
-- `front-end/app`
-- `front-end/public`
-- `front-end/nuxt.config.ts`
-
-The demo page-view widget now calls the separate back-end API instead of relying on an inline Nuxt server route.
-
-Set `NUXT_PUBLIC_API_BASE_URL` when the front-end should target a non-default API host.
-
-## Back-End
-
-The API lives in `back-end` and exposes:
-
-- `GET /api/health`
-- `GET /api/pageview`
-
-Default port: `3006`
-
-## Git Remotes
-
-`antfu/vitesse-nuxt` is configured as the `upstream` remote so you can keep your own GitHub repo as `origin`.
+The generated static site is written to `front-end/.output/public`.

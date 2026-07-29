@@ -1,9 +1,9 @@
 {
-  "name": "front-end",
+  "name": "avasan-front-end",
   "type": "module",
   "version": "2.0.0",
   "private": true,
-  "description": "",
+  "description": "The avasan.org teaching homepage",
   "author": "Jacob Anderson",
   "license": "ISC",
   "keywords": [],

@@ -1,2 +1,2 @@
-export const appName = 'Vitesse for Nuxt 4'
-export const appDescription = 'Vitesse for Nuxt 4'
+export const appName = 'Julio | Math & Computer Science Teacher'
+export const appDescription = 'Julio teaches math and computer science to grade-school students.'
