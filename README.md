@@ -26,3 +26,8 @@ Useful checks:
 - `npm run a11y`
 
 The generated static site is written to `front-end/.output/public`.
+
+Production builds send page views to the dedicated
+`analytics.avasan.org` instance and the owner-visible central
+`analytics.jacobdanderson.net` instance. Set `DISABLE_ANALYTICS=true` to omit
+both trackers.

@@ -6,9 +6,10 @@ import 'dotenv/config'
 async function main() {
   const app = createApp()
   const port = Number(env.PORT || 3006)
+  const host = env.HOST || env.BACKEND_HOST || '127.0.0.1'
 
-  const server = app.listen(port, () => {
-    console.log(`Server listening on port ${port}!`)
+  const server = app.listen(port, host, () => {
+    console.log(`Server listening on http://${host}:${port}!`)
   })
 
   let isShuttingDown = false

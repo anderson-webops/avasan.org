@@ -1,6 +1,9 @@
 import process from 'node:process'
 import { appDescription } from './src/constants/index'
 
+const analyticsDisabled = process.env.NODE_ENV === 'development'
+  || process.env.DISABLE_ANALYTICS === 'true'
+
 export default defineNuxtConfig({
   modules: [
     '@vueuse/nuxt',
@@ -24,6 +27,20 @@ export default defineNuxtConfig({
         { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#f6f1e7' },
         { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#10282d' },
       ],
+      script: analyticsDisabled
+        ? []
+        : [
+            {
+              'defer': true,
+              'src': 'https://analytics.avasan.org/script.js',
+              'data-website-id': '83f623f3-a19b-4062-a879-020a26fe043d',
+            },
+            {
+              'defer': true,
+              'src': 'https://analytics.jacobdanderson.net/script.js',
+              'data-website-id': 'e7585305-ae9c-431e-a67f-6314e2a4d28e',
+            },
+          ],
     },
   },
 
