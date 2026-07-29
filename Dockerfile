@@ -1,12 +1,13 @@
 FROM node:20-alpine AS build-stage
 
 WORKDIR /app
+RUN npm install --global npm@11.12.0
 
-COPY .npmrc package.json pnpm-workspace.yaml ./
+COPY .npmrc package.json package-lock.json ./
 COPY front-end/package.json ./front-end/package.json
 COPY back-end/package.json ./back-end/package.json
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 RUN npm run build

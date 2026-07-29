@@ -31,14 +31,14 @@
 	},
 	"devDependencies": {
 		"@antfu/eslint-config": "^8.2.0",
-		"eslint": "^9.38.0",
+		"axe-core": "^4.11.4",
+		"eslint": "^10.8.0",
 		"eslint-plugin-format": "^1.0.2",
 		"lint-staged": "^16.4.0",
+		"puppeteer": "^24.43.1",
 		"simple-git-hooks": "^2.13.1",
 		"taze": "^19.11.0",
-		"typescript": "^6.0.3",
-		"axe-core": "^4.11.4",
-		"puppeteer": "^24.43.1"
+		"typescript": "^6.0.3"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
@@ -50,21 +50,26 @@
 	},
 	"overrides": {
 		"esbuild": "^0.28.1",
-		"js-yaml": "4.2.0",
-		"launch-editor": "2.14.1",
-		"shell-quote": "1.9.0",
-		"@nuxt/devtools": {
-			"launch-editor": "2.14.1"
-		},
+		"js-yaml": "4.3.0",
 		"launch-editor": {
 			".": "2.14.1",
 			"shell-quote": "1.9.0"
+		},
+		"shell-quote": "1.10.0",
+		"@nuxt/devtools": {
+			"launch-editor": "2.14.1"
 		},
 		"vite": {
 			".": "^8.1.0",
 			"esbuild": "^0.28.1"
 		},
 		"nitropack": "2.13.4",
-		"simple-git": "3.36.0"
+		"simple-git": "3.36.0",
+		"brace-expansion": "5.0.8",
+		"fast-uri": "3.1.4",
+		"postcss": "8.5.24",
+		"svgo": "4.0.2",
+		"tar": "7.5.22",
+		"valibot": "1.4.2"
 	}
 }
