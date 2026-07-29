@@ -10,14 +10,20 @@ definePageMeta({
       <p class="eyebrow">
         Julio
       </p>
-      <h1>Math and computer science for young learners.</h1>
+      <h1>Math &amp; code.</h1>
       <p class="lede">
         I teach math and computer science to grade-school students.
       </p>
-      <a class="site-link" href="https://cs.avasan.org">
-        Visit the computer science site
-        <span aria-hidden="true">→</span>
-      </a>
+      <div class="actions">
+        <a class="site-link" href="https://cs.avasan.org">
+          Visit the computer science site
+          <span aria-hidden="true">→</span>
+        </a>
+        <a class="secondary-link" href="https://math.avasan.org">
+          Visit the math site
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
     </div>
   </section>
 </template>
@@ -49,7 +55,7 @@ definePageMeta({
 }
 
 .intro {
-  width: min(100%, 58rem);
+  width: min(100%, 44rem);
   text-align: center;
 }
 
@@ -57,7 +63,7 @@ definePageMeta({
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
-  margin: 0 0 1.5rem;
+  margin: 0 0 1.25rem;
   color: var(--page-accent);
   font-size: 0.78rem;
   font-weight: 700;
@@ -73,45 +79,57 @@ definePageMeta({
 }
 
 h1 {
-  max-width: 15ch;
+  max-width: 12ch;
   margin: 0 auto;
   font-family: 'DM Serif Display', serif;
-  font-size: clamp(3.25rem, 9vw, 7.5rem);
+  font-size: clamp(2.75rem, 5vw, 4.75rem);
   font-weight: 400;
-  letter-spacing: -0.045em;
-  line-height: 0.94;
+  letter-spacing: -0.035em;
+  line-height: 1;
   text-wrap: balance;
 }
 
 .lede {
-  max-width: 34rem;
-  margin: clamp(1.6rem, 4vw, 2.4rem) auto 0;
+  max-width: 32rem;
+  margin: clamp(1.35rem, 3vw, 1.8rem) auto 0;
   color: var(--page-muted);
   font-size: clamp(1.05rem, 2.1vw, 1.3rem);
   line-height: 1.65;
   text-wrap: balance;
 }
 
-.site-link {
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+.site-link,
+.secondary-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.site-link {
   gap: 0.8rem;
-  margin-top: clamp(2rem, 5vw, 3rem);
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 0.92rem 1.3rem 0.92rem 1.45rem;
   background: var(--page-accent);
   color: var(--page-background);
-  font-weight: 700;
-  line-height: 1.2;
   text-decoration: none;
   transition:
     background-color 160ms ease,
     transform 160ms ease;
 }
 
-.site-link span {
+.site-link span,
+.secondary-link span {
   font-size: 1.2em;
   transition: transform 160ms ease;
 }
@@ -121,11 +139,25 @@ h1 {
   transform: translateY(-2px);
 }
 
-.site-link:hover span {
+.site-link:hover span,
+.secondary-link:hover span {
   transform: translateX(0.18rem);
 }
 
-.site-link:focus-visible {
+.secondary-link {
+  gap: 0.5rem;
+  color: var(--page-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  transition: color 160ms ease;
+}
+
+.secondary-link:hover {
+  color: var(--page-accent-strong);
+}
+
+.site-link:focus-visible,
+.secondary-link:focus-visible {
   outline: 3px solid var(--page-focus);
   outline-offset: 4px;
 }
@@ -136,7 +168,7 @@ h1 {
   }
 
   h1 {
-    font-size: clamp(3.15rem, 16vw, 5rem);
+    font-size: clamp(2.65rem, 12vw, 3.75rem);
   }
 
   .site-link {
@@ -147,7 +179,9 @@ h1 {
 
 @media (prefers-reduced-motion: reduce) {
   .site-link,
-  .site-link span {
+  .site-link span,
+  .secondary-link,
+  .secondary-link span {
     transition: none;
   }
 }

@@ -12,7 +12,7 @@
 ## Site Scope
 
 - Keep the public site intentionally small: one homepage for Julio as a grade-school math and computer science
-  teacher, with one primary link to `https://cs.avasan.org`.
+  teacher, with a primary link to `https://cs.avasan.org` and a secondary link to `https://math.avasan.org`.
 - Do not add navigation, booking, testimonials, course catalogs, contact forms, or extra routes unless the user asks.
 - Preserve the Vitesse-derived typography, color-mode support, responsive layout, and accessible interaction states.
 

@@ -2,8 +2,10 @@
 
 The personal teaching homepage for Julio, a grade-school math and computer science teacher.
 
-The public site is intentionally one page with one primary destination:
-[cs.avasan.org](https://cs.avasan.org).
+The public site is intentionally one page with two destinations:
+
+- Primary: [cs.avasan.org](https://cs.avasan.org)
+- Secondary: [math.avasan.org](https://math.avasan.org)
 
 ## Development
 
