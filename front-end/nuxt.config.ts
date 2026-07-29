@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: true,
+    enabled: process.env.CI !== 'true' && process.env.NUXT_A11Y_SCAN !== 'true',
   },
 
   app: {

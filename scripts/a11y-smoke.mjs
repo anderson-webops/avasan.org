@@ -157,10 +157,12 @@ function startFrontend() {
 
   const child = spawn('npm', args, {
     cwd: projectRoot,
+    detached: process.platform !== 'win32',
     env: {
       ...process.env,
       BROWSER: 'none',
       DISABLE_ANALYTICS: 'true',
+      NUXT_A11Y_SCAN: 'true',
       NUXT_TELEMETRY_DISABLED: '1',
       NUXT_PUBLIC_APP_URL: baseUrl,
       NUXT_PUBLIC_SITE_URL: baseUrl,
@@ -193,6 +195,56 @@ function startFrontend() {
   child.stdout.on('data', data => writeServerLine(isNuxt ? 'nuxt' : 'vite', data))
   child.stderr.on('data', data => writeServerLine(isNuxt ? 'nuxt' : 'vite', data))
   return child
+}
+
+function delay(durationMs) {
+  return new Promise(resolveDelay => setTimeout(resolveDelay, durationMs))
+}
+
+function signalProcessTree(child, signal) {
+  if (!child.pid)
+    return false
+
+  try {
+    if (process.platform === 'win32')
+      return child.kill(signal)
+
+    process.kill(-child.pid, signal)
+    return true
+  }
+  catch (error) {
+    if (error?.code === 'ESRCH')
+      return false
+    throw error
+  }
+}
+
+async function stopProcessTree(child) {
+  if (!child.pid)
+    return
+
+  signalProcessTree(child, 'SIGTERM')
+  await delay(1_000)
+
+  if (process.platform === 'win32') {
+    if (child.exitCode === null)
+      signalProcessTree(child, 'SIGKILL')
+  }
+  else {
+    try {
+      process.kill(-child.pid, 0)
+      signalProcessTree(child, 'SIGKILL')
+    }
+    catch (error) {
+      if (error?.code !== 'ESRCH')
+        throw error
+    }
+  }
+
+  await Promise.race([
+    new Promise(resolveClose => child.once('close', resolveClose)),
+    delay(1_000),
+  ])
 }
 
 function closeServer(server) {
@@ -270,6 +322,6 @@ try {
 finally {
   if (browser)
     await browser.close()
-  frontendProcess.kill('SIGTERM')
+  await stopProcessTree(frontendProcess)
   await closeServer(apiServer)
 }
