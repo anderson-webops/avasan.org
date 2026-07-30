@@ -1,6 +1,6 @@
 {
   "name": "archiver",
-  "version": "7.0.2",
+  "version": "7.0.1+local.avasan",
   "private": true,
   "description": "Archiver 8 default-factory compatibility bridge for Nitro 2",
   "license": "MIT",

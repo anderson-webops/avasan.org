@@ -26,8 +26,13 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(readText('.npmrc'), /^strict-allow-scripts=true$/mu)
   assert.doesNotMatch(packageJson.scripts.clean, /package-lock\.json/u)
   assert.doesNotMatch(workflow, /uses:\s+\S+@(?:main|master|v\d)/u)
+  assert.equal(
+    workflow.match(/persist-credentials: false/gu)?.length,
+    workflow.match(/uses:\s+actions\/checkout@/gu)?.length,
+  )
   assert.match(workflow, /runs-on: ubuntu-24\.04-arm/u)
   assert.match(workflow, /npm run audit:production/u)
+  assert.match(workflow, /npm run audit:signatures/u)
   assert.match(workflow, /npm run verify:dependency-graph/u)
   assert.match(workflow, /npm run verify:native-bindings/u)
   assert.match(workflow, /npm ci --include=optional --strict-allow-scripts/u)
@@ -40,6 +45,8 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(deploymentSmoke, /releaseCacheDirectives\.includes\('no-store'\)/u)
   assert.match(deploymentSmoke, /allowReleaseNoCache && releaseCacheDirectives\.includes\('no-cache'\)/u)
   assert.match(readText('Dockerfile'), /COPY vendor\/archiver-nitro-compat/u)
+  assert.match(readText('Dockerfile'), /^USER 101$/mu)
+  assert.match(readText('Dockerfile'), /^HEALTHCHECK .+127\.0\.0\.1:8080\//mu)
   assert.match(packageJson.scripts['build:sites'], /npm run test:sites/u)
   assert.match(
     JSON.parse(readText('front-end/package.json')).scripts.build,

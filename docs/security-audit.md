@@ -16,14 +16,15 @@ boundaries.
 - Updated compatible development tooling majors while retaining TypeScript 6 because the installed
   `typescript-eslint` release supports TypeScript below 6.1.
 - Replaced Nitro's deprecated Archiver 7 transitive path with a focused, tested compatibility bridge that delegates to
-  Archiver 8 while preserving the factory API Nitro 2 still imports.
+  Archiver 8 while preserving the factory API Nitro 2 still imports. The local bridge has a semver-compatible identity,
+  is pinned by repository tests, and remains distinguishable from public registry code.
 - Pinned Node, npm, container images, and GitHub Actions. Lifecycle scripts are denied by default and narrowly approved
   by exact package version; Puppeteer's download script remains disabled because validation uses an explicitly located
   browser.
-- Preserved every reviewed GNU and musl Linux ARM64 native binding in the lockfile and added a real ARM64 clean
-  install/build gate.
+- Preserved every GNU and musl Linux ARM64 native binding in the lockfile and added a real ARM64 clean install/build
+  gate. The verifier now discovers the complete binding set from the lockfile instead of maintaining brittle paths.
 - Added full and production-only vulnerability audits, production dependency-graph validation, repository tests,
-  accessibility checks, and grouped weekly Dependabot updates.
+  registry-signature verification, accessibility checks, and grouped weekly Dependabot updates.
 - Enabled GitHub vulnerability alerts, automated security fixes, secret scanning with push protection, CodeQL default
   setup, read-only workflow permissions, and immutable-SHA enforcement for Actions.
 - Tightened each source-owned deployment policy with a fail-closed `/api`, non-GET method rejection where the platform
@@ -46,14 +47,15 @@ boundaries.
   unsupported-method 405s, and the fail-closed API boundary.
 - Enabled source tests that prevent silent reintroduction of accounts, forms, trackers, runtime configuration, or a
   backend workspace.
+- Disabled persisted Git credentials on every workflow checkout.
+- Made the final container's inherited unprivileged user and health check explicit so policy scanners can verify both
+  controls directly.
 
 ## Reviewed upstream development metadata
 
-With Nuxt 4.5 and its current Vite/Rolldown toolchain, npm's unscoped `npm ls --all` reports development-only optional
-metadata conflicts for a WebAssembly Rolldown fallback and the shared `cac` command-line package. These are upstream
-package metadata limitations, not production dependencies or missing native bindings. Clean installs, full and
-production audits, the production graph, static builds, and the dedicated native-binding verifier are the release
-gates.
+The refreshed lockfile resolves Nuxt 4.5.1, Vite 8.2, and one compatible Rolldown 1.2 line. Nuxt's tab-completion helper
+uses Commander 15 through its declared optional peer, while incompatible `cac` majors stay correctly nested and its
+optional `cac` 6 peer remains absent. Both the full development graph and production graph now pass `npm ls`.
 
 ## Production and operator boundaries
 

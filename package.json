@@ -1,7 +1,7 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"private": true,
 	"packageManager": "npm@11.16.0",
 	"engines": {
@@ -33,6 +33,7 @@
 		"test": "npm run build:sites && node --test test/archiver-compat.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs",
 		"audit": "npm audit --audit-level=low",
 		"audit:production": "npm audit --omit=dev --audit-level=low",
+		"audit:signatures": "npm audit signatures",
 		"verify:dependency-graph": "npm ls --all --omit=dev",
 		"verify:native-bindings": "node scripts/verify-native-bindings.mjs",
 		"smoke:deployment": "node scripts/static-deployment-smoke.mjs",
@@ -45,6 +46,7 @@
 	"devDependencies": {
 		"@antfu/eslint-config": "^9.2.0",
 		"axe-core": "^4.11.4",
+		"commander": "15.0.0",
 		"eslint": "^10.8.0",
 		"eslint-plugin-format": "^2.0.1",
 		"lint-staged": "^17.2.0",
@@ -73,7 +75,7 @@
 			"launch-editor": "2.14.1"
 		},
 		"vite": {
-			".": "^8.1.0",
+			".": "^8.2.0",
 			"esbuild": "^0.28.1"
 		},
 		"nitropack": {

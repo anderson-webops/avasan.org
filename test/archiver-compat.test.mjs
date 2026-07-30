@@ -20,6 +20,6 @@ test('Archiver compatibility bridge remains pinned to the reviewed implementatio
 
   assert.equal(rootPackage.dependencies.archiver, 'file:vendor/archiver-nitro-compat')
   assert.equal(rootPackage.overrides.nitropack.archiver, '$archiver')
-  assert.equal(compatibilityPackage.version, '7.0.2')
+  assert.equal(compatibilityPackage.version, '7.0.1+local.avasan')
   assert.equal(compatibilityPackage.dependencies['archiver-modern'], 'npm:archiver@8.0.0')
 })
