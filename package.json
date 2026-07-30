@@ -10,7 +10,7 @@
 	},
 	"description": "Julio's math and computer science teaching homepage",
 	"author": "Jacob Anderson",
-	"license": "ISC",
+	"license": "MIT",
 	"keywords": [],
 	"workspaces": [
 		"front-end"

@@ -5,7 +5,7 @@
   "private": true,
   "description": "The avasan.org teaching homepage",
   "author": "Jacob Anderson",
-  "license": "ISC",
+  "license": "MIT",
   "keywords": [],
   "scripts": {
     "build": "nuxt generate && node ../scripts/write-release-metadata.mjs",
