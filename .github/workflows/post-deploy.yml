@@ -33,6 +33,7 @@ jobs:
 
       - name: Verify avasan.org production
         env:
+          ALLOW_RELEASE_NO_CACHE: "true"
           DEPLOYMENT_URL: https://avasan.org
           EXPECTED_REVISION: ${{ inputs.expected_revision }}
           EXPECTED_VERSION: ${{ inputs.expected_version }}

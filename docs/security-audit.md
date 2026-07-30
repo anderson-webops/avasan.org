@@ -36,6 +36,10 @@ boundaries.
   source commit. Netlify and Nginx serve the generated file, while the Sites
   worker bundles the same content; all three delivery paths mark it
   `Cache-Control: no-store`.
+- The separately managed custom host may normalize `/release.json` to
+  `Cache-Control: no-cache`. Its post-deploy check accepts that policy because
+  it requires revalidation before reuse; the source-owned surfaces continue to
+  require and test `no-store`.
 - Added a manual custom-domain deployment check that requires an expected
   version and full revision, then verifies release identity, strict response
   headers, allowlisted links, absence of external scripts, unknown-route 404s,

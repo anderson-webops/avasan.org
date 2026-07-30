@@ -39,8 +39,9 @@ The generated static site is written to `front-end/.output/public`.
 Security headers and release provenance are versioned for the Sites worker,
 Netlify, and the container Nginx deployment. Every production build writes
 `/release.json` with the semantic version and full source commit. The endpoint
-is always served with `Cache-Control: no-store`, so a deployment can be checked
-without relying on cached HTML.
+uses `Cache-Control: no-store` on the source-owned Sites, Netlify, and container
+surfaces. The custom host's outer static vhost may instead apply `no-cache`,
+which still requires revalidation before reuse.
 
 `.openai/hosting.json` preserves the existing Sites project identity;
 `npm run build:sites` prepares its deployment artifact without publishing it.
@@ -60,7 +61,8 @@ After the custom-domain deployment completes, run the manual
 `Verify production deployment` GitHub workflow with the expected semantic
 version and full commit. Its smoke test checks the release identity, strict
 headers, known links, absence of external scripts, a real unknown-route 404,
-and a 405 for unsupported mutations.
+and a 405 for unsupported mutations. For the custom host only, it accepts
+either `no-store` or `no-cache` as a freshness-safe release-metadata policy.
 
 The architecture and operator boundaries from the latest authentication,
 authorization, backend, deployment, and supply-chain review are recorded in

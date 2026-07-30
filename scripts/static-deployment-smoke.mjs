@@ -10,6 +10,7 @@ const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(scriptDirectory, '..')
 const rootPackage = JSON.parse(readFileSync(resolve(projectRoot, 'package.json'), 'utf8'))
 const expectedVersion = process.env.EXPECTED_VERSION || rootPackage.version
+const allowReleaseNoCache = process.env.ALLOW_RELEASE_NO_CACHE?.toLowerCase() === 'true'
 const expectedRevision = (
   process.env.EXPECTED_REVISION
   || process.env.AVASAN_RELEASE_REVISION
@@ -90,7 +91,14 @@ assert.equal(assetResponse.headers.get('x-content-type-options'), 'nosniff')
 const releaseResponse = await request('/release.json')
 assert.equal(releaseResponse.status, 200)
 assert.match(releaseResponse.headers.get('content-type') ?? '', /^application\/json\b/iu)
-assert.match(releaseResponse.headers.get('cache-control') ?? '', /(?:^|,)\s*no-store(?:,|$)/iu)
+const releaseCacheDirectives = (releaseResponse.headers.get('cache-control') ?? '')
+  .split(',')
+  .map(directive => directive.trim().toLowerCase())
+assert.ok(
+  releaseCacheDirectives.includes('no-store')
+  || (allowReleaseNoCache && releaseCacheDirectives.includes('no-cache')),
+  'Release metadata must use no-store, or no-cache on the custom host.',
+)
 assert.equal(releaseResponse.headers.get('set-cookie'), null)
 assert.deepEqual(await releaseResponse.json(), {
   revision: expectedRevision,
@@ -99,7 +107,14 @@ assert.deepEqual(await releaseResponse.json(), {
 
 const releaseHeadResponse = await request('/release.json', { method: 'HEAD' })
 assert.equal(releaseHeadResponse.status, 200)
-assert.match(releaseHeadResponse.headers.get('cache-control') ?? '', /(?:^|,)\s*no-store(?:,|$)/iu)
+const releaseHeadCacheDirectives = (releaseHeadResponse.headers.get('cache-control') ?? '')
+  .split(',')
+  .map(directive => directive.trim().toLowerCase())
+assert.ok(
+  releaseHeadCacheDirectives.includes('no-store')
+  || (allowReleaseNoCache && releaseHeadCacheDirectives.includes('no-cache')),
+  'Release metadata HEAD responses must use no-store, or no-cache on the custom host.',
+)
 assert.equal(await releaseHeadResponse.text(), '')
 
 const unknownResponse = await request(`/__avasan-deployment-probe-missing-${expectedRevision.slice(0, 12)}`)
