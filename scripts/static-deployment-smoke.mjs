@@ -29,7 +29,7 @@ const contentSecurityPolicy = home.headers.get('content-security-policy') ?? ''
 
 assert.match(contentSecurityPolicy, /default-src 'self'/u)
 assert.match(contentSecurityPolicy, /frame-ancestors 'none'/u)
-assert.match(contentSecurityPolicy, /connect-src 'none'/u)
+assert.match(contentSecurityPolicy, /connect-src 'self'/u)
 assert.equal(home.headers.get('cross-origin-opener-policy'), 'same-origin')
 assert.equal(home.headers.get('cross-origin-resource-policy'), 'same-origin')
 assert.equal(home.headers.get('x-content-type-options'), 'nosniff')

@@ -30,6 +30,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(workflow, /npm run verify:native-bindings/u)
   assert.match(workflow, /npm ci --include=optional --strict-allow-scripts/u)
   assert.match(readText('Dockerfile'), /COPY vendor\/archiver-nitro-compat/u)
+  assert.match(packageJson.scripts['build:sites'], /npm run test:sites/u)
 })
 
 test('weekly dependency updates preserve the reviewed TypeScript compatibility boundary', () => {

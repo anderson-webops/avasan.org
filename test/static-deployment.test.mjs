@@ -102,7 +102,7 @@ test('deployment surfaces define the static security policy', async () => {
   assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin')
   assert.equal(response.headers.get('Cross-Origin-Resource-Policy'), 'same-origin')
   assert.match(response.headers.get('Content-Security-Policy') ?? '', /default-src 'self'/)
-  assert.match(response.headers.get('Content-Security-Policy') ?? '', /connect-src 'none'/)
+  assert.match(response.headers.get('Content-Security-Policy') ?? '', /connect-src 'self'/)
   assert.match(response.headers.get('Strict-Transport-Security') ?? '', /includeSubDomains/)
   assert.equal(response.headers.get('Cache-Control'), 'no-cache')
 

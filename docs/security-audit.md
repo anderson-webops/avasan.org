@@ -29,6 +29,8 @@ boundaries.
 - Tightened each source-owned deployment policy with a fail-closed `/api`, non-GET method rejection where the platform
   permits it, immutable hashed assets, no-cache HTML, framing denial, opener/resource isolation, HSTS, and a restrictive
   content security policy.
+- Bundled the Sites homepage into its worker and removed direct HTML assets from that deployment artifact. This prevents
+  the Sites static-asset fast path from bypassing the worker-owned security headers.
 - Removed SPA-style unknown-route fallbacks from Netlify and Nginx so unrecognized paths return a real 404.
 - Enabled source tests that prevent silent reintroduction of accounts, forms, trackers, runtime configuration, or a
   backend workspace.
