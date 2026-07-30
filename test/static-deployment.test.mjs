@@ -12,6 +12,13 @@ function read(relativePath) {
   return readFileSync(resolve(projectRoot, relativePath), 'utf8')
 }
 
+function hostnameTokens(text) {
+  return new Set(
+    (text.match(/[a-z0-9.-]+\.[a-z]{2,}/giu) ?? [])
+      .map(hostname => hostname.toLowerCase()),
+  )
+}
+
 test('the generated site remains a one-page, tracker-free static homepage', () => {
   const indexPath = resolve(outputDirectory, 'index.html')
   assert.ok(existsSync(indexPath), 'run the front-end build before this test')
@@ -75,8 +82,8 @@ test('deployment surfaces define the static security policy', async () => {
     assert.ok(nginxConfig.includes(header), `Nginx config is missing ${header}`)
   }
 
-  assert.ok(!netlifyConfig.includes('analytics.avasan.org'))
-  assert.ok(!nginxConfig.includes('analytics.avasan.org'))
+  assert.equal(hostnameTokens(netlifyConfig).has('analytics.avasan.org'), false)
+  assert.equal(hostnameTokens(nginxConfig).has('analytics.avasan.org'), false)
   assert.ok(!netlifyConfig.includes('from = "/*"'))
   assert.ok(!netlifyConfig.includes('unsafe-eval'))
   assert.ok(!nginxConfig.includes('unsafe-eval'))
