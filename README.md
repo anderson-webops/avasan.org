@@ -25,9 +25,14 @@ Useful checks:
 
 - `npm run lint`
 - `npm run typecheck`
+- `npm test`
 - `npm run build`
 - `npm run a11y`
 - `npm run test:static`
+- `npm run audit`
+- `npm run audit:production`
+- `npm run verify:dependency-graph`
+- `npm run verify:native-bindings`
 
 The generated static site is written to `front-end/.output/public`.
 
@@ -35,6 +40,10 @@ Security headers are versioned for the Sites worker, Netlify, and the container
 Nginx deployment. `.openai/hosting.json` preserves the existing Sites project
 identity; `npm run build:sites` prepares its deployment artifact without
 publishing it.
+
+The architecture and operator boundaries from the latest authentication,
+authorization, backend, deployment, and supply-chain review are recorded in
+[`docs/security-audit.md`](docs/security-audit.md).
 
 The optional container listens on unprivileged port `8080`. Its Node and Nginx
 base images are pinned by multi-platform digest; update those digests

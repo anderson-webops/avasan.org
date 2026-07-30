@@ -38,7 +38,8 @@
 
 ## Testing & Verification
 
-- Run `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run a11y` before pushing site changes.
+- Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run a11y`, both audit commands, the
+  production dependency-graph check, and the native-binding verifier before pushing site changes.
 - Treat homepage regressions as high impact because this single page is the site’s entire public experience.
 - Keep the application static. Do not add analytics, a server workspace,
   runtime API configuration, or third-party scripts without an explicit product
@@ -74,8 +75,13 @@ Required dependency verification before every commit/push:
 1. Run `npm ci` from the repository root.
 2. Run `npm run lint`.
 3. Run `npm run typecheck`.
-4. Run `npm run build`.
-5. Run `npm run test:static`.
+4. Run `npm test`.
+5. Run `npm run build`.
+6. Run `npm run test:static`.
+7. Run `npm run audit`.
+8. Run `npm run audit:production`.
+9. Run `npm run verify:dependency-graph`.
+10. Run `npm run verify:native-bindings`.
 
 If `npm ci` fails because `package.json` and `package-lock.json` are out of sync:
 1. Run `npm install --package-lock-only --ignore-scripts --no-fund --no-audit` from the repository root.

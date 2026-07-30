@@ -59,8 +59,11 @@ test('the source tree has no optional API workspace', () => {
 test('deployment surfaces define the static security policy', async () => {
   const expectedHeaders = [
     'Content-Security-Policy',
+    'Cross-Origin-Opener-Policy',
+    'Cross-Origin-Resource-Policy',
     'Permissions-Policy',
     'Referrer-Policy',
+    'Strict-Transport-Security',
     'X-Content-Type-Options',
     'X-Frame-Options',
   ]
@@ -74,10 +77,14 @@ test('deployment surfaces define the static security policy', async () => {
 
   assert.ok(!netlifyConfig.includes('analytics.avasan.org'))
   assert.ok(!nginxConfig.includes('analytics.avasan.org'))
+  assert.ok(!netlifyConfig.includes('from = "/*"'))
+  assert.ok(!netlifyConfig.includes('unsafe-eval'))
+  assert.ok(!nginxConfig.includes('unsafe-eval'))
   assert.match(netlifyConfig, /from = "\/api\/\*"/)
   assert.match(netlifyConfig, /status = 404/)
   assert.match(nginxConfig, /location \^~ \/api\//)
   assert.match(nginxConfig, /return 404;/)
+  assert.match(nginxConfig, /try_files \$uri \$uri\/ =404;/)
 
   const workerModule = await import(pathToFileURL(resolve(projectRoot, 'sites/worker.js')))
   const request = new Request('https://avasan.org/')
@@ -92,7 +99,12 @@ test('deployment surfaces define the static security policy', async () => {
   assert.equal(response.status, 200)
   assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff')
   assert.equal(response.headers.get('X-Frame-Options'), 'DENY')
+  assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin')
+  assert.equal(response.headers.get('Cross-Origin-Resource-Policy'), 'same-origin')
   assert.match(response.headers.get('Content-Security-Policy') ?? '', /default-src 'self'/)
+  assert.match(response.headers.get('Content-Security-Policy') ?? '', /connect-src 'none'/)
+  assert.match(response.headers.get('Strict-Transport-Security') ?? '', /includeSubDomains/)
+  assert.equal(response.headers.get('Cache-Control'), 'no-cache')
 
   const apiResponse = await workerModule.default.fetch(
     new Request('https://avasan.org/api/health'),
@@ -106,6 +118,19 @@ test('deployment surfaces define the static security policy', async () => {
   )
   assert.equal(apiResponse.status, 404)
   assert.equal(apiResponse.headers.get('X-Content-Type-Options'), 'nosniff')
+
+  const mutationResponse = await workerModule.default.fetch(
+    new Request('https://avasan.org/', { method: 'POST' }),
+    {
+      ASSETS: {
+        fetch: () => {
+          throw new Error('Mutation methods must not reach the static asset binding')
+        },
+      },
+    },
+  )
+  assert.equal(mutationResponse.status, 405)
+  assert.equal(mutationResponse.headers.get('Allow'), 'GET, HEAD')
 
   const missingBindingResponse = await workerModule.default.fetch(request, {})
   assert.equal(missingBindingResponse.status, 503)

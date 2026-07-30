@@ -1,7 +1,7 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"private": true,
 	"packageManager": "npm@11.16.0",
 	"engines": {
@@ -15,6 +15,9 @@
 	"workspaces": [
 		"front-end"
 	],
+	"dependencies": {
+		"archiver": "file:vendor/archiver-nitro-compat"
+	},
 	"scripts": {
 		"build": "npm run -w front-end build && npm run test:static",
 		"build:sites": "npm run -w front-end build && npm run test:static && node scripts/build-sites.mjs",
@@ -23,21 +26,28 @@
 		"preview": "npm run -w front-end preview",
 		"postinstall": "simple-git-hooks && npm run -w front-end prepare",
 		"lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
-		"lint": "npm run -w front-end lint",
+		"lint": "npm run lint:repo && npm run -w front-end lint",
+		"lint:repo": "eslint \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\" \"vendor/**/*.js\"",
 		"lint-fix": "npm run -w front-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck",
+		"test": "npm run -w front-end build && node --test test/*.test.mjs",
+		"audit": "npm audit --audit-level=low",
+		"audit:production": "npm audit --omit=dev --audit-level=low",
+		"verify:dependency-graph": "npm ls --all --omit=dev",
+		"verify:native-bindings": "node scripts/verify-native-bindings.mjs",
+		"smoke:deployment": "node scripts/static-deployment-smoke.mjs",
 		"clean": "rm -rf node_modules front-end/node_modules front-end/.nuxt front-end/.output dist",
-		"up": "taze major -I && npm run -w front-end up",
+		"up": "taze major --write && npm install --package-lock-only --ignore-scripts --no-fund --no-audit",
 		"a11y": "node scripts/a11y-smoke.mjs",
 		"test:static": "node --test test/static-deployment.test.mjs"
 	},
 	"devDependencies": {
-		"@antfu/eslint-config": "^8.2.0",
+		"@antfu/eslint-config": "^9.2.0",
 		"axe-core": "^4.11.4",
 		"eslint": "^10.8.0",
-		"eslint-plugin-format": "^1.0.2",
-		"lint-staged": "^16.4.0",
-		"puppeteer": "^24.43.1",
+		"eslint-plugin-format": "^2.0.1",
+		"lint-staged": "^17.2.0",
+		"puppeteer": "^25.4.0",
 		"simple-git-hooks": "^2.13.1",
 		"taze": "^19.11.0",
 		"typescript": "^6.0.3"
@@ -65,7 +75,10 @@
 			".": "^8.1.0",
 			"esbuild": "^0.28.1"
 		},
-		"nitropack": "2.13.4",
+		"nitropack": {
+			".": "2.13.4",
+			"archiver": "$archiver"
+		},
 		"simple-git": "3.36.0",
 		"brace-expansion": "5.0.8",
 		"fast-uri": "3.1.4",
@@ -73,5 +86,12 @@
 		"svgo": "4.0.2",
 		"tar": "7.5.22",
 		"valibot": "1.4.2"
+	},
+	"allowScripts": {
+		"esbuild@0.28.1": true,
+		"fsevents@2.3.3": true,
+		"puppeteer@25.4.0": false,
+		"simple-git-hooks@2.13.1": true,
+		"unrs-resolver@1.12.2": true
 	}
 }

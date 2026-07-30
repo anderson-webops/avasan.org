@@ -2,15 +2,20 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
+
+env:
+  NUXT_TELEMETRY_DISABLED: "1"
+  PUPPETEER_SKIP_DOWNLOAD: "true"
 
 jobs:
   lint:
@@ -18,17 +23,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.0
           cache: npm
-          cache-dependency-path: package-lock.json
 
       - name: Pin npm version
         run: npm install --global npm@11.16.0
 
-      - name: Install
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
 
       - name: Lint
         run: npm run lint
@@ -38,93 +43,160 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.0
           cache: npm
-          cache-dependency-path: package-lock.json
 
       - name: Pin npm version
         run: npm install --global npm@11.16.0
 
-      - name: Install
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
 
       - name: Typecheck
         run: npm run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
+
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Tests
+        run: npm test
+
+  security-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
+
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Full dependency audit
+        run: npm run audit
+
+      - name: Production dependency audit
+        run: npm run audit:production
+
+      - name: Production dependency graph
+        run: npm run verify:dependency-graph
+
+      - name: Native lockfile coverage
+        run: npm run verify:native-bindings
 
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.0
           cache: npm
-          cache-dependency-path: package-lock.json
 
       - name: Pin npm version
         run: npm install --global npm@11.16.0
 
-      - name: Install
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
 
       - name: Build and verify static deployment
         run: npm run build
-
-  container:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Build the pinned unprivileged image
-        run: docker build --tag avasan-org:test .
-
-      - name: Exercise the read-only container
-        run: |
-          docker run --rm -d \
-            --name avasan-org-test \
-            --publish 127.0.0.1:8080:8080 \
-            --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=16m \
-            --cap-drop ALL \
-            --security-opt no-new-privileges \
-            avasan-org:test
-          trap 'docker stop avasan-org-test' EXIT
-
-          for attempt in $(seq 1 20); do
-            if curl --fail --silent --show-error http://127.0.0.1:8080/ >/dev/null; then
-              break
-            fi
-            if [ "$attempt" -eq 20 ]; then
-              exit 1
-            fi
-            sleep 1
-          done
-
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/)" = "200"
-          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/health)" = "404"
-          curl --fail --silent --show-error --head http://127.0.0.1:8080/ |
-            grep -Fiq 'X-Content-Type-Options: nosniff'
 
   accessibility:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.0
           cache: npm
-          cache-dependency-path: package-lock.json
 
       - name: Pin npm version
         run: npm install --global npm@11.16.0
 
-      - name: Install
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
 
       - name: Axe accessibility smoke checks
         run: npm run a11y
+
+  native-arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
+
+      - name: Install ARM64 dependencies
+        run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Verify ARM64 native bindings
+        run: npm run verify:native-bindings
+
+      - name: Build on ARM64
+        run: npm run build
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.0
+
+      - name: Build production container
+        run: docker build --tag avasan-org:test .
+
+      - name: Start production container
+        run: |
+          docker run --detach \
+            --name avasan-org-ci \
+            --publish 127.0.0.1:18080:8080 \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            avasan-org:test
+
+      - name: Verify production headers and routing
+        run: npm run smoke:deployment
+
+      - name: Stop production container
+        if: always()
+        run: docker rm --force avasan-org-ci
