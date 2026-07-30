@@ -1,6 +1,5 @@
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import http from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
@@ -11,15 +10,14 @@ const require = createRequire(import.meta.url)
 const axeSourcePath = require.resolve('axe-core/axe.min.js')
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(scriptDir, '..')
-const frontendPackagePath = resolve(projectRoot, 'front-end/package.json')
-const frontendPackage = JSON.parse(readFileSync(frontendPackagePath, 'utf8'))
+const frontendRoot = resolve(projectRoot, 'front-end')
+const nuxtPackagePath = require.resolve('nuxt/package.json')
+const nuxtPackage = JSON.parse(readFileSync(nuxtPackagePath, 'utf8'))
+const nuxtCliPath = resolve(dirname(nuxtPackagePath), nuxtPackage.bin.nuxt)
 
 const siteName = 'avasan.org'
-const frontendKind = 'nuxt'
 const frontendPort = Number(process.env.A11Y_FRONTEND_PORT || 3356)
-const apiPort = Number(process.env.A11Y_API_PORT || 3056)
 const baseUrl = `http://127.0.0.1:${frontendPort}`
-const apiUrl = `http://127.0.0.1:${apiPort}/api`
 const routes = [
   '/',
 ]
@@ -48,88 +46,6 @@ function writeServerLine(prefix, data) {
     process.stderr.write(`[${prefix}] ${text}\n`)
 }
 
-function sendJson(res, body, status = 200) {
-  res.writeHead(status, {
-    'content-type': 'application/json',
-    'access-control-allow-origin': baseUrl,
-    'access-control-allow-credentials': 'true',
-    'access-control-allow-headers': 'authorization,content-type',
-    'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-  })
-  res.end(JSON.stringify(body))
-}
-
-function emptyCollection() {
-  return {
-    items: [],
-    results: [],
-    data: [],
-    records: [],
-    total: 0,
-  }
-}
-
-function responseFor(url) {
-  const pathname = url.pathname.replace(/\/+/g, '/')
-  if (pathname.endsWith('/pageview'))
-    return { pageview: 0, startAt: Date.now() }
-  if (pathname.includes('/session'))
-    return { authenticated: false, user: null, admin: null }
-  if (pathname.includes('/auth') || pathname.includes('/login'))
-    return { authenticated: false, user: null, token: '' }
-  if (pathname.includes('/me') || pathname.includes('/account'))
-    return { user: null, authenticated: false }
-  if (pathname.includes('/quotes'))
-    return []
-  if (pathname.includes('/availability')) {
-    const start = new Date(Date.now() + 24 * 60 * 60_000)
-    start.setMinutes(0, 0, 0)
-    const end = new Date(start.getTime() + 60 * 60_000)
-    return [{ id: 'a11y-slot', title: 'Available', start: start.toISOString(), end: end.toISOString() }]
-  }
-  if (pathname.includes('/topics'))
-    return { topics: [], claims: [], ...emptyCollection() }
-  if (pathname.includes('/claims'))
-    return { claims: [], ...emptyCollection() }
-  if (pathname.includes('/search'))
-    return { query: url.searchParams.get('q') || '', ...emptyCollection() }
-  if (pathname.includes('/submissions') || pathname.includes('/board') || pathname.includes('/items'))
-    return emptyCollection()
-  if (pathname.includes('/service-directory'))
-    return { services: [], categories: [], ...emptyCollection() }
-  if (pathname.includes('/elections'))
-    return { elections: [], ...emptyCollection() }
-  if (pathname.includes('/jurisdictions') || pathname.includes('/locations') || pathname.includes('/districts'))
-    return { jurisdictions: [], locations: [], districts: [], ...emptyCollection() }
-  if (pathname.includes('/representatives') || pathname.includes('/candidate'))
-    return { representatives: [], candidates: [], ...emptyCollection() }
-  if (pathname.includes('/sources'))
-    return { sources: [], ...emptyCollection() }
-  if (pathname.includes('/products'))
-    return []
-  if (pathname.includes('/contact') || pathname.includes('/cart') || pathname.includes('/orders'))
-    return { ok: true }
-  return { ok: true, ...emptyCollection() }
-}
-
-function createMockApiServer() {
-  return http.createServer((req, res) => {
-    const url = new URL(req.url || '/', `http://127.0.0.1:${apiPort}`)
-    if (req.method === 'OPTIONS') {
-      sendJson(res, {}, 204)
-      return
-    }
-    sendJson(res, responseFor(url))
-  })
-}
-
-async function listen(server, port) {
-  await new Promise((resolveListen, reject) => {
-    server.once('error', reject)
-    server.listen(port, '127.0.0.1', resolveListen)
-  })
-}
-
 async function waitForHttp(url, timeoutMs = 45_000) {
   const start = Date.now()
   let lastError
@@ -149,50 +65,28 @@ async function waitForHttp(url, timeoutMs = 45_000) {
 }
 
 function startFrontend() {
-  const isNuxt = frontendKind === 'nuxt' || Object.values(frontendPackage.scripts || {}).some(script => String(script).includes('nuxt'))
-  const args = isNuxt
-    ? ['exec', '-w', 'front-end', '--', 'nuxt', 'dev', '--host', '127.0.0.1', '--port', String(frontendPort)]
-    : ['exec', '-w', 'front-end', '--', 'vite', '--host', '127.0.0.1', '--port', String(frontendPort), '--strictPort']
-
-  const child = spawn('npm', args, {
-    cwd: projectRoot,
+  const child = spawn(process.execPath, [
+    nuxtCliPath,
+    'dev',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(frontendPort),
+  ], {
+    cwd: frontendRoot,
     detached: process.platform !== 'win32',
     env: {
       ...process.env,
       BROWSER: 'none',
-      DISABLE_ANALYTICS: 'true',
       NUXT_A11Y_SCAN: 'true',
       NUXT_TELEMETRY_DISABLED: '1',
       NUXT_PUBLIC_APP_URL: baseUrl,
       NUXT_PUBLIC_SITE_URL: baseUrl,
-      NUXT_PUBLIC_API_BASE: apiUrl,
-      NUXT_PUBLIC_API_BASE_URL: apiUrl,
-      PUBLIC_API_BASE: apiUrl,
-      INTERNAL_API_BASE: apiUrl,
-      API_INTERNAL_BASE: apiUrl,
-      ADMIN_API_BASE: apiUrl,
-      NUXT_ADMIN_API_BASE: apiUrl,
-      ADMIN_API_KEY: 'a11y-smoke',
-      NUXT_ADMIN_API_KEY: 'a11y-smoke',
-      ADMIN_SESSION_SECRET: 'a11y-smoke-session-secret',
-      NUXT_ADMIN_SESSION_SECRET: 'a11y-smoke-session-secret',
-      NUXT_SESSION_SIGNING_SECRET: 'a11y-smoke-session-secret',
-      SESSION_SIGNING_SECRET: 'a11y-smoke-session-secret',
-      NUXT_PUBLIC_BACKEND_MODE: 'mock',
-      NUXT_PUBLIC_BILLING_MODE: 'mock',
-      NUXT_PUBLIC_ENABLE_DEMO_ACCESS: 'true',
-      NUXT_PUBLIC_FEATURE_INVESTMENT_MODULE: 'true',
-      NUXT_PUBLIC_PORTAL_URL: baseUrl,
-      VITE_API_BASE_URL: apiUrl,
-      VITE_API_URL: apiUrl,
-      VITE_SSG_API_BASE_URL: apiUrl,
-      VITE_PUBLIC_SITE_ORIGIN: baseUrl,
-      VITE_SHOW_AD_SLOTS: 'false',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   })
-  child.stdout.on('data', data => writeServerLine(isNuxt ? 'nuxt' : 'vite', data))
-  child.stderr.on('data', data => writeServerLine(isNuxt ? 'nuxt' : 'vite', data))
+  child.stdout.on('data', data => writeServerLine('nuxt', data))
+  child.stderr.on('data', data => writeServerLine('nuxt', data))
   return child
 }
 
@@ -246,10 +140,6 @@ async function stopProcessTree(child) {
   ])
 }
 
-function closeServer(server) {
-  return new Promise(resolveClose => server.close(resolveClose))
-}
-
 async function analyzePage(browser, route, scheme) {
   const url = `${baseUrl}${route}`
   const page = await browser.newPage()
@@ -278,12 +168,10 @@ async function analyzePage(browser, route, scheme) {
   }
 }
 
-const apiServer = createMockApiServer()
 const frontendProcess = startFrontend()
 let browser
 
 try {
-  await listen(apiServer, apiPort)
   await waitForHttp(baseUrl)
 
   browser = await puppeteer.launch({
@@ -322,5 +210,4 @@ finally {
   if (browser)
     await browser.close()
   await stopProcessTree(frontendProcess)
-  await closeServer(apiServer)
 }

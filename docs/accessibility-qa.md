@@ -8,12 +8,13 @@ deployment changes.
 - macOS VoiceOver: open `/`; use `VO + Right Arrow` through the page, then jump by headings, landmarks, and links.
 - Windows NVDA: repeat the homepage pass in Firefox or Chrome when a Windows machine is available; verify browse mode
   announces the heading and link destination clearly.
-- Confirm the page title, heading, main landmark, and `cs.avasan.org` link text are announced clearly.
+- Confirm the page title, heading, main landmark, and both destination link
+  texts are announced clearly.
 
 ## Keyboard Pass
 
 - Start at the browser address bar and tab through each page without using the mouse.
-- Verify the `cs.avasan.org` link has a clearly visible focus state.
+- Verify both destination links have clearly visible focus states.
 - Confirm no hidden control receives focus and no keyboard trap occurs.
 
 ## Contrast And Motion Pass
@@ -28,3 +29,4 @@ deployment changes.
 - `npm run lint`
 - `npm run typecheck`
 - `npm run build`
+- `npm run test:static`

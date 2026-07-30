@@ -4,10 +4,10 @@
 
 - `front-end/` contains the Nuxt 4 application. UI lives in `src/components`, layouts in `src/layouts`, routes in
   `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
-- `back-end/` contains the standalone Express API. Keep route wiring and middleware in `src/`, and emit compiled output
-  to `dist/`.
-- Root files (`package.json`, `tsconfig.base.json`, `eslint.config.js`, `Dockerfile`, `netlify.toml`) define the shared
-  monorepo toolchain and deployment defaults.
+- `sites/worker.js`, `netlify.toml`, and `deploy/nginx/default.conf` define the
+  supported static deployment surfaces and security headers.
+- Root files (`package.json`, `tsconfig.base.json`, `eslint.config.js`,
+  `Dockerfile`) define the shared front-end toolchain and deployment defaults.
 
 ## Site Scope
 
@@ -21,16 +21,17 @@
 - `npm install` installs all workspace dependencies. Use npm at the repo root; do not mix package managers for normal
   development.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
-- `npm run server` starts the Express API with `tsx watch` on port `3006`.
-- `npm run typecheck` runs both the Nuxt and back-end TypeScript checks.
-- `npm run lint` runs ESLint across both workspaces.
-- `npm run build` generates the static front-end to `front-end/.output/public` and compiles the back-end to
-  `back-end/dist`.
+- `npm run typecheck` runs the Nuxt TypeScript check.
+- `npm run lint` runs ESLint on the front-end workspace.
+- `npm run build` generates the static front-end to
+  `front-end/.output/public` and verifies the one-page deployment contract.
+- `npm run test:static` verifies the generated site, absence of trackers and a
+  runtime API, security headers, and Sites project identity.
 
 ## Coding Style & Naming Conventions
 
-- Follow the repo ESLint configuration. Front-end files use the upstream Nuxt/Vitesse formatting style; root and
-  back-end files follow the shared monorepo lint rules.
+- Follow the repo ESLint configuration. Front-end files use the upstream
+  Nuxt/Vitesse formatting style and root scripts follow the shared rules.
 - Prefer descriptive component and composable names. Use PascalCase for Vue components and camelCase for utility and
   composable exports.
 - Keep route-facing files in `src/pages` aligned with Nuxt’s file-based routing conventions.
@@ -38,8 +39,10 @@
 ## Testing & Verification
 
 - Run `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run a11y` before pushing site changes.
-- When changing API behavior, verify both the front-end call site and the Express route behavior together.
 - Treat homepage regressions as high impact because this single page is the site’s entire public experience.
+- Keep the application static. Do not add analytics, a server workspace,
+  runtime API configuration, or third-party scripts without an explicit product
+  decision.
 
 ## Template Workflow
 
@@ -72,7 +75,7 @@ Required dependency verification before every commit/push:
 2. Run `npm run lint`.
 3. Run `npm run typecheck`.
 4. Run `npm run build`.
-5. If API or back-end behavior changed and the repo has a back-end workspace, run `npm run -w back-end test` or the repo's equivalent API test command.
+5. Run `npm run test:static`.
 
 If `npm ci` fails because `package.json` and `package-lock.json` are out of sync:
 1. Run `npm install --package-lock-only --ignore-scripts --no-fund --no-audit` from the repository root.

@@ -10,8 +10,9 @@ The public site is intentionally one page with two destinations:
 ## Development
 
 This project is based on
-[anderson-webops/vitesse-nuxt-template](https://github.com/anderson-webops/vitesse-nuxt-template) and retains its Nuxt
-front-end plus optional Express back-end workspace.
+[anderson-webops/vitesse-nuxt-template](https://github.com/anderson-webops/vitesse-nuxt-template), with only the Nuxt
+static front end retained. The homepage does not use analytics, accounts, forms,
+cookies, or a runtime API.
 
 From the repository root:
 
@@ -26,10 +27,16 @@ Useful checks:
 - `npm run typecheck`
 - `npm run build`
 - `npm run a11y`
+- `npm run test:static`
 
 The generated static site is written to `front-end/.output/public`.
 
-Production builds send page views to the dedicated
-`analytics.avasan.org` instance and the owner-visible central
-`analytics.jacobdanderson.net` instance. Set `DISABLE_ANALYTICS=true` to omit
-both trackers.
+Security headers are versioned for the Sites worker, Netlify, and the container
+Nginx deployment. `.openai/hosting.json` preserves the existing Sites project
+identity; `npm run build:sites` prepares its deployment artifact without
+publishing it.
+
+The optional container listens on unprivileged port `8080`. Its Node and Nginx
+base images are pinned by multi-platform digest; update those digests
+deliberately when adopting upstream security fixes, then repeat the full build
+and static deployment tests.

@@ -4,8 +4,11 @@
   `anderson-webops/vitesse-nuxt-template`.
 - Keep `origin` pointed at `anderson-webops/avasan.org` and `template` pointed at the validated Vitesse fork.
 - Keep the public experience intentionally limited to one homepage and one primary link to `https://cs.avasan.org`.
-- Maintain the root npm workspace pattern with exactly two primary workspaces: `front-end` and `back-end`.
-- Validate changes with `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run a11y` before pushing.
+- Maintain a single `front-end` npm workspace. Do not restore the unused Express
+  service, runtime API configuration, or analytics trackers without an explicit
+  product decision.
+- Validate changes with `npm run lint`, `npm run typecheck`, `npm run build`,
+  `npm run test:static`, and `npm run a11y` before pushing.
 - Keep `package-lock.json` up to date whenever dependencies or workspace manifests change.
 - Do not leave completed work uncommitted or unpushed.
 
@@ -27,7 +30,7 @@ Required dependency verification before every commit/push:
 2. Run `npm run lint`.
 3. Run `npm run typecheck`.
 4. Run `npm run build`.
-5. If API or back-end behavior changed and the repo has a back-end workspace, run `npm run -w back-end test` or the repo's equivalent API test command.
+5. Run `npm run test:static`.
 
 If `npm ci` fails because `package.json` and `package-lock.json` are out of sync:
 1. Run `npm install --package-lock-only --ignore-scripts --no-fund --no-audit` from the repository root.

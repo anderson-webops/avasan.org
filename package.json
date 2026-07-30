@@ -13,26 +13,23 @@
 	"license": "ISC",
 	"keywords": [],
 	"workspaces": [
-		"front-end",
-		"back-end"
+		"front-end"
 	],
 	"scripts": {
-		"build": "npm run -w front-end build && npm run -w back-end build",
-		"build:sites": "npm run -w front-end build && node scripts/build-sites.mjs",
+		"build": "npm run -w front-end build && npm run test:static",
+		"build:sites": "npm run -w front-end build && npm run test:static && node scripts/build-sites.mjs",
 		"dev": "npm run -w front-end dev",
-		"server": "npm run -w back-end server",
-		"server:once": "npm run -w back-end server:once",
 		"serve": "npm run -w front-end serve",
 		"preview": "npm run -w front-end preview",
 		"postinstall": "simple-git-hooks && npm run -w front-end prepare",
-		"lint-server": "npm run -w back-end lint-fix && npm run -w back-end server",
 		"lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
-		"lint": "npm run -w front-end lint && npm run -w back-end lint",
-		"lint-fix": "npm run -w front-end lint-fix && npm run -w back-end lint-fix",
-		"typecheck": "npm run -w front-end typecheck && npm run -w back-end typecheck",
-		"clean": "rm -rf node_modules package-lock.json front-end/node_modules front-end/.nuxt front-end/.output back-end/node_modules back-end/dist",
-		"up": "taze major -I && npm run -w front-end up && npm run -w back-end up",
-		"a11y": "node scripts/a11y-smoke.mjs"
+		"lint": "npm run -w front-end lint",
+		"lint-fix": "npm run -w front-end lint-fix",
+		"typecheck": "npm run -w front-end typecheck",
+		"clean": "rm -rf node_modules front-end/node_modules front-end/.nuxt front-end/.output dist",
+		"up": "taze major -I && npm run -w front-end up",
+		"a11y": "node scripts/a11y-smoke.mjs",
+		"test:static": "node --test test/static-deployment.test.mjs"
 	},
 	"devDependencies": {
 		"@antfu/eslint-config": "^8.2.0",

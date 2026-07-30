@@ -9,9 +9,13 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -19,6 +23,9 @@ jobs:
           node-version: 24.18.0
           cache: npm
           cache-dependency-path: package-lock.json
+
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
 
       - name: Install
         run: npm ci
@@ -28,6 +35,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -36,28 +44,86 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
+
       - name: Install
         run: npm ci
 
       - name: Typecheck
         run: npm run typecheck
 
-  accessibility:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-
       - uses: actions/setup-node@v7
         with:
           node-version: 24.18.0
           cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Pin npm version
-        run: |
-          npm i -g npm@11.16.0
-          npm -v
+        run: npm install --global npm@11.16.0
 
-      - name: Install deps
+      - name: Install
+        run: npm ci
+
+      - name: Build and verify static deployment
+        run: npm run build
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the pinned unprivileged image
+        run: docker build --tag avasan-org:test .
+
+      - name: Exercise the read-only container
+        run: |
+          docker run --rm -d \
+            --name avasan-org-test \
+            --publish 127.0.0.1:8080:8080 \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges \
+            avasan-org:test
+          trap 'docker stop avasan-org-test' EXIT
+
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:8080/ >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 20 ]; then
+              exit 1
+            fi
+            sleep 1
+          done
+
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/)" = "200"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/api/health)" = "404"
+          curl --fail --silent --show-error --head http://127.0.0.1:8080/ |
+            grep -Fiq 'X-Content-Type-Options: nosniff'
+
+  accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Pin npm version
+        run: npm install --global npm@11.16.0
+
+      - name: Install
         run: npm ci
 
       - name: Axe accessibility smoke checks

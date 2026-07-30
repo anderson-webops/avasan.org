@@ -8,16 +8,15 @@ export default antfu(
     ignores: ['**/*.d.ts', '**/dist/**', '**/.nuxt/**', '**/.output/**'],
   },
   {
-    files: ['back-end/**/*.{js,ts,mjs,cjs}'],
-    rules: {
-      'no-console': 'off',
-      'node/prefer-global/process': 'off',
-    },
-  },
-  {
     files: ['README.md'],
     rules: {
       'markdown/heading-increment': 'off',
+    },
+  },
+  {
+    files: ['test/**/*.test.mjs'],
+    rules: {
+      'test/no-import-node-test': 'off',
     },
   },
 )
