@@ -1,4 +1,5 @@
 const bundledIndexHtml = null
+const bundledReleaseJson = null
 
 const securityHeaders = {
   'Content-Security-Policy': `default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'self'; upgrade-insecure-requests`,
@@ -17,7 +18,9 @@ function secureResponse(response, request) {
     headers.set(name, value)
 
   const pathname = new URL(request.url).pathname
-  if (pathname.startsWith('/_nuxt/'))
+  if (pathname === '/release.json')
+    headers.set('Cache-Control', 'no-store')
+  else if (pathname.startsWith('/_nuxt/'))
     headers.set('Cache-Control', 'public, max-age=31536000, immutable')
   else
     headers.set('Cache-Control', 'no-cache')
@@ -48,6 +51,13 @@ export default {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
         status: 404,
       }), request)
+    }
+
+    if (pathname === '/release.json' && bundledReleaseJson) {
+      return secureResponse(new Response(
+        request.method === 'HEAD' ? null : bundledReleaseJson,
+        { headers: { 'Content-Type': 'application/json; charset=utf-8' } },
+      ), request)
     }
 
     if ((pathname === '/' || pathname === '/index.html') && bundledIndexHtml) {

@@ -24,6 +24,8 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
   assert.ok(existsSync(indexPath), 'run the front-end build before this test')
 
   const html = readFileSync(indexPath, 'utf8')
+  const release = JSON.parse(read('front-end/.output/public/release.json'))
+  const rootPackage = JSON.parse(read('package.json'))
   const forbiddenText = [
     'analytics.avasan.org',
     'analytics.jacobdanderson.net',
@@ -37,6 +39,9 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
 
   assert.match(html, /href="https:\/\/cs\.avasan\.org"/)
   assert.match(html, /href="https:\/\/math\.avasan\.org"/)
+  assert.deepEqual(Object.keys(release).sort(), ['revision', 'version'])
+  assert.equal(release.version, rootPackage.version)
+  assert.match(release.revision, /^[0-9a-f]{40}$/u)
   assert.deepEqual(
     [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)]
       .map(match => match[1])
@@ -85,6 +90,7 @@ test('deployment surfaces define the static security policy', async () => {
   assert.equal(hostnameTokens(netlifyConfig).has('analytics.avasan.org'), false)
   assert.equal(hostnameTokens(nginxConfig).has('analytics.avasan.org'), false)
   assert.ok(!netlifyConfig.includes('from = "/*"'))
+  assert.match(netlifyConfig, /for = "\/release\.json"[\s\S]*?Cache-Control = "no-store"/u)
   assert.ok(!netlifyConfig.includes('unsafe-eval'))
   assert.ok(!nginxConfig.includes('unsafe-eval'))
   assert.match(netlifyConfig, /from = "\/api\/\*"/)
@@ -92,6 +98,8 @@ test('deployment surfaces define the static security policy', async () => {
   assert.match(nginxConfig, /location \^~ \/api\//)
   assert.match(nginxConfig, /return 404;/)
   assert.match(nginxConfig, /try_files \$uri \$uri\/ =404;/)
+  assert.match(nginxConfig, /\/release\.json "no-store";/u)
+  assert.match(nginxConfig, /location = \/release\.json/u)
 
   const workerModule = await import(pathToFileURL(resolve(projectRoot, 'sites/worker.js')))
   const request = new Request('https://avasan.org/')
@@ -150,6 +158,8 @@ test('the alternative container is pinned and unprivileged', () => {
 
   assert.match(dockerfile, /FROM node:24\.18\.0-alpine@sha256:[a-f0-9]{64} AS build-stage/)
   assert.match(dockerfile, /FROM nginxinc\/nginx-unprivileged:stable-alpine@sha256:[a-f0-9]{64} AS production-stage/)
+  assert.match(dockerfile, /ARG AVASAN_RELEASE_REVISION/u)
+  assert.match(dockerfile, /test -n "\$\{AVASAN_RELEASE_REVISION\}"/u)
   assert.match(dockerfile, /EXPOSE 8080/)
   assert.match(nginxConfig, /listen 8080;/)
   assert.match(nginxConfig, /access_log off;/)

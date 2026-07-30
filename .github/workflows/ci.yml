@@ -181,7 +181,11 @@ jobs:
           node-version: 24.18.0
 
       - name: Build production container
-        run: docker build --tag avasan-org:test .
+        run: |
+          docker build \
+            --build-arg AVASAN_RELEASE_REVISION="${GITHUB_SHA}" \
+            --tag avasan-org:test \
+            .
 
       - name: Start production container
         run: |

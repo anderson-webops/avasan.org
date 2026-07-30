@@ -32,6 +32,14 @@ boundaries.
 - Bundled the Sites homepage into its worker and removed direct HTML assets from that deployment artifact. This prevents
   the Sites static-asset fast path from bypassing the worker-owned security headers.
 - Removed SPA-style unknown-route fallbacks from Netlify and Nginx so unrecognized paths return a real 404.
+- Added a minimal `/release.json` containing only the semantic version and full
+  source commit. Netlify and Nginx serve the generated file, while the Sites
+  worker bundles the same content; all three delivery paths mark it
+  `Cache-Control: no-store`.
+- Added a manual custom-domain deployment check that requires an expected
+  version and full revision, then verifies release identity, strict response
+  headers, allowlisted links, absence of external scripts, unknown-route 404s,
+  unsupported-method 405s, and the fail-closed API boundary.
 - Enabled source tests that prevent silent reintroduction of accounts, forms, trackers, runtime configuration, or a
   backend workspace.
 
@@ -45,12 +53,13 @@ gates.
 
 ## Production and operator boundaries
 
-The source repository and Sites deployment do not automatically replace the custom-domain Nginx deployment. At the
-time of this audit, `https://avasan.org` still served the earlier build that loaded two analytics scripts and returned
-the homepage for `/api/health`; its shared Nginx content security policy also permitted broad external sources and
-`unsafe-eval`. The audited source removes those behaviors.
+The source repository and Sites deployment do not automatically replace the
+custom-domain Nginx deployment. Promoting a build there remains a separate,
+authorized server operation. A deployment must preserve the generated
+`release.json` and must not record success unless its version and revision
+match the intended source.
 
-Promoting the audited build to the custom domain requires authorized server access. After promotion, verify the exact
-source revision, absence of third-party scripts, a 404 for `/api/health` and unknown routes, a 405 for mutation methods,
-the strict response headers, both destination links, and the desktop/mobile accessibility checks. Do not describe the
-custom domain as remediated until that external verification passes.
+After promotion, run the manual `Verify production deployment` workflow with
+the intended version and full commit. Do not describe the custom domain as
+current merely because source validation or a private Sites deployment passed;
+the custom-domain smoke must also pass.

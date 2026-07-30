@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -15,6 +15,11 @@ test('Sites routes every HTML response through the security worker', async () =>
     readdirSync(assetsDirectory).filter(entry => entry.endsWith('.html')),
     [],
     'HTML files must not bypass the Sites worker as direct static assets',
+  )
+  assert.equal(
+    readdirSync(assetsDirectory).includes('release.json'),
+    false,
+    'release metadata must not bypass the Sites worker as a direct asset',
   )
 
   const workerModule = await import(`${pathToFileURL(workerPath)}?test=${Date.now()}`)
@@ -39,4 +44,40 @@ test('Sites routes every HTML response through the security worker', async () =>
   )
   assert.equal(headResponse.status, 200)
   assert.equal(await headResponse.text(), '')
+
+  const expectedRelease = JSON.parse(
+    readFileSync(resolve(projectRoot, 'front-end/.output/public/release.json'), 'utf8'),
+  )
+  const releaseResponse = await workerModule.default.fetch(
+    new Request('https://avasan-org.example/release.json'),
+    {},
+  )
+  assert.equal(releaseResponse.status, 200)
+  assert.equal(releaseResponse.headers.get('Content-Type'), 'application/json; charset=utf-8')
+  assert.equal(releaseResponse.headers.get('Cache-Control'), 'no-store')
+  assert.deepEqual(await releaseResponse.json(), expectedRelease)
+
+  const releaseHeadResponse = await workerModule.default.fetch(
+    new Request('https://avasan-org.example/release.json', { method: 'HEAD' }),
+    {},
+  )
+  assert.equal(releaseHeadResponse.status, 200)
+  assert.equal(releaseHeadResponse.headers.get('Cache-Control'), 'no-store')
+  assert.equal(await releaseHeadResponse.text(), '')
+
+  const unknownResponse = await workerModule.default.fetch(
+    new Request('https://avasan-org.example/__missing'),
+    {
+      ASSETS: {
+        fetch: () => new Response('Not found.', { status: 404 }),
+      },
+    },
+  )
+  assert.equal(unknownResponse.status, 404)
+
+  const mutationResponse = await workerModule.default.fetch(
+    new Request('https://avasan-org.example/', { method: 'POST' }),
+    {},
+  )
+  assert.equal(mutationResponse.status, 405)
 })

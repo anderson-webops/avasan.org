@@ -7,6 +7,7 @@ const readText = path => readFileSync(new URL(`../${path}`, import.meta.url), 'u
 test('repository pins the approved runtime, lifecycle, and CI supply chain', () => {
   const packageJson = JSON.parse(readText('package.json'))
   const workflow = readText('.github/workflows/ci.yml')
+  const postDeployWorkflow = readText('.github/workflows/post-deploy.yml')
 
   assert.equal(packageJson.packageManager, 'npm@11.16.0')
   assert.deepEqual(packageJson.engines, {
@@ -29,8 +30,17 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(workflow, /npm run verify:dependency-graph/u)
   assert.match(workflow, /npm run verify:native-bindings/u)
   assert.match(workflow, /npm ci --include=optional --strict-allow-scripts/u)
+  assert.match(workflow, /--build-arg AVASAN_RELEASE_REVISION="\$\{GITHUB_SHA\}"/u)
+  assert.match(postDeployWorkflow, /workflow_dispatch:/u)
+  assert.match(postDeployWorkflow, /DEPLOYMENT_URL: https:\/\/avasan\.org/u)
+  assert.match(postDeployWorkflow, /EXPECTED_REVISION: \$\{\{ inputs\.expected_revision \}\}/u)
+  assert.match(postDeployWorkflow, /EXPECTED_VERSION: \$\{\{ inputs\.expected_version \}\}/u)
   assert.match(readText('Dockerfile'), /COPY vendor\/archiver-nitro-compat/u)
   assert.match(packageJson.scripts['build:sites'], /npm run test:sites/u)
+  assert.match(
+    JSON.parse(readText('front-end/package.json')).scripts.build,
+    /write-release-metadata\.mjs/u,
+  )
 })
 
 test('weekly dependency updates preserve the reviewed TypeScript compatibility boundary', () => {

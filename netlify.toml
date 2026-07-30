@@ -34,6 +34,12 @@ X-Content-Type-Options = "nosniff"
 X-Frame-Options = "DENY"
 
 [[headers]]
+for = "/release.json"
+
+[headers.values]
+Cache-Control = "no-store"
+
+[[headers]]
 for = "/_nuxt/*"
 
 [headers.values]
