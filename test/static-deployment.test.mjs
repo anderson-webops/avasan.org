@@ -39,6 +39,8 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
 
   assert.match(html, /href="https:\/\/cs\.avasan\.org"/)
   assert.match(html, /href="https:\/\/math\.avasan\.org"/)
+  assert.match(html, /href="\/favicon\.svg"/)
+  assert.ok(existsSync(resolve(outputDirectory, 'favicon.svg')))
   assert.deepEqual(Object.keys(release).sort(), ['revision', 'version'])
   assert.equal(release.version, rootPackage.version)
   assert.match(release.revision, /^[0-9a-f]{40}$/u)

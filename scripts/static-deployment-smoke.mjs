@@ -88,6 +88,12 @@ assert.equal(assetResponse.status, 200)
 assert.match(assetResponse.headers.get('cache-control') ?? '', /immutable/u)
 assert.equal(assetResponse.headers.get('x-content-type-options'), 'nosniff')
 
+assert.match(html, /<link[^>]+rel="icon"[^>]+href="\/favicon\.svg"/iu)
+const faviconResponse = await request('/favicon.svg')
+assert.equal(faviconResponse.status, 200)
+assert.match(faviconResponse.headers.get('content-type') ?? '', /^image\/svg\+xml\b/iu)
+assert.equal(faviconResponse.headers.get('x-content-type-options'), 'nosniff')
+
 const releaseResponse = await request('/release.json')
 assert.equal(releaseResponse.status, 200)
 assert.match(releaseResponse.headers.get('content-type') ?? '', /^application\/json\b/iu)

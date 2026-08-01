@@ -8,6 +8,7 @@ useHead({
   },
   link: [
     { rel: 'canonical', href: 'https://avasan.org' },
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
   ],
 })
 
