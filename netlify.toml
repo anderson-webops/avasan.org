@@ -3,8 +3,8 @@ publish = "front-end/.output/public"
 command = "npm run -w front-end build"
 
 [build.environment]
-NODE_VERSION = "24.18.0"
-NPM_VERSION = "11.16.0"
+NODE_VERSION = "24.18.1"
+NPM_VERSION = "12.0.2"
 NPM_FLAGS = "--include=optional --strict-allow-scripts"
 
 [[redirects]]

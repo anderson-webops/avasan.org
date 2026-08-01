@@ -3,10 +3,10 @@
 	"type": "module",
 	"version": "1.2.2",
 	"private": true,
-	"packageManager": "npm@11.16.0",
+	"packageManager": "npm@12.0.2",
 	"engines": {
-		"node": ">=24.18.0 <25",
-		"npm": ">=11.16.0 <12"
+		"node": ">=24.18.1 <25",
+		"npm": ">=12.0.2 <13"
 	},
 	"description": "Julio's math and computer science teaching homepage",
 	"author": "Jacob Anderson",

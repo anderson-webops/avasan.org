@@ -10,10 +10,10 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   const postDeployWorkflow = readText('.github/workflows/post-deploy.yml')
   const deploymentSmoke = readText('scripts/static-deployment-smoke.mjs')
 
-  assert.equal(packageJson.packageManager, 'npm@11.16.0')
+  assert.equal(packageJson.packageManager, 'npm@12.0.2')
   assert.deepEqual(packageJson.engines, {
-    node: '>=24.18.0 <25',
-    npm: '>=11.16.0 <12',
+    node: '>=24.18.1 <25',
+    npm: '>=12.0.2 <13',
   })
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.1': true,

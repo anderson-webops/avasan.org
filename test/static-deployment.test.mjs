@@ -158,7 +158,7 @@ test('the alternative container is pinned and unprivileged', () => {
   const dockerfile = read('Dockerfile')
   const nginxConfig = read('deploy/nginx/default.conf')
 
-  assert.match(dockerfile, /FROM node:24\.18\.0-alpine@sha256:[a-f0-9]{64} AS build-stage/)
+  assert.match(dockerfile, /FROM node:24\.18\.1-alpine3\.24@sha256:[a-f0-9]{64} AS build-stage/)
   assert.match(dockerfile, /FROM nginxinc\/nginx-unprivileged:stable-alpine@sha256:[a-f0-9]{64} AS production-stage/)
   assert.match(dockerfile, /ARG AVASAN_RELEASE_REVISION/u)
   assert.match(dockerfile, /test -n "\$\{AVASAN_RELEASE_REVISION\}"/u)
