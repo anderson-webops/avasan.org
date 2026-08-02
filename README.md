@@ -45,8 +45,8 @@ apply `no-cache`, which still requires revalidation before reuse.
 Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.3
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.3
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.4
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.4
 ```
 
 Promotion compares the prepared and public release identities, switches the `current` symlink atomically, validates
