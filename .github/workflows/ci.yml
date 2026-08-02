@@ -236,8 +236,10 @@ jobs:
         env:
           EXPECTED_REVISION: ${{ github.sha }}
         run: |
-          sudo install -d -m 0755 /srv/avasan.org/releases/ci
-          sudo cp -a front-end/.output/public/. /srv/avasan.org/releases/ci/
+          sudo install -d -m 0755 \
+            /srv/avasan.org/releases/ci/front-end/.output/public
+          sudo cp -a front-end/.output/public/. \
+            /srv/avasan.org/releases/ci/front-end/.output/public/
           sudo ln -sfn releases/ci /srv/avasan.org/current
           printf '127.0.0.1 avasan.org\n' | sudo tee -a /etc/hosts >/dev/null
           sudo systemctl restart nginx
