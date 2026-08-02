@@ -45,6 +45,11 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   )
   assert.doesNotMatch(workflow, /\bdocker\b/iu)
   assert.match(postDeployWorkflow, /workflow_dispatch:/u)
+  assert.match(postDeployWorkflow, /persist-credentials: false/u)
+  assert.match(
+    postDeployWorkflow,
+    /- name: Pin npm version\s+run: npm install --global npm@12\.0\.2 --allow-scripts=npm[\s\S]*- name: Verify pinned toolchain/u,
+  )
   assert.match(postDeployWorkflow, /ALLOW_RELEASE_NO_CACHE: "true"/u)
   assert.match(postDeployWorkflow, /DEPLOYMENT_URL: https:\/\/avasan\.org/u)
   assert.match(postDeployWorkflow, /EXPECTED_REVISION: \$\{\{ inputs\.expected_revision \}\}/u)
