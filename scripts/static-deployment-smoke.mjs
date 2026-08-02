@@ -134,7 +134,7 @@ assert.match(await directErrorPageResponse.text(), /Page not found/u)
 
 const directIndexResponse = await request('/index.html')
 assert.equal(directIndexResponse.status, 200)
-assert.match(await directIndexResponse.text(), /https:\/\/cs\.avasan\.org/u)
+assert.ok((await directIndexResponse.text()).includes('href="https://cs.avasan.org"'))
 
 const mutationResponse = await request('/', { method: 'POST' })
 assert.equal(mutationResponse.status, 405)
