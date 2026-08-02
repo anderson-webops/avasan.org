@@ -69,8 +69,8 @@ it is not a replacement for the production TLS virtual host.
 Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.4
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.4
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.5
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.5
 ```
 
 Promotion compares the prepared and public release identities, atomically
