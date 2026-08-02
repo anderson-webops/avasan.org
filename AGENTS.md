@@ -4,8 +4,9 @@
 
 - `front-end/` contains the Nuxt 4 application. UI lives in `src/components`, layouts in `src/layouts`, routes in
   `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
-- `deploy/nginx/default.conf` and `deploy/direct/` define the single supported
-  native static deployment surface and its security headers.
+- `deploy/nginx/http-maps.conf`, `deploy/nginx/server-policy.conf`, the
+  standalone `deploy/nginx/default.conf`, and `deploy/direct/` define the single
+  supported native static deployment surface and its security headers.
 - Root files (`package.json`, `tsconfig.base.json`, and `eslint.config.js`) define the shared front-end toolchain.
   Direct static release helpers live under `deploy/`.
 

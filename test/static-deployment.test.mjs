@@ -84,25 +84,30 @@ test('the native static deployment defines the security policy', () => {
     'X-Content-Type-Options',
     'X-Frame-Options',
   ]
-  const nginxConfig = read('deploy/nginx/default.conf')
+  const httpMaps = read('deploy/nginx/http-maps.conf')
+  const serverPolicy = read('deploy/nginx/server-policy.conf')
 
   for (const header of expectedHeaders) {
-    assert.ok(nginxConfig.includes(header), `Nginx config is missing ${header}`)
+    assert.ok(serverPolicy.includes(header), `Nginx policy is missing ${header}`)
   }
 
-  assert.equal(hostnameTokens(nginxConfig).has('analytics.avasan.org'), false)
-  assert.ok(!nginxConfig.includes('unsafe-eval'))
-  assert.match(nginxConfig, /location \^~ \/api\//)
-  assert.match(nginxConfig, /return 404;/)
-  assert.match(nginxConfig, /try_files \$uri \$uri\/ =404;/)
-  assert.match(nginxConfig, /error_page 404 \/404\.html;/u)
-  assert.match(nginxConfig, /location = \/404\.html[\s\S]*?internal;/u)
-  assert.match(nginxConfig, /\/release\.json "no-store";/u)
-  assert.match(nginxConfig, /location = \/release\.json/u)
+  assert.equal(hostnameTokens(serverPolicy).has('analytics.avasan.org'), false)
+  assert.ok(!serverPolicy.includes('unsafe-eval'))
+  assert.doesNotMatch(serverPolicy, /\blisten\b/u)
+  assert.doesNotMatch(serverPolicy, /\bssl_/u)
+  assert.doesNotMatch(serverPolicy, /\bserver_name\b/u)
+  assert.match(serverPolicy, /location \^~ \/api\//)
+  assert.match(serverPolicy, /return 404;/)
+  assert.match(serverPolicy, /try_files \$uri \$uri\/ =404;/)
+  assert.match(serverPolicy, /error_page 404 =404 \/404\.html;/u)
+  assert.match(serverPolicy, /location = \/404\.html[\s\S]*?internal;/u)
+  assert.match(serverPolicy, /location = \/release\.json/u)
+  assert.match(httpMaps, /\/release\.json "no-store";/u)
 })
 
 test('the direct Nginx release path is dual-stack and atomic', () => {
   const nginxConfig = read('deploy/nginx/default.conf')
+  const serverPolicy = read('deploy/nginx/server-policy.conf')
   const prepareRelease = read('deploy/direct/prepare-static-release.sh')
   const promoteRelease = read('deploy/direct/promote-static-release.sh')
 
@@ -111,11 +116,18 @@ test('the direct Nginx release path is dual-stack and atomic', () => {
   assert.match(nginxConfig, /listen 80;/)
   assert.match(nginxConfig, /listen \[::\]:80;/)
   assert.match(nginxConfig, /server_name avasan\.org www\.avasan\.org;/)
-  assert.match(nginxConfig, /root \/srv\/avasan\.org\/current\/front-end\/\.output\/public;/)
-  assert.match(nginxConfig, /access_log off;/)
+  assert.match(nginxConfig, /include \/etc\/nginx\/snippets\/avasan\.org-http-maps\.conf;/u)
+  assert.match(nginxConfig, /include \/etc\/nginx\/snippets\/avasan\.org-server-policy\.conf;/u)
+  assert.match(serverPolicy, /root \/srv\/avasan\.org\/current\/front-end\/\.output\/public;/)
+  assert.match(serverPolicy, /access_log off;/)
   assert.match(prepareRelease, /AVASAN_RELEASE_REVISION/u)
   assert.match(prepareRelease, /unprivileged deployment user/u)
   assert.match(promoteRelease, /mv -Tf/u)
+  assert.match(promoteRelease, /install_snippet/u)
+  assert.match(promoteRelease, /restore_snippets/u)
+  assert.match(promoteRelease, /nginx -T/u)
+  assert.match(promoteRelease, /avasan\.org-http-maps\.conf/u)
+  assert.match(promoteRelease, /avasan\.org-server-policy\.conf/u)
   assert.match(promoteRelease, /systemctl reload nginx/u)
   assert.match(promoteRelease, /restoring the previous release/u)
 })
