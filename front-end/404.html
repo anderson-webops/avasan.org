@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="noindex,nofollow" name="robots" />
+    <title>Page Not Found | Julio</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+        background: #f6f1e7;
+        color: #15343b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        display: grid;
+        min-width: 20rem;
+        min-height: 100vh;
+        min-height: 100svh;
+        place-items: center;
+        margin: 0;
+        padding: 1.5rem;
+        background: radial-gradient(circle at 20% 20%, rgb(15 118 110 / 12%), transparent 28rem);
+      }
+      main {
+        display: grid;
+        width: min(100%, 32rem);
+        justify-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+      p,
+      h1 {
+        margin: 0;
+      }
+      .eyebrow {
+        color: #0f766e;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font-family: Georgia, serif;
+        font-size: clamp(2.5rem, 9vw, 4.5rem);
+        font-weight: 400;
+        line-height: 1;
+      }
+      .message {
+        color: #5b6e6d;
+        font-size: 1.08rem;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-top: 0.5rem;
+        border-radius: 999px;
+        padding: 0.85rem 1.15rem;
+        background: #0f766e;
+        color: #fff;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      a:focus-visible {
+        outline: 3px solid #c96832;
+        outline-offset: 4px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          background: #10282d;
+          color: #f7f0e4;
+        }
+        body {
+          background: radial-gradient(circle at 20% 20%, rgb(109 214 200 / 13%), transparent 28rem);
+        }
+        .eyebrow {
+          color: #6dd6c8;
+        }
+        .message {
+          color: #b7c8c4;
+        }
+        a {
+          background: #6dd6c8;
+          color: #10282d;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Julio</p>
+      <h1>Page not found</h1>
+      <p class="message">That page is not here.</p>
+      <a href="/">Return home <span aria-hidden="true">→</span></a>
+    </main>
+  </body>
+</html>

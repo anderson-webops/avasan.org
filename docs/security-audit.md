@@ -6,9 +6,9 @@
 console, sessions, roles, authorization rules, forms, cookies, analytics, runtime API, database, or secrets.
 Authentication, account promotion, and account demotion are therefore not applicable to this repository.
 
-The supported source-owned delivery paths are the Sites worker, Netlify static hosting, and direct Nginx static
-hosting. The linked `cs.avasan.org` and `math.avasan.org` applications are separate repositories and security
-boundaries.
+The single supported delivery path is native Nginx static hosting. The linked
+`cs.avasan.org` and `math.avasan.org` applications are separate repositories
+and security boundaries.
 
 ## Remediated findings
 
@@ -27,15 +27,15 @@ boundaries.
   registry-signature verification, accessibility checks, and grouped weekly Dependabot updates.
 - Enabled GitHub vulnerability alerts, automated security fixes, secret scanning with push protection, CodeQL default
   setup, read-only workflow permissions, and immutable-SHA enforcement for Actions.
-- Tightened each source-owned deployment policy with a fail-closed `/api`, non-GET method rejection where the platform
-  permits it, immutable hashed assets, no-cache HTML, framing denial, opener/resource isolation, HSTS, and a restrictive
-  content security policy.
-- Bundled the Sites homepage into its worker and removed direct HTML assets from that deployment artifact. This prevents
-  the Sites static-asset fast path from bypassing the worker-owned security headers.
-- Removed SPA-style unknown-route fallbacks from Netlify and Nginx so unrecognized paths return a real 404.
+- Tightened the native deployment policy with a fail-closed `/api`, non-GET
+  method rejection, immutable hashed assets, no-cache HTML, framing denial,
+  opener/resource isolation, HSTS, and a restrictive content security policy.
+- Removed alternate Sites and Netlify delivery contracts so the public site has
+  one reviewed deployment path and one header policy.
+- Removed SPA-style unknown-route fallbacks and configured Nginx to serve the
+  branded static error page while preserving a real `404` status.
 - Added a minimal `/release.json` containing only the semantic version and full
-  source commit. Netlify and Nginx serve the generated file, while the Sites
-  worker bundles the same content; all three delivery paths mark it
+  source commit. Native Nginx serves the generated file with
   `Cache-Control: no-store`.
 - The separately managed custom host may normalize `/release.json` to
   `Cache-Control: no-cache`. Its post-deploy check accepts that policy because
@@ -62,13 +62,12 @@ optional `cac` 6 peer remains absent. Both the full development graph and produc
 
 ## Production and operator boundaries
 
-The source repository and Sites deployment do not automatically replace the
-custom-domain Nginx deployment. Promoting a build there remains a separate,
-authorized server operation. A deployment must preserve the generated
-`release.json` and must not record success unless its version and revision
-match the intended source.
+The source repository does not automatically replace the custom-domain Nginx
+deployment. Promoting a build there remains a separate, authorized server
+operation. A deployment must preserve the generated `release.json` and must not
+record success unless its version and revision match the intended source.
 
 After promotion, run the manual `Verify production deployment` workflow with
 the intended version and full commit. Do not describe the custom domain as
-current merely because source validation or a private Sites deployment passed;
-the custom-domain smoke must also pass.
+current merely because source validation passed; the custom-domain smoke must
+also pass.

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import test from 'node:test'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import { fileURLToPath } from 'node:url'
 
 const testDirectory = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(testDirectory, '..')
@@ -24,6 +24,7 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
   assert.ok(existsSync(indexPath), 'run the front-end build before this test')
 
   const html = readFileSync(indexPath, 'utf8')
+  const notFound = read('front-end/.output/public/404.html')
   const release = JSON.parse(read('front-end/.output/public/release.json'))
   const rootPackage = JSON.parse(read('package.json'))
   const forbiddenText = [
@@ -55,12 +56,14 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
   const rootEntries = readdirSync(outputDirectory)
   const generatedHtml = rootEntries.filter(entry => entry.endsWith('.html')).sort()
   assert.deepEqual(generatedHtml, ['200.html', '404.html', 'index.html'])
+  assert.match(notFound, /Page not found/u)
+  assert.match(notFound, /href="\/"/u)
+  assert.doesNotMatch(notFound, /<script\b/iu)
   assert.equal(
     read('front-end/public/robots.txt').replaceAll('\r\n', '\n'),
     'User-agent: *\nAllow: /\n',
   )
 })
-
 test('the source tree has no optional API workspace', () => {
   const rootPackage = JSON.parse(read('package.json'))
 
@@ -70,7 +73,7 @@ test('the source tree has no optional API workspace', () => {
   assert.ok(!Object.hasOwn(rootPackage.scripts, 'server:once'))
 })
 
-test('deployment surfaces define the static security policy', async () => {
+test('the native static deployment defines the security policy', () => {
   const expectedHeaders = [
     'Content-Security-Policy',
     'Cross-Origin-Opener-Policy',
@@ -81,77 +84,21 @@ test('deployment surfaces define the static security policy', async () => {
     'X-Content-Type-Options',
     'X-Frame-Options',
   ]
-  const netlifyConfig = read('netlify.toml')
   const nginxConfig = read('deploy/nginx/default.conf')
 
   for (const header of expectedHeaders) {
-    assert.ok(netlifyConfig.includes(header), `Netlify config is missing ${header}`)
     assert.ok(nginxConfig.includes(header), `Nginx config is missing ${header}`)
   }
 
-  assert.equal(hostnameTokens(netlifyConfig).has('analytics.avasan.org'), false)
   assert.equal(hostnameTokens(nginxConfig).has('analytics.avasan.org'), false)
-  assert.ok(!netlifyConfig.includes('from = "/*"'))
-  assert.match(netlifyConfig, /for = "\/release\.json"[\s\S]*?Cache-Control = "no-store"/u)
-  assert.ok(!netlifyConfig.includes('unsafe-eval'))
   assert.ok(!nginxConfig.includes('unsafe-eval'))
-  assert.match(netlifyConfig, /from = "\/api\/\*"/)
-  assert.match(netlifyConfig, /status = 404/)
   assert.match(nginxConfig, /location \^~ \/api\//)
   assert.match(nginxConfig, /return 404;/)
   assert.match(nginxConfig, /try_files \$uri \$uri\/ =404;/)
+  assert.match(nginxConfig, /error_page 404 \/404\.html;/u)
+  assert.match(nginxConfig, /location = \/404\.html[\s\S]*?internal;/u)
   assert.match(nginxConfig, /\/release\.json "no-store";/u)
   assert.match(nginxConfig, /location = \/release\.json/u)
-
-  const workerModule = await import(pathToFileURL(resolve(projectRoot, 'sites/worker.js')))
-  const request = new Request('https://avasan.org/')
-  const response = await workerModule.default.fetch(request, {
-    ASSETS: {
-      fetch: () => new Response('<main>Julio</main>', {
-        headers: { 'Content-Type': 'text/html' },
-      }),
-    },
-  })
-
-  assert.equal(response.status, 200)
-  assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff')
-  assert.equal(response.headers.get('X-Frame-Options'), 'DENY')
-  assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin')
-  assert.equal(response.headers.get('Cross-Origin-Resource-Policy'), 'same-origin')
-  assert.match(response.headers.get('Content-Security-Policy') ?? '', /default-src 'self'/)
-  assert.match(response.headers.get('Content-Security-Policy') ?? '', /connect-src 'self'/)
-  assert.match(response.headers.get('Strict-Transport-Security') ?? '', /includeSubDomains/)
-  assert.equal(response.headers.get('Cache-Control'), 'no-cache')
-
-  const apiResponse = await workerModule.default.fetch(
-    new Request('https://avasan.org/api/health'),
-    {
-      ASSETS: {
-        fetch: () => {
-          throw new Error('API paths must not reach the static asset binding')
-        },
-      },
-    },
-  )
-  assert.equal(apiResponse.status, 404)
-  assert.equal(apiResponse.headers.get('X-Content-Type-Options'), 'nosniff')
-
-  const mutationResponse = await workerModule.default.fetch(
-    new Request('https://avasan.org/', { method: 'POST' }),
-    {
-      ASSETS: {
-        fetch: () => {
-          throw new Error('Mutation methods must not reach the static asset binding')
-        },
-      },
-    },
-  )
-  assert.equal(mutationResponse.status, 405)
-  assert.equal(mutationResponse.headers.get('Allow'), 'GET, HEAD')
-
-  const missingBindingResponse = await workerModule.default.fetch(request, {})
-  assert.equal(missingBindingResponse.status, 503)
-  assert.equal(missingBindingResponse.headers.get('X-Content-Type-Options'), 'nosniff')
 })
 
 test('the direct Nginx release path is dual-stack and atomic', () => {
@@ -171,11 +118,4 @@ test('the direct Nginx release path is dual-stack and atomic', () => {
   assert.match(promoteRelease, /mv -Tf/u)
   assert.match(promoteRelease, /systemctl reload nginx/u)
   assert.match(promoteRelease, /restoring the previous release/u)
-})
-
-test('Sites project identity remains versioned and minimal', () => {
-  const hosting = JSON.parse(read('.openai/hosting.json'))
-
-  assert.deepEqual(Object.keys(hosting), ['project_id'])
-  assert.match(hosting.project_id, /^appgprj_[a-f0-9]+$/)
 })

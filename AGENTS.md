@@ -4,8 +4,8 @@
 
 - `front-end/` contains the Nuxt 4 application. UI lives in `src/components`, layouts in `src/layouts`, routes in
   `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
-- `sites/worker.js`, `netlify.toml`, and `deploy/nginx/default.conf` define the
-  supported static deployment surfaces and security headers.
+- `deploy/nginx/default.conf` and `deploy/direct/` define the single supported
+  native static deployment surface and its security headers.
 - Root files (`package.json`, `tsconfig.base.json`, and `eslint.config.js`) define the shared front-end toolchain.
   Direct static release helpers live under `deploy/`.
 
@@ -26,7 +26,7 @@
 - `npm run build` generates the static front-end to
   `front-end/.output/public` and verifies the one-page deployment contract.
 - `npm run test:static` verifies the generated site, absence of trackers and a
-  runtime API, security headers, and Sites project identity.
+  runtime API, branded strict-404 behavior, and security headers.
 
 ## Coding Style & Naming Conventions
 

@@ -11,6 +11,8 @@ if (!Number.isSafeInteger(port) || port < 1 || port > 65_535)
   throw new Error('PORT must be an integer between 1 and 65535.')
 if (!existsSync(resolve(root, 'index.html')))
   throw new Error('Build the static release before starting the production preview.')
+if (!existsSync(resolve(root, '404.html')))
+  throw new Error('The static release is missing its branded 404 page.')
 
 const contentTypes = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -50,6 +52,19 @@ function sendStatus(request, response, status) {
   response.end(request.method === 'HEAD' ? undefined : `${status}\n`)
 }
 
+function sendNotFound(request, response) {
+  response.writeHead(404, {
+    ...securityHeaders,
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'text/html; charset=utf-8',
+  })
+  if (request.method === 'HEAD') {
+    response.end()
+    return
+  }
+  createReadStream(resolve(root, '404.html')).pipe(response)
+}
+
 function resolveRequest(pathname) {
   let decoded
   try {
@@ -80,13 +95,13 @@ const server = http.createServer((request, response) => {
     return
   }
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
-    sendStatus(request, response, 404)
+    sendNotFound(request, response)
     return
   }
 
   const file = resolveRequest(url.pathname)
   if (!file) {
-    sendStatus(request, response, 404)
+    sendNotFound(request, response)
     return
   }
 

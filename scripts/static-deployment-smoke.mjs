@@ -126,6 +126,7 @@ assert.equal(await releaseHeadResponse.text(), '')
 const unknownResponse = await request(`/__avasan-deployment-probe-missing-${expectedRevision.slice(0, 12)}`)
 assert.equal(unknownResponse.status, 404)
 assert.equal(unknownResponse.headers.get('set-cookie'), null)
+assert.match(await unknownResponse.text(), /Page not found/u)
 
 const mutationResponse = await request('/', { method: 'POST' })
 assert.equal(mutationResponse.status, 405)

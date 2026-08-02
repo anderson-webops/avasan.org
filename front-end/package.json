@@ -8,7 +8,7 @@
   "license": "MIT",
   "keywords": [],
   "scripts": {
-    "build": "nuxt generate && node ../scripts/write-release-metadata.mjs",
+    "build": "nuxt generate && node scripts/install-branded-404.mjs && node ../scripts/write-release-metadata.mjs",
     "dev": "nuxt dev --port 3333 --open",
     "start": "nuxt dev --port 3333 --open --host",
     "serve": "nuxt dev --port 3333 --open --host",

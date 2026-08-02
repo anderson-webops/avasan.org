@@ -36,17 +36,11 @@ Useful checks:
 
 The generated static site is written to `front-end/.output/public`.
 
-Security headers and release provenance are versioned for the Sites worker,
-Netlify, and the direct Nginx deployment. Every production build writes
-`/release.json` with the semantic version and full source commit. The endpoint
-uses `Cache-Control: no-store` on the source-owned Sites, Netlify, and Nginx
-surfaces. The custom host's outer static vhost may instead apply `no-cache`,
-which still requires revalidation before reuse.
-
-`.openai/hosting.json` preserves the existing Sites project identity;
-`npm run build:sites` prepares its deployment artifact without publishing it.
-The Sites worker bundles both the homepage and release identity so neither can
-bypass its response policy.
+Security headers and release provenance are versioned for the native static
+Nginx deployment. Every production build writes `/release.json` with the
+semantic version and full source commit. The source Nginx policy uses
+`Cache-Control: no-store`; the custom host's outer static vhost may instead
+apply `no-cache`, which still requires revalidation before reuse.
 
 Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically:
 
@@ -62,8 +56,8 @@ release. Production does not require Docker or a container registry.
 After the custom-domain deployment completes, run the manual
 `Verify production deployment` GitHub workflow with the expected semantic
 version and full commit. Its smoke test checks the release identity, strict
-headers, known links, absence of external scripts, a real unknown-route 404,
-and a 405 for unsupported mutations. For the custom host only, it accepts
+headers, known links, absence of external scripts, a branded unknown-route 404
+with a true `404` status, and a 405 for unsupported mutations. For the custom host only, it accepts
 either `no-store` or `no-cache` as a freshness-safe release-metadata policy.
 
 The architecture and operator boundaries from the latest authentication,
