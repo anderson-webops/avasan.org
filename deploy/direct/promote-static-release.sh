@@ -5,9 +5,10 @@ export PATH
 
 release_root="${RELEASE_ROOT:-/srv/avasan.org/releases}"
 current_link="${CURRENT_LINK:-/srv/avasan.org/current}"
-health_url="${HEALTH_URL:-http://127.0.0.1/release.json}"
 host_header="${HOST_HEADER:-avasan.org}"
-site_origin="${SITE_ORIGIN:-${health_url%/release.json}}"
+site_origin="${SITE_ORIGIN:-https://$host_header}"
+health_url="${HEALTH_URL:-$site_origin/release.json}"
+resolve_address="${RESOLVE_ADDRESS:-127.0.0.1}"
 
 if [[ $# -ne 1 ]]; then
   echo "Usage: promote-static-release.sh /srv/avasan.org/releases/<prepared-release>" >&2
@@ -60,13 +61,16 @@ wait_for_health() {
   local attempt
   local missing_status
   for attempt in {1..20}; do
-    if curl --fail --silent --show-error --max-time 5 --header "Host: $host_header" "$health_url" --output "$response_file" \
+    if curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+      --header "Host: $host_header" "$health_url" --output "$response_file" \
       && cmp -s "$candidate/front-end/.output/public/release.json" "$response_file" \
-      && curl --fail --silent --show-error --max-time 5 --header "Host: $host_header" \
+      && curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+        --header "Host: $host_header" \
         --dump-header "$headers_file" "$site_origin/" --output "$response_file" \
       && grep -Eiq '^Cross-Origin-Opener-Policy:[[:space:]]*same-origin' "$headers_file" \
       && grep -Eiq '^Cross-Origin-Resource-Policy:[[:space:]]*same-origin' "$headers_file"; then
-      missing_status="$(curl --silent --show-error --max-time 5 --header "Host: $host_header" \
+      missing_status="$(curl --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+        --header "Host: $host_header" \
         --output "$response_file" --write-out '%{http_code}' \
         "$site_origin/__avasan-deployment-probe-missing")"
       if [[ "$missing_status" == "404" ]] \
