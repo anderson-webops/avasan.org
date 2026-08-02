@@ -187,7 +187,7 @@ jobs:
       - name: Build on ARM64
         run: npm run build
 
-  container:
+  direct-static-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -198,28 +198,33 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.1
+          cache: npm
 
-      - name: Build production container
-        run: |
-          docker build \
-            --build-arg AVASAN_RELEASE_REVISION="${GITHUB_SHA}" \
-            --tag avasan-org:test \
-            .
+      - name: Pin npm version
+        run: npm install --global npm@12.0.2 --allow-scripts=npm
 
-      - name: Start production container
+      - name: Install dependencies
+        run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Build direct static release
+        env:
+          AVASAN_RELEASE_REVISION: ${{ github.sha }}
+        run: npm run build
+
+      - name: Verify direct deployment assets and scripts
         run: |
-          docker run --detach \
-            --name avasan-org-ci \
-            --publish 127.0.0.1:18080:8080 \
-            --read-only \
-            --tmpfs /tmp:rw,noexec,nosuid,size=16m \
-            --cap-drop ALL \
-            --security-opt no-new-privileges \
-            avasan-org:test
+          test ! -e Dockerfile
+          test ! -e .dockerignore
+          test -f front-end/.output/public/index.html
+          test -f front-end/.output/public/release.json
+          bash -n deploy/direct/prepare-static-release.sh
+          bash -n deploy/direct/promote-static-release.sh
 
       - name: Verify production headers and routing
-        run: npm run smoke:deployment
-
-      - name: Stop production container
-        if: always()
-        run: docker rm --force avasan-org-ci
+        env:
+          EXPECTED_REVISION: ${{ github.sha }}
+        run: |
+          npm run preview:production > /tmp/avasan-static-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          npm run smoke:deployment

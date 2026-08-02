@@ -1,7 +1,7 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"private": true,
 	"packageManager": "npm@12.0.2",
 	"engines": {
@@ -37,6 +37,7 @@
 		"verify:dependency-graph": "npm ls --all --omit=dev",
 		"verify:native-bindings": "node scripts/verify-native-bindings.mjs",
 		"smoke:deployment": "node scripts/static-deployment-smoke.mjs",
+		"preview:production": "node scripts/static-preview-server.mjs",
 		"clean": "rm -rf node_modules front-end/node_modules front-end/.nuxt front-end/.output dist",
 		"up": "taze major --write && npm install --package-lock-only --ignore-scripts --no-fund --no-audit",
 		"a11y": "node scripts/a11y-smoke.mjs",

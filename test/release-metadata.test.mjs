@@ -13,14 +13,14 @@ test('release metadata records only the semantic version and exact source revisi
   const revision = 'a'.repeat(40)
   assert.deepEqual(releaseMetadata({ AVASAN_RELEASE_REVISION: revision }), {
     revision,
-    version: '1.2.2',
+    version: '1.2.3',
   })
 
   try {
     await writeReleaseMetadata(temporaryRelease, { AVASAN_RELEASE_REVISION: revision })
     assert.deepEqual(JSON.parse(await readFile(temporaryRelease, 'utf8')), {
       revision,
-      version: '1.2.2',
+      version: '1.2.3',
     })
   }
   finally {

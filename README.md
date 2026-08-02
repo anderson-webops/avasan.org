@@ -37,9 +37,9 @@ Useful checks:
 The generated static site is written to `front-end/.output/public`.
 
 Security headers and release provenance are versioned for the Sites worker,
-Netlify, and the container Nginx deployment. Every production build writes
+Netlify, and the direct Nginx deployment. Every production build writes
 `/release.json` with the semantic version and full source commit. The endpoint
-uses `Cache-Control: no-store` on the source-owned Sites, Netlify, and container
+uses `Cache-Control: no-store` on the source-owned Sites, Netlify, and Nginx
 surfaces. The custom host's outer static vhost may instead apply `no-cache`,
 which still requires revalidation before reuse.
 
@@ -48,14 +48,16 @@ which still requires revalidation before reuse.
 The Sites worker bundles both the homepage and release identity so neither can
 bypass its response policy.
 
-Container builds must receive the intended full commit:
+Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically:
 
 ```bash
-docker build \
-  --build-arg AVASAN_RELEASE_REVISION="$(git rev-parse HEAD)" \
-  --tag avasan-org:test \
-  .
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.3
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.3
 ```
+
+Promotion compares the prepared and public release identities, switches the `current` symlink atomically, validates
+and reloads Nginx, then compares the served `/release.json` byte-for-byte. A failed candidate restores the prior
+release. Production does not require Docker or a container registry.
 
 After the custom-domain deployment completes, run the manual
 `Verify production deployment` GitHub workflow with the expected semantic
@@ -68,7 +70,5 @@ The architecture and operator boundaries from the latest authentication,
 authorization, backend, deployment, and supply-chain review are recorded in
 [`docs/security-audit.md`](docs/security-audit.md).
 
-The optional container listens on unprivileged port `8080`. Its Node and Nginx
-base images are pinned by multi-platform digest; update those digests
-deliberately when adopting upstream security fixes, then repeat the full build
-and static deployment tests.
+Installing or activating the Nginx site remains an operator action. These source helpers do not authorize DNS,
+certificate, routing, or firewall changes.

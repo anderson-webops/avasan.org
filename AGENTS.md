@@ -6,8 +6,8 @@
   `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
 - `sites/worker.js`, `netlify.toml`, and `deploy/nginx/default.conf` define the
   supported static deployment surfaces and security headers.
-- Root files (`package.json`, `tsconfig.base.json`, `eslint.config.js`,
-  `Dockerfile`) define the shared front-end toolchain and deployment defaults.
+- Root files (`package.json`, `tsconfig.base.json`, and `eslint.config.js`) define the shared front-end toolchain.
+  Direct static release helpers live under `deploy/`.
 
 ## Site Scope
 

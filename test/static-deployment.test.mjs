@@ -154,17 +154,23 @@ test('deployment surfaces define the static security policy', async () => {
   assert.equal(missingBindingResponse.headers.get('X-Content-Type-Options'), 'nosniff')
 })
 
-test('the alternative container is pinned and unprivileged', () => {
-  const dockerfile = read('Dockerfile')
+test('the direct Nginx release path is dual-stack and atomic', () => {
   const nginxConfig = read('deploy/nginx/default.conf')
+  const prepareRelease = read('deploy/direct/prepare-static-release.sh')
+  const promoteRelease = read('deploy/direct/promote-static-release.sh')
 
-  assert.match(dockerfile, /FROM node:24\.18\.1-alpine3\.24@sha256:[a-f0-9]{64} AS build-stage/)
-  assert.match(dockerfile, /FROM nginxinc\/nginx-unprivileged:stable-alpine@sha256:[a-f0-9]{64} AS production-stage/)
-  assert.match(dockerfile, /ARG AVASAN_RELEASE_REVISION/u)
-  assert.match(dockerfile, /test -n "\$\{AVASAN_RELEASE_REVISION\}"/u)
-  assert.match(dockerfile, /EXPOSE 8080/)
-  assert.match(nginxConfig, /listen 8080;/)
+  assert.equal(existsSync(resolve(projectRoot, 'Dockerfile')), false)
+  assert.equal(existsSync(resolve(projectRoot, '.dockerignore')), false)
+  assert.match(nginxConfig, /listen 80;/)
+  assert.match(nginxConfig, /listen \[::\]:80;/)
+  assert.match(nginxConfig, /server_name avasan\.org www\.avasan\.org;/)
+  assert.match(nginxConfig, /root \/srv\/avasan\.org\/current\/front-end\/\.output\/public;/)
   assert.match(nginxConfig, /access_log off;/)
+  assert.match(prepareRelease, /AVASAN_RELEASE_REVISION/u)
+  assert.match(prepareRelease, /unprivileged deployment user/u)
+  assert.match(promoteRelease, /mv -Tf/u)
+  assert.match(promoteRelease, /systemctl reload nginx/u)
+  assert.match(promoteRelease, /restoring the previous release/u)
 })
 
 test('Sites project identity remains versioned and minimal', () => {

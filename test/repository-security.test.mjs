@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import test from 'node:test'
 
 const readText = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
@@ -36,7 +36,10 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(workflow, /npm run verify:dependency-graph/u)
   assert.match(workflow, /npm run verify:native-bindings/u)
   assert.match(workflow, /npm ci --include=optional --strict-allow-scripts/u)
-  assert.match(workflow, /--build-arg AVASAN_RELEASE_REVISION="\$\{GITHUB_SHA\}"/u)
+  assert.match(workflow, /direct-static-runtime/u)
+  assert.match(workflow, /AVASAN_RELEASE_REVISION: \$\{\{ github\.sha \}\}/u)
+  assert.match(workflow, /npm run preview:production/u)
+  assert.doesNotMatch(workflow, /\bdocker\b/iu)
   assert.match(postDeployWorkflow, /workflow_dispatch:/u)
   assert.match(postDeployWorkflow, /ALLOW_RELEASE_NO_CACHE: "true"/u)
   assert.match(postDeployWorkflow, /DEPLOYMENT_URL: https:\/\/avasan\.org/u)
@@ -44,10 +47,15 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(postDeployWorkflow, /EXPECTED_VERSION: \$\{\{ inputs\.expected_version \}\}/u)
   assert.match(deploymentSmoke, /releaseCacheDirectives\.includes\('no-store'\)/u)
   assert.match(deploymentSmoke, /allowReleaseNoCache && releaseCacheDirectives\.includes\('no-cache'\)/u)
-  assert.match(readText('Dockerfile'), /COPY vendor\/archiver-nitro-compat/u)
-  assert.match(readText('Dockerfile'), /^USER 101$/mu)
-  assert.match(readText('Dockerfile'), /^HEALTHCHECK .+127\.0\.0\.1:8080\//mu)
+  assert.equal(existsSync(new URL('../Dockerfile', import.meta.url)), false)
+  assert.equal(existsSync(new URL('../.dockerignore', import.meta.url)), false)
+  assert.match(readText('deploy/direct/prepare-static-release.sh'), /npm ci --include=optional --strict-allow-scripts/u)
+  assert.match(readText('deploy/direct/prepare-static-release.sh'), /Node 24\.18\.1 and npm 12\.0\.2/u)
+  assert.match(readText('deploy/direct/promote-static-release.sh'), /mv -Tf/u)
+  assert.match(readText('deploy/direct/promote-static-release.sh'), /previous_target/u)
+  assert.match(readText('deploy/direct/promote-static-release.sh'), /cmp -s/u)
   assert.match(packageJson.scripts['build:sites'], /npm run test:sites/u)
+  assert.equal(packageJson.scripts['preview:production'], 'node scripts/static-preview-server.mjs')
   assert.match(
     JSON.parse(readText('front-end/package.json')).scripts.build,
     /write-release-metadata\.mjs/u,
