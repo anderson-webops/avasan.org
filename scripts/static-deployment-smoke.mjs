@@ -128,6 +128,14 @@ assert.equal(unknownResponse.status, 404)
 assert.equal(unknownResponse.headers.get('set-cookie'), null)
 assert.match(await unknownResponse.text(), /Page not found/u)
 
+const directErrorPageResponse = await request('/404.html')
+assert.equal(directErrorPageResponse.status, 404)
+assert.match(await directErrorPageResponse.text(), /Page not found/u)
+
+const directIndexResponse = await request('/index.html')
+assert.equal(directIndexResponse.status, 200)
+assert.ok((await directIndexResponse.text()).includes('href="https://cs.avasan.org"'))
+
 const mutationResponse = await request('/', { method: 'POST' })
 assert.equal(mutationResponse.status, 405)
 assert.equal(mutationResponse.headers.get('set-cookie'), null)

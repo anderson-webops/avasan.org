@@ -219,6 +219,10 @@ jobs:
           test -f front-end/.output/public/release.json
           bash -n deploy/direct/prepare-static-release.sh
           bash -n deploy/direct/promote-static-release.sh
+          bash -n deploy/direct/verify-release-source.sh
+          bash -n deploy/direct/verify-nginx-snippet-dump.sh
+          test -x deploy/direct/verify-release-source.sh
+          test -x deploy/direct/verify-nginx-snippet-dump.sh
 
       - name: Syntax-check versioned Nginx policy
         run: |

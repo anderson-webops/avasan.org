@@ -66,18 +66,29 @@ routing in the surrounding host. Then run `nginx -t` and reload. The small
 `deploy/nginx/default.conf` is a standalone port-80 syntax/runtime reference;
 it is not a replacement for the production TLS virtual host.
 
-Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically:
+Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically.
+The checkout's `origin` must be the canonical
+`anderson-webops/avasan.org` repository, and its `HEAD`, fetched
+`origin/main`, and annotated `v<package-version>` tag must resolve to the same
+commit:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.5
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.5
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.6
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.6
 ```
 
 Promotion compares the prepared and public release identities, atomically
 installs the release's maps and server-policy snippets, verifies that the live
-Nginx graph includes both stable paths, and switches the `current` symlink.
+Nginx graph includes both stable paths exactly once, and switches the `current`
+symlink. The existing `current` symlink must resolve to a complete prior release
+beneath `/srv/avasan.org/releases`; this preserves a valid rollback target and
+makes incomplete first-cutover automation fail closed.
 It then validates and reloads Nginx and compares the served `/release.json`
-byte-for-byte. A failed candidate restores the prior snippets and release.
+byte-for-byte. A failed candidate restores and smoke-checks the prior snippets
+and release. Before the first managed promotion, an operator must preserve the
+currently verified live build as an immutable release beneath the release root
+and point `current` to it; the root promoter deliberately does not bootstrap an
+unverified rollback target.
 Production does not require Docker or a container registry.
 
 After the custom-domain deployment completes, run the manual

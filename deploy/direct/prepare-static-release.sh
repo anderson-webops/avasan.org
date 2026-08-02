@@ -35,6 +35,9 @@ if [[ "$(node --version)" != "v24.18.1" || "$(npm --version)" != "12.0.2" ]]; th
 fi
 
 export AVASAN_RELEASE_REVISION="$(git -C "$candidate" rev-parse HEAD)"
+export AVASAN_RELEASE_VERSION="$(node -p "require('$candidate/package.json').version")"
+"$candidate/deploy/direct/verify-release-source.sh" \
+  "$candidate" "$AVASAN_RELEASE_VERSION"
 
 cd -- "$candidate"
 npm ci --include=optional --strict-allow-scripts
@@ -54,6 +57,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 const release = JSON.parse(readFileSync('front-end/.output/public/release.json', 'utf8'))
 if (release.revision !== process.env.AVASAN_RELEASE_REVISION)
   throw new Error('Built release identity does not match the candidate commit.')
+if (release.version !== process.env.AVASAN_RELEASE_VERSION)
+  throw new Error('Built release version does not match the package version.')
 writeFileSync('.avasan-static-release.json', `${JSON.stringify(release, null, 2)}\n`, { mode: 0o644 })
 NODE
 

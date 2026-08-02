@@ -29,18 +29,30 @@ case "$candidate/" in
   *) echo "Candidate must resolve beneath $release_root_real: $candidate" >&2; exit 1 ;;
 esac
 
-for required_file in front-end/.output/public/index.html front-end/.output/public/404.html front-end/.output/public/release.json .avasan-static-release.json deploy/nginx/http-maps.conf deploy/nginx/server-policy.conf; do
-  if [[ ! -f "$candidate/$required_file" ]]; then
+for required_file in front-end/.output/public/index.html front-end/.output/public/404.html front-end/.output/public/release.json .avasan-static-release.json deploy/direct/verify-release-source.sh deploy/direct/verify-nginx-snippet-dump.sh deploy/nginx/http-maps.conf deploy/nginx/server-policy.conf; do
+  if [[ ! -f "$candidate/$required_file" ]] || [[ -L "$candidate/$required_file" ]]; then
     echo "Prepared release is missing $required_file." >&2
     exit 1
   fi
 done
+if find "$candidate/front-end/.output/public" -type l -print -quit | grep -q .; then
+  echo "Prepared public output must not contain symbolic links." >&2
+  exit 1
+fi
 if ! cmp -s "$candidate/front-end/.output/public/release.json" "$candidate/.avasan-static-release.json"; then
   echo "Prepared release metadata does not match the public release identity." >&2
   exit 1
 fi
-if [[ -e "$current_link" && ! -L "$current_link" ]]; then
-  echo "Refusing to replace non-symlink deployment path: $current_link" >&2
+if ! git -C "$candidate" diff --quiet -- . \
+  || ! git -C "$candidate" diff --cached --quiet -- .; then
+  echo "Prepared release has tracked source changes after preparation." >&2
+  exit 1
+fi
+release_version="$(node -p "require('$candidate/package.json').version")"
+"$candidate/deploy/direct/verify-release-source.sh" \
+  "$candidate" "$release_version"
+if [[ ! -L "$current_link" ]]; then
+  echo "Promotion requires an existing verified current release symlink: $current_link" >&2
   exit 1
 fi
 if [[ ! -d "$snippet_root" ]]; then
@@ -55,6 +67,16 @@ for target in "$maps_target" "$policy_target"; do
 done
 
 previous_target="$(readlink -f -- "$current_link" 2>/dev/null || true)"
+case "$previous_target/" in
+  "$release_root_real/"*) ;;
+  *) echo "Current release must resolve beneath $release_root_real: ${previous_target:-missing}" >&2; exit 1 ;;
+esac
+for previous_file in front-end/.output/public/index.html front-end/.output/public/404.html front-end/.output/public/release.json; do
+  if [[ ! -f "$previous_target/$previous_file" ]] || [[ -L "$previous_target/$previous_file" ]]; then
+    echo "Current release is not a valid rollback target: $previous_file" >&2
+    exit 1
+  fi
+done
 next_link="${current_link}.next.$$"
 response_file="$(mktemp)"
 headers_file="$(mktemp)"
@@ -105,19 +127,25 @@ restore_snippets() {
   restore_snippet "$policy_target" server-policy.conf
 }
 
-verify_nginx_includes() {
+verify_installed_snippets() {
+  if ! cmp -s "$candidate/deploy/nginx/http-maps.conf" "$maps_target" \
+    || ! cmp -s "$candidate/deploy/nginx/server-policy.conf" "$policy_target"; then
+    echo "Installed Avasan Nginx snippets do not match the prepared release." >&2
+    return 1
+  fi
   nginx -T >"$nginx_dump_file" 2>&1 \
-    && grep -Fq "# configuration file $maps_target:" "$nginx_dump_file" \
-    && grep -Fq "# configuration file $policy_target:" "$nginx_dump_file"
+    && "$candidate/deploy/direct/verify-nginx-snippet-dump.sh" \
+      "$nginx_dump_file" "$maps_target" "$policy_target"
 }
 
 wait_for_health() {
+  local expected_release="$1"
   local attempt
   local missing_status
   for attempt in {1..20}; do
     if curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
       --header "Host: $host_header" "$health_url" --output "$response_file" \
-      && cmp -s "$candidate/front-end/.output/public/release.json" "$response_file" \
+      && cmp -s "$expected_release" "$response_file" \
       && curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
         --header "Host: $host_header" \
         --dump-header "$headers_file" "$site_origin/" --output "$response_file" \
@@ -139,7 +167,7 @@ wait_for_health() {
 
 if ! install_snippet "$candidate/deploy/nginx/http-maps.conf" "$maps_target" http-maps.conf \
   || ! install_snippet "$candidate/deploy/nginx/server-policy.conf" "$policy_target" server-policy.conf \
-  || ! verify_nginx_includes \
+  || ! verify_installed_snippets \
   || ! activate_target "$candidate"; then
   restore_snippets
   echo "Could not install the candidate release and Nginx snippets." >&2
@@ -147,7 +175,8 @@ if ! install_snippet "$candidate/deploy/nginx/http-maps.conf" "$maps_target" htt
 fi
 if ! nginx -t; then
   echo "Nginx validation failed; restoring the previous release." >&2
-elif systemctl reload nginx && wait_for_health; then
+elif systemctl reload nginx \
+  && wait_for_health "$candidate/front-end/.output/public/release.json"; then
   echo "Promoted $candidate and verified $health_url with host $host_header."
   exit 0
 else
@@ -155,11 +184,12 @@ else
 fi
 
 restore_snippets
-if [[ -n "$previous_target" ]]; then
-  activate_target "$previous_target"
-  nginx -t && systemctl reload nginx
+activate_target "$previous_target"
+if nginx -t \
+  && systemctl reload nginx \
+  && wait_for_health "$previous_target/front-end/.output/public/release.json"; then
+  echo "Restored and verified the previous Avasan release: $previous_target" >&2
 else
-  unlink -- "$current_link"
-  nginx -t && systemctl reload nginx
+  echo "CRITICAL: the previous Avasan release could not be verified after rollback." >&2
 fi
 exit 1
