@@ -73,8 +73,8 @@ The checkout's `origin` must be the canonical
 commit:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.5
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.5
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.6
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.6
 ```
 
 Promotion compares the prepared and public release identities, atomically
