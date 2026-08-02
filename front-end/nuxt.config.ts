@@ -1,4 +1,5 @@
 import process from 'node:process'
+import { isExpectedNitroH3BridgeWarning } from '../scripts/nitro-warning-policy'
 import { appDescription } from './src/constants/index'
 
 export default defineNuxtConfig({
@@ -46,6 +47,20 @@ export default defineNuxtConfig({
     esbuild: {
       options: {
         target: 'esnext',
+      },
+    },
+    hooks: {
+      'rollup:before': function (_nitro, rollupConfig) {
+        const nitroOnWarn = rollupConfig.onwarn
+        rollupConfig.onwarn = (warning, warn) => {
+          if (isExpectedNitroH3BridgeWarning(warning))
+            return
+
+          if (nitroOnWarn)
+            nitroOnWarn(warning, warn)
+          else
+            warn(warning)
+        }
       },
     },
     prerender: {
