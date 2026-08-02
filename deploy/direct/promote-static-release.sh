@@ -9,6 +9,9 @@ host_header="${HOST_HEADER:-avasan.org}"
 site_origin="${SITE_ORIGIN:-https://$host_header}"
 health_url="${HEALTH_URL:-$site_origin/release.json}"
 resolve_address="${RESOLVE_ADDRESS:-127.0.0.1}"
+snippet_root="${NGINX_SNIPPET_ROOT:-/etc/nginx/snippets}"
+maps_target="$snippet_root/avasan.org-http-maps.conf"
+policy_target="$snippet_root/avasan.org-server-policy.conf"
 
 if [[ $# -ne 1 ]]; then
   echo "Usage: promote-static-release.sh /srv/avasan.org/releases/<prepared-release>" >&2
@@ -26,7 +29,7 @@ case "$candidate/" in
   *) echo "Candidate must resolve beneath $release_root_real: $candidate" >&2; exit 1 ;;
 esac
 
-for required_file in front-end/.output/public/index.html front-end/.output/public/404.html front-end/.output/public/release.json .avasan-static-release.json; do
+for required_file in front-end/.output/public/index.html front-end/.output/public/404.html front-end/.output/public/release.json .avasan-static-release.json deploy/nginx/http-maps.conf deploy/nginx/server-policy.conf; do
   if [[ ! -f "$candidate/$required_file" ]]; then
     echo "Prepared release is missing $required_file." >&2
     exit 1
@@ -40,14 +43,31 @@ if [[ -e "$current_link" && ! -L "$current_link" ]]; then
   echo "Refusing to replace non-symlink deployment path: $current_link" >&2
   exit 1
 fi
+if [[ ! -d "$snippet_root" ]]; then
+  echo "Nginx snippet directory does not exist: $snippet_root" >&2
+  exit 1
+fi
+for target in "$maps_target" "$policy_target"; do
+  if [[ -e "$target" && ! -f "$target" ]]; then
+    echo "Refusing to replace non-file Nginx snippet: $target" >&2
+    exit 1
+  fi
+done
 
 previous_target="$(readlink -f -- "$current_link" 2>/dev/null || true)"
 next_link="${current_link}.next.$$"
 response_file="$(mktemp)"
 headers_file="$(mktemp)"
+nginx_dump_file="$(mktemp)"
+backup_directory="$(mktemp -d)"
 cleanup() {
   if [[ -L "$next_link" ]]; then unlink -- "$next_link"; fi
-  rm -f -- "$response_file" "$headers_file"
+  rm -f -- "${maps_target}.next.$$" "${policy_target}.next.$$"
+  rm -f -- "$response_file" "$headers_file" "$nginx_dump_file"
+  rm -f -- \
+    "$backup_directory/http-maps.conf" "$backup_directory/http-maps.conf.absent" \
+    "$backup_directory/server-policy.conf" "$backup_directory/server-policy.conf.absent"
+  rmdir -- "$backup_directory"
 }
 trap cleanup EXIT
 
@@ -55,6 +75,40 @@ activate_target() {
   local target="$1"
   ln -s -- "$target" "$next_link"
   mv -Tf -- "$next_link" "$current_link"
+}
+
+install_snippet() {
+  local source="$1"
+  local target="$2"
+  local backup_name="$3"
+  if [[ -f "$target" ]]; then
+    cp -p -- "$target" "$backup_directory/$backup_name" || return 1
+  else
+    touch -- "$backup_directory/$backup_name.absent" || return 1
+  fi
+  install -m 0644 -- "$source" "${target}.next.$$" || return 1
+  mv -Tf -- "${target}.next.$$" "$target"
+}
+
+restore_snippet() {
+  local target="$1"
+  local backup_name="$2"
+  if [[ -f "$backup_directory/$backup_name" ]]; then
+    install -m 0644 -- "$backup_directory/$backup_name" "$target"
+  elif [[ -f "$backup_directory/$backup_name.absent" ]]; then
+    rm -f -- "$target"
+  fi
+}
+
+restore_snippets() {
+  restore_snippet "$maps_target" http-maps.conf
+  restore_snippet "$policy_target" server-policy.conf
+}
+
+verify_nginx_includes() {
+  nginx -T >"$nginx_dump_file" 2>&1 \
+    && grep -Fq "# configuration file $maps_target:" "$nginx_dump_file" \
+    && grep -Fq "# configuration file $policy_target:" "$nginx_dump_file"
 }
 
 wait_for_health() {
@@ -83,7 +137,14 @@ wait_for_health() {
   return 1
 }
 
-activate_target "$candidate"
+if ! install_snippet "$candidate/deploy/nginx/http-maps.conf" "$maps_target" http-maps.conf \
+  || ! install_snippet "$candidate/deploy/nginx/server-policy.conf" "$policy_target" server-policy.conf \
+  || ! verify_nginx_includes \
+  || ! activate_target "$candidate"; then
+  restore_snippets
+  echo "Could not install the candidate release and Nginx snippets." >&2
+  exit 1
+fi
 if ! nginx -t; then
   echo "Nginx validation failed; restoring the previous release." >&2
 elif systemctl reload nginx && wait_for_health; then
@@ -93,6 +154,7 @@ else
   echo "Candidate health failed; restoring the previous release." >&2
 fi
 
+restore_snippets
 if [[ -n "$previous_target" ]]; then
   activate_target "$previous_target"
   nginx -t && systemctl reload nginx

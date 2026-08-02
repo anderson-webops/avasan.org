@@ -220,11 +220,27 @@ jobs:
           bash -n deploy/direct/prepare-static-release.sh
           bash -n deploy/direct/promote-static-release.sh
 
+      - name: Syntax-check versioned Nginx policy
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends nginx
+          sudo install -m 0644 deploy/nginx/http-maps.conf \
+            /etc/nginx/snippets/avasan.org-http-maps.conf
+          sudo install -m 0644 deploy/nginx/server-policy.conf \
+            /etc/nginx/snippets/avasan.org-server-policy.conf
+          sudo install -m 0644 deploy/nginx/default.conf \
+            /etc/nginx/conf.d/avasan.org.conf
+          sudo nginx -t
+
       - name: Verify production headers and routing
         env:
           EXPECTED_REVISION: ${{ github.sha }}
         run: |
-          npm run preview:production > /tmp/avasan-static-preview.log 2>&1 &
-          preview_pid=$!
-          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
-          npm run smoke:deployment
+          sudo install -d -m 0755 \
+            /srv/avasan.org/releases/ci/front-end/.output/public
+          sudo cp -a front-end/.output/public/. \
+            /srv/avasan.org/releases/ci/front-end/.output/public/
+          sudo ln -sfn releases/ci /srv/avasan.org/current
+          printf '127.0.0.1 avasan.org\n' | sudo tee -a /etc/hosts >/dev/null
+          sudo systemctl restart nginx
+          DEPLOYMENT_URL=http://avasan.org npm run smoke:deployment
