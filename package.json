@@ -51,7 +51,7 @@
 		"lint-staged": "^17.2.0",
 		"puppeteer": "^25.4.0",
 		"simple-git-hooks": "^2.13.1",
-		"taze": "^19.11.0",
+		"taze": "^19.17.1",
 		"typescript": "^6.0.3"
 	},
 	"simple-git-hooks": {
