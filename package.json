@@ -1,7 +1,7 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.2.7",
+	"version": "1.2.8",
 	"private": true,
 	"packageManager": "npm@12.0.2",
 	"engines": {
@@ -64,7 +64,7 @@
 	},
 	"overrides": {
 		"esbuild": "^0.28.1",
-		"js-yaml": "4.3.0",
+		"js-yaml": "4.3.1",
 		"launch-editor": {
 			".": "2.14.1",
 			"shell-quote": "1.9.0"
@@ -82,12 +82,13 @@
 			"archiver": "$archiver"
 		},
 		"simple-git": "3.36.0",
-		"brace-expansion": "5.0.8",
-		"fast-uri": "3.1.4",
+		"brace-expansion": "5.0.9",
+		"fast-uri": "3.1.5",
 		"postcss": "8.5.24",
 		"svgo": "4.0.2",
 		"tar": "7.5.22",
-		"valibot": "1.4.2"
+		"valibot": "1.4.2",
+		"nanoid": "3.3.17"
 	},
 	"allowScripts": {
 		"esbuild@0.28.1": true,
