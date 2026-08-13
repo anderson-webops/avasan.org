@@ -43,15 +43,15 @@
 		"test:static": "node --test test/static-deployment.test.mjs"
 	},
 	"devDependencies": {
-		"@antfu/eslint-config": "^9.2.0",
-		"axe-core": "^4.11.4",
+		"@antfu/eslint-config": "^9.3.0",
+		"axe-core": "^4.13.0",
 		"commander": "15.0.0",
-		"eslint": "^10.8.0",
+		"eslint": "^10.8.1",
 		"eslint-plugin-format": "^2.0.1",
 		"lint-staged": "^17.2.0",
-		"puppeteer": "^25.4.0",
+		"puppeteer": "^25.5.0",
 		"simple-git-hooks": "^2.13.1",
-		"taze": "^19.11.0",
+		"taze": "^20.0.1",
 		"typescript": "^6.0.3"
 	},
 	"simple-git-hooks": {
