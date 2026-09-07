@@ -1,12 +1,12 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.2.8",
+	"version": "1.2.9",
 	"private": true,
 	"packageManager": "npm@12.0.2",
 	"engines": {
 		"node": ">=24.18.1 <25",
-		"npm": ">=12.0.2 <13"
+		"npm": ">=11.19.0 <13"
 	},
 	"description": "Julio's math and computer science teaching homepage",
 	"author": "Jacob Anderson",
@@ -83,12 +83,12 @@
 		},
 		"simple-git": "3.36.0",
 		"brace-expansion": "5.0.9",
-		"fast-uri": "3.1.5",
+		"fast-uri": "3.1.6",
 		"postcss": "8.5.24",
 		"svgo": "4.0.2",
 		"tar": "7.5.22",
 		"valibot": "1.4.2",
-		"nanoid": "3.3.17"
+		"nanoid": "3.3.18"
 	},
 	"allowScripts": {
 		"esbuild@0.28.1": true,

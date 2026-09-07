@@ -21,6 +21,11 @@ npm ci
 npm run dev
 ```
 
+The committed package manager and production release toolchain are Node
+24.18.1 with npm 12.0.2. The wider npm engine range exists only so GitHub's
+dependency updater can install the workspace; release preparation rejects any
+other npm version.
+
 Useful checks:
 
 - `npm run lint`
@@ -73,8 +78,8 @@ The checkout's `origin` must be the canonical
 commit:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.8
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.8
+deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.9
+sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.9
 ```
 
 Promotion compares the prepared and public release identities, atomically

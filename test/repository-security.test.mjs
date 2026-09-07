@@ -9,11 +9,12 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   const workflow = readText('.github/workflows/ci.yml')
   const postDeployWorkflow = readText('.github/workflows/post-deploy.yml')
   const deploymentSmoke = readText('scripts/static-deployment-smoke.mjs')
+  const readme = readText('README.md')
 
   assert.equal(packageJson.packageManager, 'npm@12.0.2')
   assert.deepEqual(packageJson.engines, {
     node: '>=24.18.1 <25',
-    npm: '>=12.0.2 <13',
+    npm: '>=11.19.0 <13',
   })
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.1': true,
@@ -60,6 +61,8 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.equal(existsSync(new URL('../.dockerignore', import.meta.url)), false)
   assert.match(readText('deploy/direct/prepare-static-release.sh'), /npm ci --include=optional --strict-allow-scripts/u)
   assert.match(readText('deploy/direct/prepare-static-release.sh'), /Node 24\.18\.1 and npm 12\.0\.2/u)
+  assert.match(readme, /release toolchain are Node\s+24\.18\.1 with npm 12\.0\.2/u)
+  assert.match(readme, /releases\/v1\.2\.9/u)
   assert.match(readText('deploy/direct/prepare-static-release.sh'), /verify-release-source\.sh/u)
   assert.match(readText('deploy/direct/verify-release-source.sh'), /refs\/remotes\/origin\/main/u)
   assert.match(readText('deploy/direct/verify-release-source.sh'), /anderson-webops\/avasan\\\.org/u)
