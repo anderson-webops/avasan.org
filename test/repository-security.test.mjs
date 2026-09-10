@@ -17,10 +17,10 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
     npm: '>=11.19.0 <13',
   })
   assert.deepEqual(packageJson.allowScripts, {
-    'esbuild@0.28.1': true,
+    'esbuild@0.28.2': true,
     'fsevents@2.3.3': true,
-    'puppeteer@25.4.0': false,
-    'simple-git-hooks@2.13.1': true,
+    'puppeteer@25.10.0': false,
+    'simple-git-hooks@2.14.0': true,
     'unrs-resolver@1.12.2': true,
   })
   assert.match(readText('.npmrc'), /^include=optional$/mu)

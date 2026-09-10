@@ -63,8 +63,8 @@
 		]
 	},
 	"overrides": {
-		"esbuild": "^0.28.1",
-		"js-yaml": "4.3.1",
+		"esbuild": "0.28.2",
+		"js-yaml": "4.3.2",
 		"launch-editor": {
 			".": "2.14.1",
 			"shell-quote": "1.9.0"
@@ -75,7 +75,7 @@
 		},
 		"vite": {
 			".": "^8.2.0",
-			"esbuild": "^0.28.1"
+			"esbuild": "0.28.2"
 		},
 		"nitropack": {
 			".": "2.13.4",
@@ -84,17 +84,17 @@
 		"simple-git": "3.36.0",
 		"brace-expansion": "5.0.9",
 		"fast-uri": "3.1.6",
-		"postcss": "8.5.24",
-		"svgo": "4.0.2",
+		"postcss": "8.5.28",
+		"svgo": "4.1.0",
 		"tar": "7.5.22",
 		"valibot": "1.4.2",
 		"nanoid": "3.3.18"
 	},
 	"allowScripts": {
-		"esbuild@0.28.1": true,
+		"esbuild@0.28.2": true,
 		"fsevents@2.3.3": true,
-		"puppeteer@25.4.0": false,
-		"simple-git-hooks@2.13.1": true,
+		"puppeteer@25.10.0": false,
+		"simple-git-hooks@2.14.0": true,
 		"unrs-resolver@1.12.2": true
 	}
 }
