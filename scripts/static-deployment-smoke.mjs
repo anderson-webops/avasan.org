@@ -29,6 +29,7 @@ assert.match(expectedRevision, sourceRevisionPattern)
 async function request(pathname, init = {}) {
   return fetch(new URL(pathname, baseUrl), {
     redirect: 'manual',
+    signal: AbortSignal.timeout(5000),
     ...init,
   })
 }

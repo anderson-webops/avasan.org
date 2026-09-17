@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-export PATH
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck source=deploy/direct/select-node.sh
+source "$script_dir/select-node.sh"
 
 release_root="${RELEASE_ROOT:-/srv/avasan.org/releases}"
 
@@ -34,12 +35,26 @@ if [[ "$(node --version)" != "v24.18.1" || "$(npm --version)" != "12.0.2" ]]; th
   exit 1
 fi
 
-export AVASAN_RELEASE_REVISION="$(git -C "$candidate" rev-parse HEAD)"
-export AVASAN_RELEASE_VERSION="$(node -p "require('$candidate/package.json').version")"
+export AVASAN_RELEASE_REVISION AVASAN_RELEASE_VERSION
+AVASAN_RELEASE_REVISION="$(git -C "$candidate" rev-parse HEAD)"
+AVASAN_RELEASE_VERSION="$(node -p 'require(process.argv[1]).version' "$candidate/package.json")"
 "$candidate/deploy/direct/verify-release-source.sh" \
   "$candidate" "$AVASAN_RELEASE_VERSION"
 
+if [[ "$candidate" == "$release_root_real" ]]; then
+  echo 'Candidate must be strictly beneath the release root.' >&2; exit 1
+fi
+# Build inputs must not include host/private environment files.
+for directory in "$candidate" "$candidate/front-end"; do
+  for env_file in "$directory"/.env "$directory"/.env.*; do
+    [[ -e "$env_file" || -L "$env_file" ]] || continue
+    [[ "${env_file##*/}" == .env.example ]] && continue
+    echo 'Keep private environment files outside the release checkout.' >&2; exit 1
+  done
+done
+export SOURCE_RELEASE_REQUIRED=1
 cd -- "$candidate"
+node scripts/write-release-metadata.mjs
 npm ci --include=optional --strict-allow-scripts
 npm run verify:native-bindings
 npm run verify:dependency-graph
@@ -51,15 +66,6 @@ npm run typecheck
 npm test
 npm run build
 
-node - <<'NODE'
-import { readFileSync, writeFileSync } from 'node:fs'
-
-const release = JSON.parse(readFileSync('front-end/.output/public/release.json', 'utf8'))
-if (release.revision !== process.env.AVASAN_RELEASE_REVISION)
-  throw new Error('Built release identity does not match the candidate commit.')
-if (release.version !== process.env.AVASAN_RELEASE_VERSION)
-  throw new Error('Built release version does not match the package version.')
-writeFileSync('.avasan-static-release.json', `${JSON.stringify(release, null, 2)}\n`, { mode: 0o644 })
-NODE
+node scripts/static-artifact.mjs create "$candidate"
 
 echo "Prepared direct static release $candidate at $AVASAN_RELEASE_REVISION."

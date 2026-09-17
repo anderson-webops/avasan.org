@@ -1,7 +1,7 @@
 {
 	"name": "avasan-org",
 	"type": "module",
-	"version": "1.2.9",
+	"version": "1.2.10",
 	"private": true,
 	"packageManager": "npm@12.0.2",
 	"engines": {
@@ -29,7 +29,7 @@
 		"lint:repo": "eslint \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\" \"vendor/**/*.js\"",
 		"lint-fix": "npm run -w front-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck",
-		"test": "node scripts/run-selected-npm.mjs run build && node --test test/archiver-compat.test.mjs test/build-runtime-boundary.test.mjs test/native-release-gates.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs",
+		"test": "node scripts/run-selected-npm.mjs run build && node --test test/archiver-compat.test.mjs test/build-runtime-boundary.test.mjs test/native-release-gates.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs test/static-artifact.test.mjs test/static-preview.test.mjs",
 		"audit": "npm audit --audit-level=low",
 		"audit:production": "npm audit --omit=dev --audit-level=low",
 		"audit:signatures": "npm audit signatures",

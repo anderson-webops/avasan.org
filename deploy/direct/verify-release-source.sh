@@ -15,14 +15,14 @@ if [[ ! "$release_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; 
   exit 1
 fi
 
-source_revision="$(git -C "$candidate" rev-parse --verify HEAD^{commit})"
+source_revision="$(git -C "$candidate" rev-parse --verify 'HEAD^{commit}')"
 origin_url="$(git -C "$candidate" remote get-url origin 2>/dev/null || true)"
 if [[ ! "$origin_url" =~ ^(git@github\.com:|ssh://git@github\.com/|https://github\.com/)anderson-webops/avasan\.org(\.git)?$ ]]; then
   echo "Candidate origin is not anderson-webops/avasan.org: ${origin_url:-missing}" >&2
   exit 1
 fi
 
-origin_main="$(git -C "$candidate" rev-parse --verify refs/remotes/origin/main^{commit} 2>/dev/null || true)"
+origin_main="$(git -C "$candidate" rev-parse --verify 'refs/remotes/origin/main^{commit}' 2>/dev/null || true)"
 if [[ -z "$origin_main" ]]; then
   echo "Candidate is missing the fetched origin/main revision." >&2
   exit 1

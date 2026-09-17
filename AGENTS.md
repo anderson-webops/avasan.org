@@ -98,3 +98,21 @@ Never commit or push dependency/package changes if root `npm ci` fails.
 - Never force-push a shared branch or move an existing published tag unless the user explicitly authorizes that exact history rewrite.
 - If automation or repository policy creates a pull request, review it, wait for required checks, merge it when safe, and remove the merged branch before wrapping up. Do not leave redundant pull requests or branches open.
 - Treat commit, push, tag, and GitHub release publication as source delivery only. Do not claim or perform production deployment unless it was separately authorized and verified.
+
+## Static artifact and recovery acceptance
+
+- Preserve the static-only, tracker-free contract. Adopt shared template fixes
+  selectively; its API/worker runtime is not needed here.
+- For release changes, run the Linux ARM64 `scripts/package-static-release.sh`
+  against the clean annotated candidate after the source gates. Verify the exact
+  unpacked archive and a copied tree with the published manifest. Keep both
+  sidecars outside the public root and preserve the public revision/version shape.
+- Run `scripts/test-promotion-recovery.sh` as an unprivileged user in a disposable
+  Linux environment. Its UID0 namespace and command stubs test the real promoter
+  without production access. Never run the fixture directly against a host.
+- Preserve existing snippets, ownership, ports, listeners and the prior release;
+  retain protected backups if rollback fails. No application writable state is
+  required. Consult `docs/static-artifact-contract.md` for recovery limits.
+- The current production source gate requires main and its annotated version tag
+  to match exactly. Include release documentation in that source commit; do not
+  advance main with an evidence-only commit that makes the release gate fail.

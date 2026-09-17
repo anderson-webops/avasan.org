@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "site": "https://avasan.org",
+  "publicRoot": "front-end/.output/public",
+  "required": ["index.html", "200.html", "404.html", "release.json", "favicon.svg", "robots.txt"],
+  "runtime": "Static files only through existing Nginx. No resident application Node process, API, worker, database or tracking.",
+  "writableState": [],
+  "adapterFiles": ["deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf"],
+  "excluded": "No credentials, private configuration, source checkout, dependencies or writable state in the application artifact. Preserve installed host topology and rollback targets."
+}

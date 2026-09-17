@@ -78,19 +78,24 @@ The checkout's `origin` must be the canonical
 commit:
 
 ```bash
-deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.9
-sudo deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.9
+NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.10
+sudo env NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.10
 ```
 
-Promotion compares the prepared and public release identities, atomically
+Select the existing approved Node directory on that host; do not replace its
+system-wide runtime. Private environment files belong outside the checkout.
+
+Promotion verifies required files, their hashes, and the actual Git identity, then atomically
 installs the release's maps and server-policy snippets, verifies that the live
 Nginx graph includes both stable paths exactly once, and switches the `current`
 symlink. The existing `current` symlink must resolve to a complete prior release
 beneath `/srv/avasan.org/releases`; this preserves a valid rollback target and
 makes incomplete first-cutover automation fail closed.
 It then validates and reloads Nginx and compares the served `/release.json`
-byte-for-byte. A failed candidate restores and smoke-checks the prior snippets
-and release. Before the first managed promotion, an operator must preserve the
+byte-for-byte through both loopback address families. An unsuccessful exit or
+handled interruption restores and smoke-checks the prior snippets and release.
+A root-owned mode-0700 recovery directory serializes promotions with a lock.
+If rollback fails, its protected backups remain for operator recovery. Before the first managed promotion, an operator must preserve the
 currently verified live build as an immutable release beneath the release root
 and point `current` to it; the root promoter deliberately does not bootstrap an
 unverified rollback target.
@@ -111,3 +116,7 @@ Integrating or activating the surrounding TLS virtual host remains an operator
 action. The promotion helper owns only the two reviewed snippets and the static
 release symlink; it does not authorize or modify DNS, certificates, listeners,
 routing, or firewall state.
+
+The [static artifact and recovery contract](docs/static-artifact-contract.md)
+describes the independently checked manifest, unpacked Nginx tests, copier
+verification, synthetic promotion failure tests, and protected recovery limits.

@@ -71,3 +71,34 @@ After promotion, run the manual `Verify production deployment` workflow with
 the intended version and full commit. Do not describe the custom domain as
 current merely because source validation passed; the custom-domain smoke must
 also pass.
+
+## Remaining-source review, September17,2026
+
+The one-page/no-account/no-tracker/no-API boundary still applies. Reviewed shared
+Vitesse2.1.1 patterns selectively: no API, worker, rate store or resident Node
+runtime was imported into this static site. There is no application memory
+reduction percentage to claim; it already requires zero resident application
+processes. The upstream relationship is retained for later compatible changes.
+
+The source now rejects a full but unrelated revision override, independently
+checks required static files and copier hashes, and records clean annotated
+provenance outside the public root. The preview bounds connections and shutdown,
+cleans interrupted response streams, and normalizes encoded release/404 paths.
+The source Nginx method rejection now supplies its allowed methods.
+
+Promotion now serializes this helper, verifies files against the exact source
+identity, restores prior snippets/pointer on handled failures or signals, preserves
+prior file metadata and retains protected recovery backups when rollback fails.
+The exact canonical-origin/main/tag rule and existing host topology remain intact.
+No host runtime replacement, migration, live activation or infrastructure mutation
+was performed. Power-loss/SIGKILL and externally concurrent edits remain operator
+recovery boundaries, documented in the static artifact contract.
+
+Dependabot11's taze21.1.0 development-tool update is included, preserving its
+reviewed dependency graph. Its version/help commands retain the updater's existing
+major/write interface. Local clean installation, lint, types, application/static
+tests, preview disconnect/shutdown regression, light/dark accessibility, full and
+production audits, signatures and native lock coverage passed. Linux ARM64 exact
+artifact and promotion results belong to the release's acceptance receipt and
+release notes. These source checks do not establish live deployment or lifetime
+resource behavior.

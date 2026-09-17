@@ -2,6 +2,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs'
 import http from 'node:http'
 import { extname, resolve, sep } from 'node:path'
 import process from 'node:process'
+import { pipeline } from 'node:stream'
 
 const root = resolve('front-end/.output/public')
 const port = Number(process.env.PORT || 18_080)
@@ -62,7 +63,7 @@ function sendNotFound(request, response) {
     response.end()
     return
   }
-  createReadStream(resolve(root, '404.html')).pipe(response)
+  pipeline(createReadStream(resolve(root, '404.html')), response, () => {})
 }
 
 function resolveRequest(pathname) {
@@ -89,9 +90,20 @@ function resolveRequest(pathname) {
 }
 
 const server = http.createServer((request, response) => {
-  const url = new URL(request.url || '/', `http://${host}:${port}`)
+  let url
+  try {
+    url = new URL(request.url || '/', `http://${host}:${port}`)
+  }
+  catch {
+    sendStatus(request, response, 400)
+    return
+  }
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     sendStatus(request, response, 405)
+    return
+  }
+  if (url.pathname === '/404.html') {
+    sendNotFound(request, response)
     return
   }
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
@@ -100,14 +112,14 @@ const server = http.createServer((request, response) => {
   }
 
   const file = resolveRequest(url.pathname)
-  if (!file) {
+  if (!file || file === resolve(root, '404.html')) {
     sendNotFound(request, response)
     return
   }
 
-  const cacheControl = url.pathname === '/release.json'
+  const cacheControl = file === resolve(root, 'release.json')
     ? 'no-store'
-    : url.pathname.startsWith('/_nuxt/')
+    : file.startsWith(`${resolve(root, '_nuxt')}${sep}`)
       ? 'public, max-age=31536000, immutable'
       : 'no-cache'
   response.writeHead(200, {
@@ -119,7 +131,7 @@ const server = http.createServer((request, response) => {
     response.end()
     return
   }
-  createReadStream(file).pipe(response)
+  pipeline(createReadStream(file), response, () => {})
 })
 
 server.headersTimeout = 15_000
@@ -130,9 +142,16 @@ server.listen(port, host, () => {
   console.log(`Avasan static production preview listening on http://${host}:${port}.`)
 })
 
+let stopping = false
 function shutdown() {
-  server.close(() => process.exit(0))
+  if (stopping)
+    return
+  stopping = true
+  const deadline = setTimeout(() => server.closeAllConnections(), 5000)
+  deadline.unref()
+  server.close(() => clearTimeout(deadline))
+  server.closeIdleConnections()
 }
-
-process.once('SIGINT', shutdown)
-process.once('SIGTERM', shutdown)
+server.maxConnections = 128
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)

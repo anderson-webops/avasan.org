@@ -187,6 +187,16 @@ jobs:
       - name: Build on ARM64
         run: npm run build
 
+      - name: Verify isolated promotion recovery
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap apparmor
+          printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
+            'profile avasan-artifact-bwrap /usr/bin/bwrap flags=(unconfined) { userns, }' \
+            | sudo tee /etc/apparmor.d/avasan-artifact-bwrap >/dev/null
+          sudo apparmor_parser -r /etc/apparmor.d/avasan-artifact-bwrap
+          bash scripts/test-promotion-recovery.sh
+
   direct-static-runtime:
     runs-on: ubuntu-latest
     timeout-minutes: 20

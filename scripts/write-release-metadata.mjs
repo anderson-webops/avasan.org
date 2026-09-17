@@ -1,9 +1,9 @@
-import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { releaseIdentity } from './release-identity.mjs'
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(scriptDirectory, '..')
@@ -11,24 +11,18 @@ const defaultOutput = resolve(projectRoot, 'front-end/.output/public/release.jso
 const releaseVersionPattern = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/u
 const sourceRevisionPattern = /^[0-9a-f]{40}$/u
 
-function gitRevision() {
-  return execFileSync('git', ['rev-parse', 'HEAD'], {
-    cwd: projectRoot,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'ignore'],
-  }).trim()
-}
-
 export function releaseMetadata(environment = process.env) {
   const rootPackage = JSON.parse(readFileSync(resolve(projectRoot, 'package.json'), 'utf8'))
   const version = rootPackage.version
-  const revision = (
-    environment.AVASAN_RELEASE_REVISION
-    || environment.SOURCE_REVISION
-    || environment.COMMIT_REF
-    || environment.GITHUB_SHA
-    || gitRevision()
-  ).trim().toLowerCase()
+  const identity = releaseIdentity(projectRoot, version, { SOURCE_RELEASE_REQUIRED: environment.SOURCE_RELEASE_REQUIRED })
+  const revision = identity.commit
+  for (const key of ['AVASAN_RELEASE_REVISION', 'SOURCE_REVISION', 'COMMIT_REF', 'GITHUB_SHA']) {
+    const expected = environment[key]?.trim().toLowerCase()
+    if (expected && !sourceRevisionPattern.test(expected))
+      throw new Error('The release revision must be a full 40-character Git commit SHA.')
+    if (expected && expected !== revision)
+      throw new Error(`${key} differs from the actual source checkout.`)
+  }
 
   if (!releaseVersionPattern.test(version))
     throw new Error('The root package version must be a semantic version.')

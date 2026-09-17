@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-export PATH
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+# shellcheck source=deploy/direct/select-node.sh
+source "$script_dir/select-node.sh"
 
 release_root="${RELEASE_ROOT:-/srv/avasan.org/releases}"
 current_link="${CURRENT_LINK:-/srv/avasan.org/current}"
@@ -9,6 +10,7 @@ host_header="${HOST_HEADER:-avasan.org}"
 site_origin="${SITE_ORIGIN:-https://$host_header}"
 health_url="${HEALTH_URL:-$site_origin/release.json}"
 resolve_address="${RESOLVE_ADDRESS:-127.0.0.1}"
+resolve_address_ipv6="${RESOLVE_ADDRESS_IPV6:-[::1]}"
 snippet_root="${NGINX_SNIPPET_ROOT:-/etc/nginx/snippets}"
 maps_target="$snippet_root/avasan.org-http-maps.conf"
 policy_target="$snippet_root/avasan.org-server-policy.conf"
@@ -39,18 +41,24 @@ if find "$candidate/front-end/.output/public" -type l -print -quit | grep -q .; 
   echo "Prepared public output must not contain symbolic links." >&2
   exit 1
 fi
-if ! cmp -s "$candidate/front-end/.output/public/release.json" "$candidate/.avasan-static-release.json"; then
-  echo "Prepared release metadata does not match the public release identity." >&2
-  exit 1
-fi
 if ! git -C "$candidate" diff --quiet -- . \
   || ! git -C "$candidate" diff --cached --quiet -- .; then
   echo "Prepared release has tracked source changes after preparation." >&2
   exit 1
 fi
-release_version="$(node -p "require('$candidate/package.json').version")"
+node "$script_dir/../../scripts/static-artifact.mjs" verify "$candidate" "${ARTIFACT_MANIFEST:-$candidate/.avasan-static-artifact.json}" "$(git -C "$candidate" rev-parse HEAD)"
+release_version="$(node -p 'require(process.argv[1]).version' "$candidate/package.json")"
 "$candidate/deploy/direct/verify-release-source.sh" \
   "$candidate" "$release_version"
+backup_root="${DEPLOYMENT_RECOVERY_ROOT:-$(dirname -- "$current_link")/.deployment-recovery}"
+if [[ ! -e "$backup_root" ]]; then mkdir -m 0700 -- "$backup_root"; fi
+if [[ ! -d "$backup_root" || -L "$backup_root" || "$(stat -c '%u:%a' "$backup_root")" != '0:700' ]]; then
+  echo 'Recovery storage must be a real root-owned directory with mode0700.' >&2; exit 1
+fi
+exec 9>"$backup_root/promotion.lock"
+if ! flock -n 9; then
+  echo 'Another Avasan promotion is active.' >&2; exit 1
+fi
 if [[ ! -L "$current_link" ]]; then
   echo "Promotion requires an existing verified current release symlink: $current_link" >&2
   exit 1
@@ -60,7 +68,7 @@ if [[ ! -d "$snippet_root" ]]; then
   exit 1
 fi
 for target in "$maps_target" "$policy_target"; do
-  if [[ -e "$target" && ! -f "$target" ]]; then
+  if [[ -L "$target" || ( -e "$target" && ! -f "$target" ) ]]; then
     echo "Refusing to replace non-file Nginx snippet: $target" >&2
     exit 1
   fi
@@ -77,25 +85,54 @@ for previous_file in front-end/.output/public/index.html front-end/.output/publi
     exit 1
   fi
 done
+if [[ "$candidate" == "$release_root_real" || "$previous_target" == "$release_root_real" ]]; then
+  echo 'Release targets must be strictly beneath the release root.' >&2; exit 1
+fi
+nginx -t
+mutation_started=false
+finished=false
+retain_backup=false
 next_link="${current_link}.next.$$"
 response_file="$(mktemp)"
 headers_file="$(mktemp)"
 nginx_dump_file="$(mktemp)"
-backup_directory="$(mktemp -d)"
+backup_directory="$(mktemp -d "$backup_root/avasan-XXXXXXXX")"
+# Registered through the EXIT handler.
+# shellcheck disable=SC2329
 cleanup() {
   if [[ -L "$next_link" ]]; then unlink -- "$next_link"; fi
   rm -f -- "${maps_target}.next.$$" "${policy_target}.next.$$"
   rm -f -- "$response_file" "$headers_file" "$nginx_dump_file"
+  if [[ "$retain_backup" == true ]]; then return; fi
   rm -f -- \
     "$backup_directory/http-maps.conf" "$backup_directory/http-maps.conf.absent" \
     "$backup_directory/server-policy.conf" "$backup_directory/server-policy.conf.absent"
   rmdir -- "$backup_directory"
 }
-trap cleanup EXIT
+# Every unsuccessful exit after mutation, including signals, restores state.
+# shellcheck disable=SC2329
+on_exit() {
+  local status=$?
+  trap - EXIT HUP INT TERM
+  if [[ "$mutation_started" == true && "$finished" != true ]]; then
+    if ! rollback; then
+      retain_backup=true
+      echo "CRITICAL: rollback needs operator recovery; protected backups retained at $backup_directory" >&2
+    fi
+    if [[ "$status" == 0 ]]; then status=1; fi
+  fi
+  cleanup
+  exit "$status"
+}
+trap on_exit EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 activate_target() {
   local target="$1"
-  ln -s -- "$target" "$next_link"
+  if [[ -L "$next_link" ]]; then unlink -- "$next_link" || return 1; fi
+  ln -s -- "$target" "$next_link" || return 1
   mv -Tf -- "$next_link" "$current_link"
 }
 
@@ -112,19 +149,26 @@ install_snippet() {
   mv -Tf -- "${target}.next.$$" "$target"
 }
 
+# Reached from the EXIT rollback handler.
+# shellcheck disable=SC2329
 restore_snippet() {
   local target="$1"
   local backup_name="$2"
   if [[ -f "$backup_directory/$backup_name" ]]; then
-    install -m 0644 -- "$backup_directory/$backup_name" "$target"
+    cp -p -- "$backup_directory/$backup_name" "${target}.next.$$" \
+      && mv -Tf -- "${target}.next.$$" "$target"
   elif [[ -f "$backup_directory/$backup_name.absent" ]]; then
     rm -f -- "$target"
   fi
 }
 
+# Reached from the EXIT rollback handler.
+# shellcheck disable=SC2329
 restore_snippets() {
-  restore_snippet "$maps_target" http-maps.conf
-  restore_snippet "$policy_target" server-policy.conf
+  local failed=0
+  restore_snippet "$maps_target" http-maps.conf || failed=1
+  restore_snippet "$policy_target" server-policy.conf || failed=1
+  return "$failed"
 }
 
 verify_installed_snippets() {
@@ -140,36 +184,57 @@ verify_installed_snippets() {
 
 wait_for_health() {
   local expected_release="$1"
-  local attempt
+  local _attempt
+  local address
+  local complete
   local missing_status
-  for attempt in {1..20}; do
-    if curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+  for _attempt in {1..20}; do
+    complete=true
+    for address in "$resolve_address" "$resolve_address_ipv6"; do
+    if curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$address" \
       --header "Host: $host_header" "$health_url" --output "$response_file" \
       && cmp -s "$expected_release" "$response_file" \
-      && curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+      && curl --fail --silent --show-error --max-time 5 --resolve "$host_header:443:$address" \
         --header "Host: $host_header" \
         --dump-header "$headers_file" "$site_origin/" --output "$response_file" \
       && grep -Eiq '^Cross-Origin-Opener-Policy:[[:space:]]*same-origin' "$headers_file" \
       && grep -Eiq '^Cross-Origin-Resource-Policy:[[:space:]]*same-origin' "$headers_file"; then
-      missing_status="$(curl --silent --show-error --max-time 5 --resolve "$host_header:443:$resolve_address" \
+      missing_status="$(curl --silent --show-error --max-time 5 --resolve "$host_header:443:$address" \
         --header "Host: $host_header" \
         --output "$response_file" --write-out '%{http_code}' \
         "$site_origin/__avasan-deployment-probe-missing")"
       if [[ "$missing_status" == "404" ]] \
         && grep -Fq 'Page not found' "$response_file"; then
-        return 0
+        continue
       fi
     fi
+    complete=false
+    done
+    if [[ "$complete" == true ]]; then return 0; fi
     sleep 1
   done
   return 1
 }
 
+# Invoked by the EXIT handler even when a command fails before activation.
+# shellcheck disable=SC2329
+rollback() {
+  local failed=0
+  restore_snippets || failed=1
+  activate_target "$previous_target" || failed=1
+  if [[ "$failed" == 0 ]] && nginx -t && systemctl reload nginx \
+    && wait_for_health "$previous_target/front-end/.output/public/release.json"; then
+    echo "Restored and verified the previous Avasan release: $previous_target" >&2
+    return 0
+  fi
+  return 1
+}
+mutation_started=true
+
 if ! install_snippet "$candidate/deploy/nginx/http-maps.conf" "$maps_target" http-maps.conf \
   || ! install_snippet "$candidate/deploy/nginx/server-policy.conf" "$policy_target" server-policy.conf \
   || ! verify_installed_snippets \
   || ! activate_target "$candidate"; then
-  restore_snippets
   echo "Could not install the candidate release and Nginx snippets." >&2
   exit 1
 fi
@@ -177,19 +242,11 @@ if ! nginx -t; then
   echo "Nginx validation failed; restoring the previous release." >&2
 elif systemctl reload nginx \
   && wait_for_health "$candidate/front-end/.output/public/release.json"; then
+  finished=true
   echo "Promoted $candidate and verified $health_url with host $host_header."
   exit 0
 else
   echo "Candidate health failed; restoring the previous release." >&2
 fi
 
-restore_snippets
-activate_target "$previous_target"
-if nginx -t \
-  && systemctl reload nginx \
-  && wait_for_health "$previous_target/front-end/.output/public/release.json"; then
-  echo "Restored and verified the previous Avasan release: $previous_target" >&2
-else
-  echo "CRITICAL: the previous Avasan release could not be verified after rollback." >&2
-fi
 exit 1
