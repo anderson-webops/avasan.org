@@ -21,13 +21,12 @@ function stableFileIdentity(stat) {
   }
 }
 
-function readStableRegularFile(path, expectedStat = lstatSync(path, { bigint: true }), encoding) {
-  assert.ok(expectedStat.isFile() && !expectedStat.isSymbolicLink(), `Artifact path must be a regular file: ${path}`)
+function readStableRegularFile(path, encoding) {
   assert.notEqual(constants.O_NOFOLLOW, undefined, 'Artifact verification requires O_NOFOLLOW support')
   const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW)
   try {
     const before = fstatSync(descriptor, { bigint: true })
-    assert.deepEqual(stableFileIdentity(before), stableFileIdentity(expectedStat), `Artifact path changed before it was opened: ${path}`)
+    assert.ok(before.isFile(), `Artifact path must be a regular file: ${path}`)
     const contents = readFileSync(descriptor)
     const after = fstatSync(descriptor, { bigint: true })
     assert.deepEqual(stableFileIdentity(after), stableFileIdentity(before), `Artifact file changed while it was read: ${path}`)
@@ -39,7 +38,7 @@ function readStableRegularFile(path, expectedStat = lstatSync(path, { bigint: tr
   }
 }
 
-const readStableJson = path => JSON.parse(readStableRegularFile(path, undefined, 'utf8'))
+const readStableJson = path => JSON.parse(readStableRegularFile(path, 'utf8'))
 
 export function inspectStatic(root, allowPreview = false) {
   const publicRoot = resolve(root, contract.publicRoot)
@@ -51,19 +50,20 @@ export function inspectStatic(root, allowPreview = false) {
   }
   const files = {}
   function walk(directory, prefix = '') {
-    for (const name of readdirSync(directory).sort()) {
+    const entries = readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))
+    for (const entry of entries) {
+      const { name } = entry
       const relative = prefix + name
       assert.ok(!name.startsWith('.') && !/\.(?:pem|key|sqlite3?|node|so)$/iu.test(name), `Forbidden public path: ${relative}`)
       const path = resolve(directory, name)
-      const stat = lstatSync(path, { bigint: true })
-      assert.ok(!stat.isSymbolicLink(), `Symlink in static artifact: ${relative}`)
-      if (stat.isDirectory()) {
+      assert.ok(!entry.isSymbolicLink(), `Symlink in static artifact: ${relative}`)
+      if (entry.isDirectory()) {
         assert.notEqual(name, 'node_modules')
         walk(path, `${relative}/`)
       }
       else {
-        assert.ok(stat.isFile(), `Non-file in static artifact: ${relative}`)
-        const contents = readStableRegularFile(path, stat)
+        assert.ok(entry.isFile(), `Non-file in static artifact: ${relative}`)
+        const contents = readStableRegularFile(path)
         files[relative] = { sha256: hash(contents), size: contents.byteLength }
       }
     }
@@ -72,7 +72,7 @@ export function inspectStatic(root, allowPreview = false) {
   for (const name of contract.required)
     assert.ok(files[name], `Required static path missing: ${name}`)
   for (const name of Object.keys(files).filter(name => name.endsWith('.html'))) {
-    const html = readStableRegularFile(resolve(publicRoot, name), undefined, 'utf8')
+    const html = readStableRegularFile(resolve(publicRoot, name), 'utf8')
     for (const [, value] of html.matchAll(/(?:src|href)=["'](\/[^"']+)["']/gu)) {
       const url = new URL(value, 'https://artifact.invalid')
       if (url.origin !== 'https://artifact.invalid')
@@ -101,19 +101,13 @@ export function inspectStatic(root, allowPreview = false) {
   const adapterFiles = {}
   for (const path of contract.adapterFiles) {
     const absolutePath = resolve(root, path)
-    const stat = lstatSync(absolutePath, { bigint: true })
-    assert.ok(stat.isFile() && !stat.isSymbolicLink(), 'Adapter files must be regular files')
-    const contents = readStableRegularFile(absolutePath, stat)
+    const contents = readStableRegularFile(absolutePath)
     adapterFiles[path] = { sha256: hash(contents), size: contents.byteLength }
   }
   return { format: 1, contract, identity, provenance, files, adapterFiles }
 }
 
 export function verifyStatic(root, { trustedManifest, commit, runtimeOnly = false } = {}) {
-  for (const name of [manifestName, '.avasan-static-release.json']) {
-    const stat = lstatSync(resolve(root, name))
-    assert.ok(stat.isFile() && !stat.isSymbolicLink(), 'Artifact metadata must be regular files')
-  }
   const declared = readStableJson(resolve(root, manifestName))
   if (trustedManifest)
     assert.deepEqual(declared, trustedManifest, 'Copied manifest differs from trusted release manifest')
