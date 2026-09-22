@@ -77,6 +77,9 @@ manifest and Git commit, locks a root-owned0700 `.deployment-recovery` directory
 beside `current`, backs up snippets including their modes/ownership, atomically
 replaces each snippet and pointer, verifies the effective snippet includes,
 validates/reloads Nginx, and verifies the candidate on both loopback families.
+Artifact files are opened with no-follow descriptors and checked before and after
+each read, so a mutable preparation tree cannot replace a checked path during
+hashing without making promotion fail closed.
 Handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
 returns failure and preserves protected backups with their path reported for the
 operator; do not delete that directory until recovery has been verified.

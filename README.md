@@ -78,8 +78,8 @@ The checkout's `origin` must be the canonical
 commit:
 
 ```bash
-NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.10
-sudo env NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.10
+NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.11
+sudo env NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.11
 ```
 
 Select the existing approved Node directory on that host; do not replace its

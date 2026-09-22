@@ -16,8 +16,8 @@ function fixture(t) {
     mkdirSync(resolve(path, '..'), { recursive: true })
     writeFileSync(path, '<!doctype html><title>Synthetic fixture</title>')
   }
-  const identity = { revision: 'a'.repeat(40), version: '1.2.10' }
-  const provenance = { commit: identity.revision, version: identity.version, tag: 'v1.2.10', dirty: false, releaseVerified: true }
+  const identity = { revision: 'a'.repeat(40), version: '1.2.11' }
+  const provenance = { commit: identity.revision, version: identity.version, tag: 'v1.2.11', dirty: false, releaseVerified: true }
   writeFileSync(resolve(publicRoot, 'release.json'), JSON.stringify(identity))
   writeFileSync(resolve(root, '.avasan-static-release.json'), JSON.stringify(provenance))
   for (const path of contract.adapterFiles) {
