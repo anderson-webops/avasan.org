@@ -20,7 +20,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.2': true,
     'fsevents@2.3.3': true,
-    'puppeteer@25.10.0': false,
+    'puppeteer@25.11.0': false,
     'simple-git-hooks@2.14.0': true,
     'unrs-resolver@1.12.2': true,
   })

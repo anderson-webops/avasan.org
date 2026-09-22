@@ -46,10 +46,10 @@
 		"@antfu/eslint-config": "^9.2.0",
 		"axe-core": "^4.11.4",
 		"commander": "15.0.0",
-		"eslint": "^10.8.0",
+		"eslint": "^10.11.0",
 		"eslint-plugin-format": "^2.0.1",
-		"lint-staged": "^17.2.0",
-		"puppeteer": "^25.4.0",
+		"lint-staged": "^17.5.1",
+		"puppeteer": "^25.11.0",
 		"simple-git-hooks": "^2.13.1",
 		"taze": "^21.1.0",
 		"typescript": "^6.0.3"
@@ -93,7 +93,7 @@
 	"allowScripts": {
 		"esbuild@0.28.2": true,
 		"fsevents@2.3.3": true,
-		"puppeteer@25.10.0": false,
+		"puppeteer@25.11.0": false,
 		"simple-git-hooks@2.14.0": true,
 		"unrs-resolver@1.12.2": true
 	}
