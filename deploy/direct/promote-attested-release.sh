@@ -268,9 +268,9 @@ state_record="$(/usr/bin/mktemp "$recovery_root/promotion-state-XXXXXXXX")"
 /usr/bin/printf '%s\n%s\n%s\n' "$previous_target" "$candidate" "$commit" >"$state_record"
 mutation_started=true
 
-/usr/bin/install -o root -g root -m 0644 -- "$candidate/deploy/nginx/http-maps.conf" "$maps_next"
+/usr/bin/install -o 0 -g 0 -m 0644 -- "$candidate/deploy/nginx/http-maps.conf" "$maps_next"
 /usr/bin/mv -Tf -- "$maps_next" "$maps_target"
-/usr/bin/install -o root -g root -m 0644 -- "$candidate/deploy/nginx/server-policy.conf" "$policy_next"
+/usr/bin/install -o 0 -g 0 -m 0644 -- "$candidate/deploy/nginx/server-policy.conf" "$policy_next"
 /usr/bin/mv -Tf -- "$policy_next" "$policy_target"
 if ! /usr/bin/cmp -s "$candidate/deploy/nginx/http-maps.conf" "$maps_target" \
   || ! /usr/bin/cmp -s "$candidate/deploy/nginx/server-policy.conf" "$policy_target" \
