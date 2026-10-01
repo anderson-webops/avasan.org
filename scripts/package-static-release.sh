@@ -37,7 +37,7 @@ with tarfile.open(archive) as source:
     source.extractall(sys.argv[2], filter='data')
 PY
 node scripts/static-artifact.mjs runtime "$output/unpacked" "$output/static-artifact.json" "$commit"
-bash scripts/test-promotion-recovery.sh
+bash scripts/test-attested-promotion.sh
 bash scripts/test-unpacked-static.sh "$output/unpacked"
 cp -R "$output/unpacked" "$output/copied"
 node scripts/static-artifact.mjs runtime "$output/copied" "$output/static-artifact.json" "$commit"
@@ -54,9 +54,9 @@ receipt = {"commit": sys.argv[3], "archive": archive.name, "sha256": sys.argv[4]
            "acceptedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
            "scope": "source-artifact-only", "hostCapabilitiesVerified": False,
            "deploymentContract": json.loads(Path("deploy/static-artifact.json").read_text())["deployment"],
-           "checks": ["required paths and hashes", "exact annotated identity", "static-only archive", "isolated unpacked routes and assets", "copied artifact", "missing-asset rejection", "legacy promoter recovery fault injection"],
+           "checks": ["required paths and hashes", "exact annotated identity", "static-only archive", "isolated unpacked routes and assets", "copied artifact", "missing-asset rejection", "attested promoter recovery fault injection"],
            "harnessSha256": {name: hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in [
-               "deploy/static-artifact.json", "deploy/nginx/default.conf", "deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf", "scripts/release-identity.mjs", "scripts/static-artifact.mjs", "scripts/package-static-release.sh", "scripts/test-unpacked-static.sh", "scripts/static-preview-server.mjs", "scripts/static-deployment-smoke.mjs", "scripts/test-static-artifact.mjs", "scripts/test-promotion-recovery.sh", "scripts/test-promotion-recovery.py", "deploy/direct/promote-static-release.sh", "deploy/direct/select-node.sh", "deploy/direct/verify-release-source.sh", "deploy/direct/verify-nginx-snippet-dump.sh"]}}
+               "deploy/static-artifact.json", "deploy/nginx/default.conf", "deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf", "scripts/release-identity.mjs", "scripts/static-artifact.mjs", "scripts/package-static-release.sh", "scripts/test-unpacked-static.sh", "scripts/static-preview-server.mjs", "scripts/static-deployment-smoke.mjs", "scripts/test-static-artifact.mjs", "scripts/test-attested-promotion.sh", "scripts/test-attested-promotion.py", "scripts/test-attested-promotion-stub.py", "deploy/direct/promote-static-release.sh", "deploy/direct/promote-attested-release.sh", "deploy/direct/verified-static-artifact.py", "deploy/direct/verify-nginx-snippet-dump.sh", "test/test_verified_static_artifact.py"]}}
 (output / "acceptance.json").write_text(json.dumps(receipt, indent=2) + "\n")
 PY
 echo "Accepted exact static artifact: $archive"

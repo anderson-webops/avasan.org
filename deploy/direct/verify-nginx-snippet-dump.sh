@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
-PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 
 if [[ $# -lt 2 ]]; then

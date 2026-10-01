@@ -95,32 +95,39 @@ Nginx shutdown. It repeats against the copied artifact. This tests the standalon
 HTTP reference; production TLS, HTTP2/3, certificates and redirects remain operator
 acceptance responsibilities. Static sites do not acquire artificial health APIs.
 
-The separate `test-promotion-recovery.sh` runs the actual promotion script inside
-a disposable UID0 user namespace. Synthetic Git/tag identities, paths and command
-stubs exercise successful activation, rejected health, partial snippet installation,
-termination, Nginx validation failure, failed rollback, a contended lock, an invalid
-current pointer and artifact tampering. It checks previous snippet bytes, ownership
-and modes, previous pointer restoration and protected backup retention. It makes
-no requests to production and runs no real systemd or host Nginx commands. The
-fixture identity is not published-release provenance.
+The separate `test-attested-promotion.sh` runs the installed promoter inside a
+disposable UID0 user namespace. Root-owned synthetic archives and command stubs
+exercise successful activation, rejected health, rollback, protected-input
+rejection, nested rollback-target rejection, and failed rollback acceptance. It
+checks the prior pointer, exact policy bytes, dual-stack probes, and retained
+recovery evidence. It makes no requests to production and runs no real systemd or
+host Nginx commands. The fixture attestation is a stub, not published-release
+provenance; the tagged workflow independently attests the exact archive bytes.
 
 ## Promotion, persistent state and recovery
 
-The reviewed operator contract remains `/srv/avasan.org/releases`, its existing
-`current` symlink, and the two `/etc/nginx/snippets/avasan.org-*.conf` files. Retain
-the existing outer TLS/IPv4/IPv6/HTTP2/HTTP3 configuration. Select the approved
-existing runtime with `NODE_BIN_DIR`; do not change the host-wide Node installation.
-Source preparation is unprivileged and requires the canonical origin, fetched main,
-clean checkout and exact annotated tag. Keep private environment files outside it.
+The checked-in checkout-based preparation and promotion scripts now fail closed.
+The new promoter requires a separately installed, root-owned copy of
+`deploy/direct/promote-attested-release.sh`,
+`deploy/direct/verified-static-artifact.py`,
+`deploy/direct/verify-nginx-snippet-dump.sh`, the reviewed contract, and both
+reviewed Nginx policy files under `/usr/local/libexec/avasan.org`. The host must
+also provide `/usr/bin/gh`, protected `/srv/avasan.org/artifact-incoming` (0700),
+`artifact-releases` (0755), and `.deployment-recovery` (0700). The privileged
+host adapter must invoke the installed promoter with a clean environment and
+must not delegate that root command directly to an untrusted build account.
+The caller stages
+the exact CI archive and attestation bundle as root-owned regular files beneath
+`artifact-incoming`; the installed promoter verifies the Actions attestation,
+source commit, tag, archive digest, contract, static hashes, and policy bytes
+before installing a sealed tree. No script from the candidate is executed.
 
-The checked-in legacy promoter remains for compatibility and recovery tests,
-not as production authorization. It can execute candidate scripts as root, trust candidate-owned
-Nginx configuration, and point `current` at a builder-writable tree. The host
-must install a separately reviewed root-owned promoter and verifier, validate
-the attested archive, seal a real root-owned artifact tree with no builder-write
-path, and independently verify the staged tree and policy bytes before
-activation. A protected, immutable prior artifact and its exact Nginx policy
-must be ready for version-aware rollback. Until that host adapter exists and
+The one-time host transition must first seal the serving release as a direct
+protected child of `artifact-releases`, with its own verified manifest and exact
+active Nginx snippets. The promoter rejects a mutable or nested rollback target.
+Retain the surrounding TLS/IPv4/IPv6/HTTP2/HTTP3 configuration and existing
+public routing. Do not change the host-wide Node installation, private
+configuration, DNS, or certificates. Until the host adapter is reviewed and
 passes acceptance, the source release remains blocked from production.
 
 The adapter should classify temporary registry/network trouble for bounded
@@ -130,7 +137,7 @@ post-mutation probe as `rolled back` only after the old artifact actually passes
 readiness. Waiting for CI and a scheduled retry must not be reported as a
 successful deployment. Persistent authentication failures require investigation,
 not unbounded retries.
-The legacy helper's handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
+The installed helper's handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
 returns failure and preserves protected backups with their path reported for the
 operator; do not delete that directory until recovery has been verified.
 

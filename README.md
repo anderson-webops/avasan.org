@@ -71,26 +71,24 @@ routing in the surrounding host. Then run `nginx -t` and reload. The small
 `deploy/nginx/default.conf` is a standalone port-80 syntax/runtime reference;
 it is not a replacement for the production TLS virtual host.
 
-Direct Nginx releases are built from a clean checkout by an unprivileged deployment user.
-The checkout's `origin` must be the canonical
-`anderson-webops/avasan.org` repository, and its `HEAD`, fetched
-`origin/main`, and annotated `v<package-version>` tag must resolve to the same
-commit.
+Direct Nginx releases are built by the tagged Linux ARM64 CI workflow from a
+clean checkout. Its `HEAD`, fetched `origin/main`, and annotated
+`v<package-version>` tag must resolve to the same canonical commit.
 
-The old checkout-based promotion command is **not approved for production**:
-it can execute candidate-controlled scripts as root and serve a builder-writable
-tree. Do not run `deploy/direct/promote-static-release.sh` from a release
-checkout. The host adapter must independently verify the tagged CI archive and
-its provenance, enforce the deployment capabilities in
-`deploy/static-artifact.json`, then install the exact artifact into a protected,
-immutable release tree before a root-owned promoter activates it. A missing
-capability is a host-adapter update, not permission to skip the check.
+The checkout-based preparation and promotion commands now fail closed. The
+reviewed source for the new host-installed promoter is
+`deploy/direct/promote-attested-release.sh`, paired with
+`deploy/direct/verified-static-artifact.py`. Install and invoke those files only
+through a separately reviewed, root-owned host adapter. The adapter must verify
+the tagged CI archive and its attestation, enforce `deploy/static-artifact.json`,
+and seal the exact static tree before activation. A missing capability is a
+host-adapter update, not permission to skip the check.
 
 Select the existing approved Node directory on that host; do not replace its
 system-wide runtime. Private environment files belong outside the checkout.
 
 The reviewed host adapter must retain the prior release and its Nginx policy,
-atomically switch the new artifact and policy, verify `/release.json` and the
+switch the new artifact and policy with protected rollback, verify `/release.json` and the
 homepage over both loopback address families, and restore the retained bytes
 after failed activation without rebuilding or downloading. It must record whether
 production changed. Before the first artifact-only promotion, the operator must
@@ -111,7 +109,7 @@ authorization, backend, deployment, and supply-chain review are recorded in
 [`docs/security-audit.md`](docs/security-audit.md).
 
 Integrating or activating the surrounding TLS virtual host remains an operator
-action. The future installed promoter may own only the two reviewed snippets and the static
+action. The installed promoter may own only the two reviewed snippets and the static
 release symlink; it does not authorize or modify DNS, certificates, listeners,
 routing, or firewall state.
 

@@ -48,9 +48,9 @@ and security boundaries.
 - Enabled source tests that prevent silent reintroduction of accounts, forms, trackers, runtime configuration, or a
   backend workspace.
 - Disabled persisted Git credentials on every workflow checkout.
-- Removed the production Docker image and registry path. Direct Nginx releases now require a clean unprivileged build,
-  preserve exact release metadata, promote through an atomic symlink, compare the served identity, and automatically
-  restore the previous release after a failed validation.
+- Removed the production Docker image and registry path. Tagged CI builds produce a static archive with exact release
+  identity. A separately installed, root-owned promoter verifies its attestation and hashes, activates a sealed tree,
+  and restores the retained release after a failed validation. The checkout-based helpers fail closed.
 - Replaced container CI with a loopback static preview that exercises the same strict method, routing, cache, header,
   hidden-file, and release-identity contract.
 

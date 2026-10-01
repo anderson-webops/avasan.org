@@ -107,9 +107,9 @@ Never commit or push dependency/package changes if root `npm ci` fails.
   against the clean annotated candidate after the source gates. Verify the exact
   unpacked archive and a copied tree with the published manifest. Keep both
   sidecars outside the public root and preserve the public revision/version shape.
-- Run `scripts/test-promotion-recovery.sh` as an unprivileged user in a disposable
-  Linux environment. Its UID0 namespace and command stubs test the real promoter
-  without production access. Never run the fixture directly against a host.
+- Run `scripts/test-attested-promotion.sh` as an unprivileged user in a disposable
+  Linux environment. Its UID0 namespace and command stubs test the installed
+  promoter without production access. Never run the fixture directly against a host.
 - Preserve existing snippets, ownership, ports, listeners and the prior release;
   retain protected backups if rollback fails. No application writable state is
   required. Consult `docs/static-artifact-contract.md` for recovery limits.

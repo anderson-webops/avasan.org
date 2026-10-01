@@ -190,12 +190,12 @@ jobs:
       - name: Verify isolated promotion recovery
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends bubblewrap apparmor
+          sudo apt-get install --yes --no-install-recommends bubblewrap apparmor nginx
           printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
             'profile avasan-artifact-bwrap /usr/bin/bwrap flags=(unconfined) { userns, }' \
             | sudo tee /etc/apparmor.d/avasan-artifact-bwrap >/dev/null
           sudo apparmor_parser -r /etc/apparmor.d/avasan-artifact-bwrap
-          bash scripts/test-promotion-recovery.sh
+          bash scripts/test-attested-promotion.sh
 
   direct-static-runtime:
     runs-on: ubuntu-latest
@@ -229,10 +229,12 @@ jobs:
           test -f front-end/.output/public/release.json
           bash -n deploy/direct/prepare-static-release.sh
           bash -n deploy/direct/promote-static-release.sh
+          bash -n deploy/direct/promote-attested-release.sh
           bash -n deploy/direct/verify-release-source.sh
           bash -n deploy/direct/verify-nginx-snippet-dump.sh
           test -x deploy/direct/verify-release-source.sh
           test -x deploy/direct/verify-nginx-snippet-dump.sh
+          python3 -B -m unittest discover -s test -p 'test_verified_static_artifact.py' -v
 
       - name: Syntax-check versioned Nginx policy
         run: |

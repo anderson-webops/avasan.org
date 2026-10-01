@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import test from 'node:test'
@@ -109,7 +110,8 @@ test('the direct Nginx release path is dual-stack and atomic', () => {
   const nginxConfig = read('deploy/nginx/default.conf')
   const serverPolicy = read('deploy/nginx/server-policy.conf')
   const prepareRelease = read('deploy/direct/prepare-static-release.sh')
-  const promoteRelease = read('deploy/direct/promote-static-release.sh')
+  const legacyPromoter = read('deploy/direct/promote-static-release.sh')
+  const promoteRelease = read('deploy/direct/promote-attested-release.sh')
 
   assert.equal(existsSync(resolve(projectRoot, 'Dockerfile')), false)
   assert.equal(existsSync(resolve(projectRoot, '.dockerignore')), false)
@@ -120,17 +122,28 @@ test('the direct Nginx release path is dual-stack and atomic', () => {
   assert.match(nginxConfig, /include \/etc\/nginx\/snippets\/avasan\.org-server-policy\.conf;/u)
   assert.match(serverPolicy, /root \/srv\/avasan\.org\/current\/front-end\/\.output\/public;/)
   assert.match(serverPolicy, /access_log off;/)
-  assert.match(prepareRelease, /AVASAN_RELEASE_REVISION/u)
-  assert.match(prepareRelease, /verify-release-source\.sh/u)
-  assert.match(prepareRelease, /unprivileged deployment user/u)
+  assert.match(prepareRelease, /checkout-based preparation is retired/u)
+  assert.match(legacyPromoter, /checkout-based promotion is retired/u)
   assert.match(promoteRelease, /mv -Tf/u)
-  assert.match(promoteRelease, /install_snippet/u)
-  assert.match(promoteRelease, /restore_snippets/u)
+  assert.match(promoteRelease, /gh attestation verify/u)
+  assert.match(promoteRelease, /verified-static-artifact\.py/u)
+  assert.match(promoteRelease, /verify --retained/u)
+  assert.match(promoteRelease, /restore_snippet/u)
   assert.match(promoteRelease, /nginx -T/u)
   assert.match(promoteRelease, /verify-nginx-snippet-dump\.sh/u)
-  assert.match(promoteRelease, /existing verified current release symlink/u)
+  assert.match(promoteRelease, /current release is not a sealed artifact/u)
   assert.match(promoteRelease, /avasan\.org-http-maps\.conf/u)
   assert.match(promoteRelease, /avasan\.org-server-policy\.conf/u)
   assert.match(promoteRelease, /systemctl reload nginx/u)
-  assert.match(promoteRelease, /restoring the previous release/u)
+  assert.match(promoteRelease, /restoring the sealed previous release/u)
+})
+
+test('retired checkout release commands fail closed', () => {
+  for (const command of ['prepare-static-release.sh', 'promote-static-release.sh']) {
+    const result = spawnSync('bash', [resolve(projectRoot, 'deploy/direct', command)], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Host adapter update required/u)
+  }
 })

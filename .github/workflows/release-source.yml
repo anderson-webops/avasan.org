@@ -68,6 +68,8 @@ jobs:
           npm run lint
           npm run typecheck
           npm test
+          python3 -B -m unittest discover -s test -p 'test_verified_static_artifact.py' -v
+          bash scripts/test-attested-promotion.sh
           printf '\n/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
           mkdir -p .ai-work/runs/tagged-release
           git check-ignore -q .ai-work/runs/tagged-release
