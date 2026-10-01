@@ -7,6 +7,7 @@ const readText = path => readFileSync(new URL(`../${path}`, import.meta.url), 'u
 test('repository pins the approved runtime, lifecycle, and CI supply chain', () => {
   const packageJson = JSON.parse(readText('package.json'))
   const workflow = readText('.github/workflows/ci.yml')
+  const releaseWorkflow = readText('.github/workflows/release-source.yml')
   const postDeployWorkflow = readText('.github/workflows/post-deploy.yml')
   const deploymentSmoke = readText('scripts/static-deployment-smoke.mjs')
   const staticArtifact = readText('scripts/static-artifact.mjs')
@@ -26,6 +27,10 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   })
   assert.match(readText('.npmrc'), /^include=optional$/mu)
   assert.match(readText('.npmrc'), /^strict-allow-scripts=true$/mu)
+  assert.match(releaseWorkflow, /runs-on: ubuntu-24\.04-arm/u)
+  assert.match(releaseWorkflow, /git cat-file -t/u)
+  assert.match(releaseWorkflow, /scripts\/package-static-release\.sh/u)
+  assert.match(releaseWorkflow, /actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/u)
   assert.doesNotMatch(packageJson.scripts.clean, /package-lock\.json/u)
   assert.doesNotMatch(workflow, /uses:\s+\S+@(?:main|master|v\d)/u)
   assert.equal(

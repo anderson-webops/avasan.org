@@ -1,0 +1,86 @@
+name: Verify static release artifact
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: avasan-static-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NUXT_TELEMETRY_DISABLED: "1"
+  PUPPETEER_SKIP_DOWNLOAD: "true"
+
+jobs:
+  package-arm64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.18.1
+          cache: npm
+
+      - name: Pin npm version
+        run: npm install --global npm@12.0.2 --allow-scripts=npm
+
+      - name: Verify annotated release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = v24.18.1
+          test "$(npm --version)" = 12.0.2
+          test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
+          test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = tag
+          test "$(git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}")" = "$(git rev-parse HEAD)"
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$(git rev-parse HEAD)"
+
+      - name: Install isolated acceptance prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap apparmor nginx
+          printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
+            'profile avasan-artifact-bwrap /usr/bin/bwrap flags=(unconfined) { userns, }' \
+            | sudo tee /etc/apparmor.d/avasan-artifact-bwrap >/dev/null
+          sudo apparmor_parser -r /etc/apparmor.d/avasan-artifact-bwrap
+
+      - name: Validate and package exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --include=optional --strict-allow-scripts
+          npm run audit
+          npm run audit:production
+          npm run audit:signatures
+          npm run verify:dependency-graph
+          npm run verify:native-bindings
+          npm run lint
+          npm run typecheck
+          npm test
+          printf '\n/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
+          mkdir -p .ai-work/runs/tagged-release
+          git check-ignore -q .ai-work/runs/tagged-release
+          bash scripts/package-static-release.sh .ai-work/runs/tagged-release
+          mkdir -p .ai-work/runs/release-assets
+          cp .ai-work/runs/tagged-release/*.tar.gz \
+            .ai-work/runs/tagged-release/{SHA256SUMS,static-artifact.json,acceptance.json} \
+            .ai-work/runs/release-assets/
+          test "$(find .ai-work/runs/release-assets -maxdepth 1 -type f | wc -l)" -eq 4
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: verified-linux-arm64-static-release
+          path: .ai-work/runs/release-assets/
+          if-no-files-found: error
+          retention-days: 30

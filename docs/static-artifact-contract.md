@@ -24,6 +24,14 @@ mkdir -p .ai-work/runs/release-output
 bash scripts/package-static-release.sh .ai-work/runs/release-output
 ```
 
+The preferred release producer is the tagged Linux ARM64 workflow in
+`.github/workflows/release-source.yml`. It requires the annotated version tag
+at the exact `origin/main` commit, repeats source audits and tests, then
+packages and accepts the exact archive in isolation. Publish only its four
+downloaded, hash-checked assets. A successful tagged build is source-release
+evidence, not proof of production activation or approval to bypass the host
+promotion boundary.
+
 The output directory must be empty and locally ignored. The package contains
 only the public tree, two snippets and two sidecars. The checked-in verifier
 rejects missing independently required paths, missing HTML-referenced assets,
