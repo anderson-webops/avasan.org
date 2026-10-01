@@ -253,11 +253,11 @@ def verify_tree(destination, trusted_manifest, retained=False):
         if count > MAX_MEMBERS + 1:
             raise ValueError("artifact tree member count exceeds bound")
         metadata = path.lstat()
-        if metadata.st_uid != os.geteuid() or metadata.st_mode & 0o022:
-            raise ValueError("artifact tree is not protected")
         if path == destination:
             if not stat.S_ISDIR(metadata.st_mode) or stat.S_IMODE(metadata.st_mode) != 0o555:
                 raise ValueError("artifact root must be a sealed directory")
+            if metadata.st_uid != os.geteuid() or metadata.st_mode & 0o022:
+                raise ValueError("artifact tree is not protected")
             continue
         name = path.relative_to(destination).as_posix()
         if stat.S_ISDIR(metadata.st_mode):
@@ -270,6 +270,8 @@ def verify_tree(destination, trusted_manifest, retained=False):
             seen_files.add(name)
         else:
             raise ValueError("artifact tree contains a link or special file")
+        if metadata.st_uid != os.geteuid() or metadata.st_mode & 0o022:
+            raise ValueError("artifact tree is not protected")
     required_directories = {str(parent) for name in expected for parent in PurePosixPath(name).parents if str(parent) != "."}
     if seen_files != expected or seen_directories != required_directories:
         raise ValueError("artifact tree inventory differs from manifest")
