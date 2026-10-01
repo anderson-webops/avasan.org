@@ -37,6 +37,23 @@ test('complete static artifact has no application runtime or private state', (t)
   assert.throws(() => verifyStatic(root, { runtimeOnly: true }))
 })
 
+test('deployment contract is versioned and bound to the verified artifact', (t) => {
+  const { root, manifest } = fixture(t)
+  assert.equal(contract.deployment.version, 1)
+  assert.equal(contract.deployment.buildPlatform, 'linux-arm64')
+  assert.equal(contract.deployment.runtime, 'static-nginx')
+  assert.deepEqual(contract.deployment.readiness.addressFamilies, ['ipv4', 'ipv6'])
+  assert.equal(contract.deployment.readiness.homepageStatus, 200)
+  assert.equal(contract.deployment.readiness.missingRouteStatus, 404)
+  assert.equal(contract.deployment.migrations, 'none')
+  assert.ok(contract.deployment.requiredHostCapabilities.includes('protected-immutable-staging-v1'))
+  assert.deepEqual(manifest.contract.deployment, contract.deployment)
+  const weakenedManifest = structuredClone(manifest)
+  weakenedManifest.contract.deployment.requiredHostCapabilities.pop()
+  writeFileSync(resolve(root, manifestName), JSON.stringify(weakenedManifest))
+  assert.throws(() => verifyStatic(root), /differ from the manifest/u)
+})
+
 test('missing pages and referenced assets fail even if a copier regenerates the inventory', (t) => {
   const { root, publicRoot } = fixture(t)
   unlinkSync(resolve(publicRoot, 'favicon.svg'))

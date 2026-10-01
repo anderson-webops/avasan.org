@@ -80,7 +80,113 @@ jobs:
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: verified-linux-arm64-static-release
+          name: accepted-linux-arm64-static-archive
           path: .ai-work/runs/release-assets/
+          if-no-files-found: error
+          retention-days: 1
+
+  attest-arm64:
+    needs: package-arm64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            deploy/static-artifact.json
+            deploy/nginx/http-maps.conf
+            deploy/nginx/server-policy.conf
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: accepted-linux-arm64-static-archive
+          path: release-assets
+
+      - name: Verify downloaded archive and contract
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 4
+          (cd release-assets && sha256sum --check SHA256SUMS)
+          archive="$(find release-assets -maxdepth 1 -type f -name '*.tar.gz' -print -quit)"
+          test -n "$archive"
+          python3 -B - "$archive" "$GITHUB_SHA" "$GITHUB_REF_NAME" <<'PY'
+          import hashlib
+          import json
+          import sys
+          import tarfile
+          from pathlib import Path
+
+          archive = Path(sys.argv[1])
+          commit, tag = sys.argv[2:]
+          manifest = json.loads(Path('release-assets/static-artifact.json').read_text())
+          receipt = json.loads(Path('release-assets/acceptance.json').read_text())
+          source_contract = json.loads(Path('deploy/static-artifact.json').read_text())
+          assert receipt['commit'] == manifest['identity']['revision'] == commit
+          assert tag == f"v{manifest['identity']['version']}"
+          assert receipt['archive'] == archive.name
+          assert receipt['sha256'] == hashlib.sha256(archive.read_bytes()).hexdigest()
+          assert receipt['scope'] == 'source-artifact-only'
+          assert receipt['hostCapabilitiesVerified'] is False
+          assert manifest['contract'] == source_contract
+          assert receipt['deploymentContract'] == manifest['contract']['deployment']
+          assert manifest['format'] == 1
+          assert set(source_contract['required']).issubset(manifest['files'])
+          assert set(manifest['adapterFiles']) == set(source_contract['adapterFiles'])
+          assert manifest['provenance']['commit'] == commit
+          assert manifest['provenance']['tag'] == tag
+          assert manifest['provenance']['releaseVerified'] is True
+          assert manifest['provenance']['dirty'] is False
+          assert all(not any(part.startswith('.') for part in Path(name).parts) for name in manifest['files'])
+          expected_files = {'.avasan-static-artifact.json', '.avasan-static-release.json'}
+          expected_files.update(f"{source_contract['publicRoot']}/{name}" for name in manifest['files'])
+          expected_files.update(source_contract['adapterFiles'])
+          with tarfile.open(archive, 'r:gz') as bundle:
+              members = bundle.getmembers()
+              assert all(member.isdir() or member.isfile() for member in members)
+              assert all(not Path(member.name).is_absolute() and '..' not in Path(member.name).parts for member in members)
+              files = {member.name: member for member in members if member.isfile()}
+              assert len(files) == sum(member.isfile() for member in members)
+              assert set(files) == expected_files
+              def contents(name):
+                  return bundle.extractfile(files[name]).read()
+              assert contents('.avasan-static-artifact.json') == Path('release-assets/static-artifact.json').read_bytes()
+              assert json.loads(contents('.avasan-static-release.json')) == manifest['provenance']
+              assert json.loads(contents(f"{source_contract['publicRoot']}/release.json")) == manifest['identity']
+              for name, details in manifest['files'].items():
+                  data = contents(f"{source_contract['publicRoot']}/{name}")
+                  assert len(data) == details['size']
+                  assert hashlib.sha256(data).hexdigest() == details['sha256']
+              for name, details in manifest['adapterFiles'].items():
+                  data = contents(name)
+                  assert data == Path(name).read_bytes()
+                  assert len(data) == details['size']
+                  assert hashlib.sha256(data).hexdigest() == details['sha256']
+          PY
+          printf 'archive=%s\n' "$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Attest exact static archive
+        id: attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: release-assets/*
+
+      - name: Include provenance in release assets
+        run: |
+          cp "${{ steps.attest.outputs.bundle-path }}" release-assets/
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 5
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: verified-linux-arm64-static-release
+          path: release-assets/
           if-no-files-found: error
           retention-days: 30

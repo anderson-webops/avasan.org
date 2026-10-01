@@ -4,6 +4,30 @@
   "publicRoot": "front-end/.output/public",
   "required": ["index.html", "200.html", "404.html", "release.json", "favicon.svg", "robots.txt"],
   "runtime": "Static files only through existing Nginx. No resident application Node process, API, worker, database or tracking.",
+  "deployment": {
+    "version": 1,
+    "artifactFormat": "ci-built-static-archive-v1",
+    "buildPlatform": "linux-arm64",
+    "runtime": "static-nginx",
+    "sourceIdentity": "annotated-version-tag-at-main-commit",
+    "requiredHostCapabilities": [
+      "github-actions-attestation-v1",
+      "protected-immutable-staging-v1",
+      "trusted-nginx-policy-assets-v1",
+      "dual-stack-release-identity-v1",
+      "retained-artifact-rollback-v1"
+    ],
+    "readiness": {
+      "method": "GET",
+      "path": "/release.json",
+      "identity": "exact-source-commit",
+      "addressFamilies": ["ipv4", "ipv6"],
+      "homepageStatus": 200,
+      "missingRouteStatus": 404
+    },
+    "migrations": "none",
+    "rollback": "verify-retained-artifact-and-policy-before-activation"
+  },
   "writableState": [],
   "adapterFiles": ["deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf"],
   "excluded": "No credentials, private configuration, source checkout, dependencies or writable state in the application artifact. Preserve installed host topology and rollback targets."

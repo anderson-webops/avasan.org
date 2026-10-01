@@ -71,39 +71,32 @@ routing in the surrounding host. Then run `nginx -t` and reload. The small
 `deploy/nginx/default.conf` is a standalone port-80 syntax/runtime reference;
 it is not a replacement for the production TLS virtual host.
 
-Direct Nginx releases are built from a clean checkout by an unprivileged deployment user, then promoted atomically.
+Direct Nginx releases are built from a clean checkout by an unprivileged deployment user.
 The checkout's `origin` must be the canonical
 `anderson-webops/avasan.org` repository, and its `HEAD`, fetched
 `origin/main`, and annotated `v<package-version>` tag must resolve to the same
-commit:
+commit.
 
-```bash
-NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/prepare-static-release.sh /srv/avasan.org/releases/v1.2.11
-sudo env NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.11
-```
-
-These commands document the retained compatibility path, not an approval to
-promote a builder-writable candidate after a trust-boundary compromise. Keep
-such a candidate blocked until the installed host adapter transfers the exact
-reviewed artifact into protected ownership before root activation.
+The old checkout-based promotion command is **not approved for production**:
+it can execute candidate-controlled scripts as root and serve a builder-writable
+tree. Do not run `deploy/direct/promote-static-release.sh` from a release
+checkout. The host adapter must independently verify the tagged CI archive and
+its provenance, enforce the deployment capabilities in
+`deploy/static-artifact.json`, then install the exact artifact into a protected,
+immutable release tree before a root-owned promoter activates it. A missing
+capability is a host-adapter update, not permission to skip the check.
 
 Select the existing approved Node directory on that host; do not replace its
 system-wide runtime. Private environment files belong outside the checkout.
 
-Promotion verifies required files, their hashes, and the actual Git identity, then atomically
-installs the release's maps and server-policy snippets, verifies that the live
-Nginx graph includes both stable paths exactly once, and switches the `current`
-symlink. The existing `current` symlink must resolve to a complete prior release
-beneath `/srv/avasan.org/releases`; this preserves a valid rollback target and
-makes incomplete first-cutover automation fail closed.
-It then validates and reloads Nginx and compares the served `/release.json`
-byte-for-byte through both loopback address families. An unsuccessful exit or
-handled interruption restores and smoke-checks the prior snippets and release.
-A root-owned mode-0700 recovery directory serializes promotions with a lock.
-If rollback fails, its protected backups remain for operator recovery. Before the first managed promotion, an operator must preserve the
-currently verified live build as an immutable release beneath the release root
-and point `current` to it; the root promoter deliberately does not bootstrap an
-unverified rollback target.
+The reviewed host adapter must retain the prior release and its Nginx policy,
+atomically switch the new artifact and policy, verify `/release.json` and the
+homepage over both loopback address families, and restore the retained bytes
+after failed activation without rebuilding or downloading. It must record whether
+production changed. Before the first artifact-only promotion, the operator must
+seal and validate the existing rollback target. See
+[`docs/static-artifact-contract.md`](docs/static-artifact-contract.md) for the
+versioned source-to-host contract and current transition blocker.
 Production does not require Docker or a container registry.
 
 After the custom-domain deployment completes, run the manual
@@ -118,7 +111,7 @@ authorization, backend, deployment, and supply-chain review are recorded in
 [`docs/security-audit.md`](docs/security-audit.md).
 
 Integrating or activating the surrounding TLS virtual host remains an operator
-action. The promotion helper owns only the two reviewed snippets and the static
+action. The future installed promoter may own only the two reviewed snippets and the static
 release symlink; it does not authorize or modify DNS, certificates, listeners,
 routing, or firewall state.
 

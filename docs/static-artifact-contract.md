@@ -8,8 +8,13 @@ are independent sites; this release neither inspects nor modifies them.
 ## Artifact and identity
 
 `deploy/static-artifact.json` independently declares required public files and
-the two source Nginx snippets. The manifest records every public file hash/size,
-full source commit, version, clean annotated-tag provenance, and snippet hashes.
+the two source Nginx snippets. Its versioned `deployment` section specifies the
+static artifact format, Linux ARM64 build platform, minimum host capabilities,
+dual-stack release-identity readiness, absence of migrations, and retained
+artifact rollback requirement. Host-specific ports, credentials, ownership,
+certificates, and listener policy remain server-controlled. The manifest records
+every public file hash/size, full source commit, version, clean annotated-tag
+provenance, and snippet hashes.
 The public `/release.json` retains exactly `revision` and `version`. Its writer
 rejects unrelated commit overrides. Internal provenance stays outside the public
 root in `.avasan-static-release.json`; `.avasan-static-artifact.json` is likewise
@@ -27,8 +32,12 @@ bash scripts/package-static-release.sh .ai-work/runs/release-output
 The preferred release producer is the tagged Linux ARM64 workflow in
 `.github/workflows/release-source.yml`. It requires the annotated version tag
 at the exact `origin/main` commit, repeats source audits and tests, then
-packages and accepts the exact archive in isolation. Publish only its four
-downloaded, hash-checked assets. A successful tagged build is source-release
+packages and accepts the exact archive in isolation. A separate permissioned
+job compares the downloaded archive and policy snippets with the exact tagged
+source, then attests all four source-release assets with GitHub Actions
+provenance for that workflow. Publish the archive,
+SHA256SUMS, static-artifact.json, acceptance.json, and attestation bundle only
+after checking their exact CI bytes. A successful tagged build is source-release
 evidence, not proof of production activation or approval to bypass the host
 promotion boundary.
 
@@ -46,10 +55,34 @@ whatever the copier happened to retain:
 node scripts/static-artifact.mjs runtime /path/to/unpacked /path/to/trusted-static-artifact.json FULL_COMMIT
 ```
 
-Published assets are the archive, SHA256SUMS, static-artifact.json and acceptance.json.
-The receipt binds archive bytes, source identity and the exact harness hashes.
-The current production helper still prepares a complete reviewed source checkout;
-the archive is a verified static artifact, not a replacement host topology.
+The receipt binds archive bytes, source identity, deployment contract, and exact
+harness hashes. It explicitly records source-artifact acceptance, not host
+capability verification or production deployment. The host must independently
+verify the archive and sidecar attestations for
+the exact canonical repository, annotated tag, commit, and pinned release
+workflow. The trusted, root-owned host adapter then compares its supported
+capabilities to the artifact's requirements before any production mutation.
+Neither the candidate's own Git refs nor its self-generated manifest is an
+independent trust anchor. The archive is a verified static artifact, not
+permission to replace the host topology.
+
+## Host capability handshake
+
+The `deployment.requiredHostCapabilities` names in the attested manifest are
+minimum requirements, not self-reported claims by the build account:
+
+| Capability | Required host behavior |
+| --- | --- |
+| `github-actions-attestation-v1` | Independently verify the archive subject against `anderson-webops/avasan.org`, the exact commit and annotated `v<version>` ref, and `.github/workflows/release-source.yml`; reject self-hosted provenance. |
+| `protected-immutable-staging-v1` | Safely unpack only regular files and directories into a root-owned tree whose files and ancestors cannot be replaced by the builder; recheck the trusted manifest after copying. |
+| `trusted-nginx-policy-assets-v1` | Install the two snippets only from that verified, sealed tree using root-owned helpers, never scripts or self-generated hashes supplied by a candidate checkout. |
+| `dual-stack-release-identity-v1` | Confirm the exact `/release.json` bytes, homepage status and policy headers, and true branded 404 over loopback IPv4 and IPv6. |
+| `retained-artifact-rollback-v1` | Validate and keep the old artifact plus its exact Nginx policy, record the mutation boundary, and restore those retained bytes with the old release's own readiness checks after a failed activation. |
+
+An adapter must compare its installed capability set and supported contract
+version before unpacking or changing production. If either is missing, report
+`host update required` and leave the serving release untouched. Do not infer
+support from the candidate's receipt or from a successful source build.
 
 ## Isolated acceptance
 
@@ -80,19 +113,24 @@ existing runtime with `NODE_BIN_DIR`; do not change the host-wide Node installat
 Source preparation is unprivileged and requires the canonical origin, fetched main,
 clean checkout and exact annotated tag. Keep private environment files outside it.
 
-Promotion requires a complete prior release, verifies artifact hashes against its
-manifest and Git commit, locks a root-owned0700 `.deployment-recovery` directory
-beside `current`, backs up snippets including their modes/ownership, atomically
-replaces each snippet and pointer, verifies the effective snippet includes,
-validates/reloads Nginx, and verifies the candidate on both loopback families.
-Artifact files are opened with nonblocking, no-follow descriptors and checked
-before and after each read. FIFOs and other nonregular files are rejected
-without waiting for a writer. This protects individual reads, but does not
-freeze the candidate tree between verification and activation or independently
-authenticate builder-writable Nginx snippets. A protected, root-owned handoff
-and host-adapter update remain necessary before treating an untrusted builder
-as unable to change what root promotes.
-Handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
+The checked-in legacy promoter remains for compatibility and recovery tests,
+not as production authorization. It can execute candidate scripts as root, trust candidate-owned
+Nginx configuration, and point `current` at a builder-writable tree. The host
+must install a separately reviewed root-owned promoter and verifier, validate
+the attested archive, seal a real root-owned artifact tree with no builder-write
+path, and independently verify the staged tree and policy bytes before
+activation. A protected, immutable prior artifact and its exact Nginx policy
+must be ready for version-aware rollback. Until that host adapter exists and
+passes acceptance, the source release remains blocked from production.
+
+The adapter should classify temporary registry/network trouble for bounded
+retry, missing host capabilities as `host update required`, invalid identity,
+audit, migration, or artifact checks as `release rejected`, and a failed
+post-mutation probe as `rolled back` only after the old artifact actually passes
+readiness. Waiting for CI and a scheduled retry must not be reported as a
+successful deployment. Persistent authentication failures require investigation,
+not unbounded retries.
+The legacy helper's handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
 returns failure and preserves protected backups with their path reported for the
 operator; do not delete that directory until recovery has been verified.
 
