@@ -77,9 +77,13 @@ manifest and Git commit, locks a root-owned0700 `.deployment-recovery` directory
 beside `current`, backs up snippets including their modes/ownership, atomically
 replaces each snippet and pointer, verifies the effective snippet includes,
 validates/reloads Nginx, and verifies the candidate on both loopback families.
-Artifact files are opened with no-follow descriptors and checked before and after
-each read, so a mutable preparation tree cannot replace a checked path during
-hashing without making promotion fail closed.
+Artifact files are opened with nonblocking, no-follow descriptors and checked
+before and after each read. FIFOs and other nonregular files are rejected
+without waiting for a writer. This protects individual reads, but does not
+freeze the candidate tree between verification and activation or independently
+authenticate builder-writable Nginx snippets. A protected, root-owned handoff
+and host-adapter update remain necessary before treating an untrusted builder
+as unable to change what root promotes.
 Handled unsuccessful exits and HUP/INT/TERM restore the prior state. Failed rollback
 returns failure and preserves protected backups with their path reported for the
 operator; do not delete that directory until recovery has been verified.

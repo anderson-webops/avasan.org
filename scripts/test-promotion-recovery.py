@@ -67,7 +67,7 @@ def run(args, cwd=None, env=None):
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
 
-def setup(root):
+def setup(root, preexisting_sidecar=None):
     candidate = root / 'releases/candidate'
     previous = root / 'releases/previous'
     candidate.mkdir(parents=True)
@@ -90,6 +90,13 @@ def setup(root):
     for name in ['index.html', '200.html', '404.html', 'favicon.svg', 'robots.txt']:
         (public / name).write_text('Synthetic ' + name)
     (public / 'release.json').write_text(json.dumps({'revision': commit, 'version': version}) + '\n')
+    if preexisting_sidecar:
+        sidecar = candidate / preexisting_sidecar
+        os.mkfifo(sidecar)
+        rejected = subprocess.run(['/runtime/node', str(candidate / 'scripts/static-artifact.mjs'), 'create', str(candidate)],
+                                  capture_output=True, text=True, timeout=3)
+        assert rejected.returncode != 0 and ('ENXIO' in rejected.stderr or 'regular file' in rejected.stderr)
+        sidecar.unlink()
     run(['/runtime/node', str(candidate / 'scripts/static-artifact.mjs'), 'create', str(candidate)])
     old_public = previous / 'front-end/.output/public'
     shutil.copytree(public, old_public)
@@ -118,7 +125,7 @@ def snapshot(snippets):
 
 
 for mode in ['success', 'bad-health', 'ipv6-failure', 'second-snippet', 'interrupt', 'nginx-failure',
-             'restore-failure', 'lock-contention', 'invalid-current', 'tampered-artifact']:
+             'restore-failure', 'lock-contention', 'invalid-current', 'tampered-artifact', 'fifo-manifest']:
     with tempfile.TemporaryDirectory(prefix='avasan-promotion-') as directory:
         root = Path(directory)
         candidate, previous, snippets, recovery, shim = setup(root)
@@ -135,6 +142,10 @@ for mode in ['success', 'bad-health', 'ipv6-failure', 'second-snippet', 'interru
             (root / 'current').mkdir()
         if mode == 'tampered-artifact':
             (candidate / 'front-end/.output/public/favicon.svg').write_text('tampered')
+        if mode == 'fifo-manifest':
+            manifest = candidate / '.avasan-static-artifact.json'
+            manifest.unlink()
+            os.mkfifo(manifest)
         try:
             result = subprocess.run(['bash', str(candidate / 'deploy/direct/promote-static-release.sh'), str(candidate)],
                                     env=env, capture_output=True, text=True, timeout=15)
@@ -162,4 +173,11 @@ for mode in ['success', 'bad-health', 'ipv6-failure', 'second-snippet', 'interru
             assert 'avasan.org:443:127.0.0.1' in addresses and 'avasan.org:443:[::1]' in addresses
         if mode == 'interrupt':
             assert result.returncode == 143 and (root / 'interrupted').exists(), evidence
+        if mode == 'fifo-manifest':
+            assert 'Artifact path must be a regular file' in evidence, evidence
         print(json.dumps({'promotionRecovery': mode, 'result': 'passed'}), flush=True)
+
+for sidecar in ['.avasan-static-release.json', '.avasan-static-artifact.json']:
+    with tempfile.TemporaryDirectory(prefix='avasan-preparation-') as directory:
+        setup(Path(directory), preexisting_sidecar=sidecar)
+        print(json.dumps({'nonblockingPreparation': sidecar, 'result': 'passed'}), flush=True)

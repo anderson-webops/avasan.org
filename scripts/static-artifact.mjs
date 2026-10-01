@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
-import { closeSync, constants, fstatSync, lstatSync, openSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, fstatSync, ftruncateSync, lstatSync, openSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -23,7 +23,8 @@ function stableFileIdentity(stat) {
 
 function readStableRegularFile(path, encoding) {
   assert.notEqual(constants.O_NOFOLLOW, undefined, 'Artifact verification requires O_NOFOLLOW support')
-  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW)
+  assert.notEqual(constants.O_NONBLOCK, undefined, 'Artifact verification requires O_NONBLOCK support')
+  const descriptor = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK)
   try {
     const before = fstatSync(descriptor, { bigint: true })
     assert.ok(before.isFile(), `Artifact path must be a regular file: ${path}`)
@@ -39,6 +40,20 @@ function readStableRegularFile(path, encoding) {
 }
 
 const readStableJson = path => JSON.parse(readStableRegularFile(path, 'utf8'))
+
+function writeRegularFile(path, contents) {
+  assert.notEqual(constants.O_NOFOLLOW, undefined, 'Artifact creation requires O_NOFOLLOW support')
+  assert.notEqual(constants.O_NONBLOCK, undefined, 'Artifact creation requires O_NONBLOCK support')
+  const descriptor = openSync(path, constants.O_WRONLY | constants.O_CREAT | constants.O_NOFOLLOW | constants.O_NONBLOCK, 0o644)
+  try {
+    assert.ok(fstatSync(descriptor).isFile(), `Artifact path must be a regular file: ${path}`)
+    ftruncateSync(descriptor, 0)
+    writeFileSync(descriptor, contents)
+  }
+  finally {
+    closeSync(descriptor)
+  }
+}
 
 export function inspectStatic(root, allowPreview = false) {
   const publicRoot = resolve(root, contract.publicRoot)
@@ -133,9 +148,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   if (operation === 'create') {
     const version = readStableJson(resolve(root, 'package.json')).version
     const provenance = { ...releaseIdentity(root, version, { SOURCE_RELEASE_REQUIRED: '1' }), version }
-    writeFileSync(resolve(root, '.avasan-static-release.json'), `${JSON.stringify(provenance, null, 2)}\n`)
+    writeRegularFile(resolve(root, '.avasan-static-release.json'), `${JSON.stringify(provenance, null, 2)}\n`)
     const manifest = inspectStatic(root)
-    writeFileSync(resolve(root, manifestName), `${JSON.stringify(manifest, null, 2)}\n`)
+    writeRegularFile(resolve(root, manifestName), `${JSON.stringify(manifest, null, 2)}\n`)
   }
   const result = verifyStatic(root, {
     trustedManifest: trustedPath ? readStableJson(resolve(trustedPath)) : undefined,

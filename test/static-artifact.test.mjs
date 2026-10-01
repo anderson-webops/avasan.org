@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import test from 'node:test'
@@ -16,8 +17,8 @@ function fixture(t) {
     mkdirSync(resolve(path, '..'), { recursive: true })
     writeFileSync(path, '<!doctype html><title>Synthetic fixture</title>')
   }
-  const identity = { revision: 'a'.repeat(40), version: '1.2.11' }
-  const provenance = { commit: identity.revision, version: identity.version, tag: 'v1.2.11', dirty: false, releaseVerified: true }
+  const identity = { revision: 'a'.repeat(40), version: '1.2.12' }
+  const provenance = { commit: identity.revision, version: identity.version, tag: 'v1.2.12', dirty: false, releaseVerified: true }
   writeFileSync(resolve(publicRoot, 'release.json'), JSON.stringify(identity))
   writeFileSync(resolve(root, '.avasan-static-release.json'), JSON.stringify(provenance))
   for (const path of contract.adapterFiles) {
@@ -78,4 +79,26 @@ test('adapter tampering or omission cannot pass a copied artifact', (t) => {
   assert.throws(() => verifyStatic(root, { trustedManifest: manifest }))
   unlinkSync(resolve(root, contract.adapterFiles[0]))
   assert.throws(() => inspectStatic(root))
+})
+
+test('FIFO sidecars and adapter files fail without blocking verification', (t) => {
+  for (const relativePath of [manifestName, '.avasan-static-release.json', contract.adapterFiles[0], 'trusted-manifest.json']) {
+    const { root } = fixture(t)
+    const fifoPath = resolve(root, relativePath)
+    if (relativePath === 'trusted-manifest.json')
+      writeFileSync(fifoPath, '')
+    unlinkSync(fifoPath)
+    const created = spawnSync('mkfifo', [fifoPath], { encoding: 'utf8' })
+    assert.equal(created.status, 0, created.stderr)
+    const args = ['scripts/static-artifact.mjs', 'verify', root]
+    if (relativePath === 'trusted-manifest.json')
+      args.push(fifoPath)
+    const verified = spawnSync(process.execPath, args, {
+      encoding: 'utf8',
+      timeout: 3000,
+    })
+    assert.equal(verified.error, undefined, `${relativePath}: verification stalled`)
+    assert.notEqual(verified.status, 0, relativePath)
+    assert.match(verified.stderr, /Artifact path must be a regular file/u)
+  }
 })

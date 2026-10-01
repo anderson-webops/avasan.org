@@ -82,6 +82,11 @@ NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/prepare-static-release.sh /srv/
 sudo env NODE_BIN_DIR=/opt/node-24.18.1/bin deploy/direct/promote-static-release.sh /srv/avasan.org/releases/v1.2.11
 ```
 
+These commands document the retained compatibility path, not an approval to
+promote a builder-writable candidate after a trust-boundary compromise. Keep
+such a candidate blocked until the installed host adapter transfers the exact
+reviewed artifact into protected ownership before root activation.
+
 Select the existing approved Node directory on that host; do not replace its
 system-wide runtime. Private environment files belong outside the checkout.
 
