@@ -103,6 +103,10 @@ checks the prior pointer, exact policy bytes, dual-stack probes, and retained
 recovery evidence. It makes no requests to production and runs no real systemd or
 host Nginx commands. The fixture attestation is a stub, not published-release
 provenance; the tagged workflow independently attests the exact archive bytes.
+The CI fixture uses a disposable root-owned `/tmp` mirror only for Bubblewrap
+bind inputs because the hosted runner's home directory is not traversable from
+the isolated namespace; repository scratch remains under `.ai-work/` and both
+copies are removed after the test.
 
 ## Promotion, persistent state and recovery
 
