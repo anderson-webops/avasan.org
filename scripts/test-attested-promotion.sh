@@ -26,7 +26,8 @@ for binary in gh nginx curl systemctl sleep; do
 done
 sudo chown -R 0:0 -- "$fixture/installed" "$fixture/stubs"
 sudo chown 0:0 -- "$fixture"
-sudo chmod 0755 -- "$fixture"
+sudo chmod o+x -- "$root/.ai-work" "$root/.ai-work/runs" \
+  "$fixture" "$fixture/installed" "$fixture/stubs"
 timeout -k 5 90 sudo bwrap --unshare-all --die-with-parent --new-session --uid 0 --gid 0 \
   --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib \
   --tmpfs /usr/local --dir /usr/local/libexec \
