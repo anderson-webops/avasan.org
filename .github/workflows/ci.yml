@@ -198,8 +198,6 @@ jobs:
           sudo apparmor_parser -r /etc/apparmor.d/avasan-artifact-bwrap
 
       - name: Verify isolated promotion recovery
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           bash scripts/test-attested-promotion.sh
 

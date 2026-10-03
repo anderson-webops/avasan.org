@@ -1,0 +1,151 @@
+{
+  "format": 1,
+  "contract": {
+    "format": 1,
+    "site": "https://avasan.org",
+    "publicRoot": "front-end/.output/public",
+    "required": [
+      "index.html",
+      "200.html",
+      "404.html",
+      "release.json",
+      "favicon.svg",
+      "robots.txt"
+    ],
+    "runtime": "Static files only through existing Nginx. No resident application Node process, API, worker, database or tracking.",
+    "writableState": [],
+    "adapterFiles": [
+      "deploy/nginx/http-maps.conf",
+      "deploy/nginx/server-policy.conf"
+    ],
+    "excluded": "No credentials, private configuration, source checkout, dependencies or writable state in the application artifact. Preserve installed host topology and rollback targets."
+  },
+  "identity": {
+    "revision": "d696406b0531224f5ec734f61334890b8c5ba7c5",
+    "version": "1.2.12"
+  },
+  "provenance": {
+    "commit": "d696406b0531224f5ec734f61334890b8c5ba7c5",
+    "branch": "HEAD",
+    "tag": "v1.2.12",
+    "dirty": false,
+    "releaseVerified": true,
+    "version": "1.2.12"
+  },
+  "files": {
+    "_nuxt/BDNMzG2s.js": {
+      "sha256": "27e87fe62aa760227b7529576953d8314891fd2aec28e0a3f03aece406f2d7d7",
+      "size": 84
+    },
+    "_nuxt/BsuGxJnC.js": {
+      "sha256": "d4c49e1376b044f598d006802dbdc4546a20c9f060b62a3961179a5ae45653f6",
+      "size": 190593
+    },
+    "_nuxt/builds/latest.json": {
+      "sha256": "9e84454ace3b62a703a76d2439b8b359b568a41b60e474589f383c4dc704144c",
+      "size": 71
+    },
+    "_nuxt/builds/meta/d6c79894-4e84-41ec-a238-79fade43f30d.json": {
+      "sha256": "6033be15d212066cf898236ed82d88571de25f80f9d58a3c0bab598172e4fd0d",
+      "size": 91
+    },
+    "_nuxt/C9HlSXdu.js": {
+      "sha256": "02036ebcdc80da2ff4e7efb73e76dd3665230c29c3194c7b0107d36314e6f814",
+      "size": 3377
+    },
+    "_nuxt/Ca_hRZXX.js": {
+      "sha256": "4040bd405e471cd0f394888decef94f1fc1eb0d6ca8a21b8abb2431a1364334a",
+      "size": 820
+    },
+    "_nuxt/CUlimQiE.js": {
+      "sha256": "a35893f5de8ab1b17e26ab5cd8bb7a8ec9630d694436efd36cc1a4e22c8a16af",
+      "size": 3693
+    },
+    "_nuxt/entry.Booe98HN.css": {
+      "sha256": "a3971ac12e3cd9b6be3ac1163cb9dd52463552ea6258d717dcc9a394136e8444",
+      "size": 11400
+    },
+    "_nuxt/error-404.CuDiJL15.css": {
+      "sha256": "88dc380f5a894211fe635a8be689635099bf59d59441d113ab40d3353c9060f4",
+      "size": 2429
+    },
+    "_nuxt/error-500.DGjUVt8F.css": {
+      "sha256": "d81ab79f8c8e54b65b43f5eb99f9655f59451a89635117ccd8a75420e4cabc0b",
+      "size": 1906
+    },
+    "_nuxt/pages.BLMYG5N4.css": {
+      "sha256": "54a71a4e63769457daf19177ec7f27a1c2558310fbfd8e9b153d1464888bcd15",
+      "size": 2942
+    },
+    "_nuxt/x7H0xcDD.js": {
+      "sha256": "879c992c4a77460caebd508261de89f11a6cd7603a55ce6486dc71d8358778ff",
+      "size": 197
+    },
+    "_payload.json": {
+      "sha256": "cdfd553201c7c5b1cc54b01099982d88d73f164eba888f2cadf43b44999ffaaa",
+      "size": 69
+    },
+    "200.html": {
+      "sha256": "d402d0796b4f5cdc2f646bb8817351d4b4af5be4bd6a5f52c5ec397185c0e0e5",
+      "size": 2832
+    },
+    "404.html": {
+      "sha256": "3f157413a1590e069a3d26d6bf685bc5666f0043d17b42e300c2e4832bd5dfaa",
+      "size": 2462
+    },
+    "assets/fonts/dmmono-53a90e28.woff2": {
+      "sha256": "7f8712cbbd64135f9e74a527475a97cd8c5a49d8e0a1de7a65f8e2c30c5214d9",
+      "size": 5700
+    },
+    "assets/fonts/dmmono-cd6ed524.woff2": {
+      "sha256": "fd7521f3531a5ccfc655b25c4f22e9871df3ec141ad79bb27fde20d0df347b6d",
+      "size": 8688
+    },
+    "assets/fonts/dmsans-56778fc7.woff2": {
+      "sha256": "06779986c5bee4a71e6494c56999c0ea6633c74ea2369c1cfc3d5c78ad102a4e",
+      "size": 7368
+    },
+    "assets/fonts/dmsans-7c37c8a6.woff2": {
+      "sha256": "f0a0ffc3882838b72d83fb011910b6c0f603f86c3ecbd2d1c1b5f3f9fcaed0a1",
+      "size": 14124
+    },
+    "assets/fonts/dmserifdisplay-1f997542.woff2": {
+      "sha256": "dfea1d6549e78df6e55d942c1d1eba5e2f809496205bc0b3a9d684f268b60011",
+      "size": 6800
+    },
+    "assets/fonts/dmserifdisplay-b6206db2.woff2": {
+      "sha256": "f273cf2c9ce9bc7d6b0f4fcb8aee72f8cf5a249991308b6a144217e0760c5d3f",
+      "size": 17844
+    },
+    "favicon.svg": {
+      "sha256": "ba2cf8bd1f00785303b51841394ff52598e9ffc2bc48f5a57482455af5e0b9a2",
+      "size": 268
+    },
+    "index.html": {
+      "sha256": "2c3a1fcf0215ea1a996f81d0c2116cbeea8018ffeb4fc269e298b45517f0d69f",
+      "size": 4871
+    },
+    "og.png": {
+      "sha256": "aa6be435c0753cc052f570977f261f238912d2d06bfb39754500b793f6b2d7c7",
+      "size": 1539021
+    },
+    "release.json": {
+      "sha256": "1d2df10ffadc48e373d72d3ae7184f1af29e9c8274a0a94668aa95d9afd9ae97",
+      "size": 84
+    },
+    "robots.txt": {
+      "sha256": "16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95",
+      "size": 23
+    }
+  },
+  "adapterFiles": {
+    "deploy/nginx/http-maps.conf": {
+      "sha256": "d2e95bda927a9ccb8f0bb963aa7b048eb2a27575491a17720f97ef2c7eeb718a",
+      "size": 89
+    },
+    "deploy/nginx/server-policy.conf": {
+      "sha256": "47543fa3a2efe19b0b514a9c028058ef28c955195e201308bcde0e31c0fa8eb0",
+      "size": 2962
+    }
+  }
+}

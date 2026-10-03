@@ -72,8 +72,6 @@ jobs:
 
       - name: Package exact source with historical rollback fixture
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           bash scripts/test-attested-promotion.sh

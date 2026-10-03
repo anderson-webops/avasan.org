@@ -24,12 +24,9 @@ cp -R -- "$root/deploy" "$fixture/installed/deploy"
 git -C "$root" show v1.2.12:deploy/static-artifact.json > "$fixture/legacy/contract.json"
 git -C "$root" show v1.2.12:deploy/nginx/http-maps.conf > "$fixture/legacy/http-maps.conf"
 git -C "$root" show v1.2.12:deploy/nginx/server-policy.conf > "$fixture/legacy/server-policy.conf"
-gh api --header 'Accept: application/octet-stream' \
-  repos/anderson-webops/avasan.org/releases/assets/602110313 \
-  > "$fixture/legacy/avasan-v1.2.12-d696406b0531-static.tar.gz"
-gh api --header 'Accept: application/octet-stream' \
-  repos/anderson-webops/avasan.org/releases/assets/602110314 \
-  > "$fixture/legacy/static-artifact.json"
+cp -- "$root/test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz" \
+  "$fixture/legacy/"
+cp -- "$root/test/fixtures/legacy-v1212/static-artifact.json" "$fixture/legacy/"
 test "$(sha256sum "$fixture/legacy/contract.json" | cut -d ' ' -f 1)" = b1d26c68826b7f7034169a7acf13267f042f3a116181943cde75c6482895044b
 test "$(sha256sum "$fixture/legacy/http-maps.conf" | cut -d ' ' -f 1)" = d2e95bda927a9ccb8f0bb963aa7b048eb2a27575491a17720f97ef2c7eeb718a
 test "$(sha256sum "$fixture/legacy/server-policy.conf" | cut -d ' ' -f 1)" = 47543fa3a2efe19b0b514a9c028058ef28c955195e201308bcde0e31c0fa8eb0

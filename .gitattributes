@@ -12,6 +12,7 @@
 *.mts text eol=lf
 *.py text eol=lf
 *.sh text eol=lf
+*.tar.gz binary
 *.toml text eol=lf
 *.ts text eol=lf
 *.vue text eol=lf
