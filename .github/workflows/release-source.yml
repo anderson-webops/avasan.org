@@ -110,6 +110,10 @@ jobs:
             deploy/static-artifact.json
             deploy/nginx/http-maps.conf
             deploy/nginx/server-policy.conf
+            test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz
+            test/fixtures/legacy-v1212/static-artifact.json
+            test/fixtures/legacy-v1212/host-build/static-artifact.json
+            test/fixtures/legacy-v1212/host-build/public-delta.json
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
