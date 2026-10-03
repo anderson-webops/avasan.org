@@ -12,6 +12,7 @@ import tarfile
 import tempfile
 import unittest
 from copy import deepcopy
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +90,185 @@ class VerifiedStaticArtifactTests(unittest.TestCase):
 
     def inspect(self):
         return ARTIFACT.inspect_archive(self.archive, self.sha256, COMMIT, VERSION)
+
+    def prepare_legacy(self):
+        contract_bytes = subprocess.check_output(
+            ["git", "show", "v1.2.12:deploy/static-artifact.json"], cwd=ROOT
+        )
+        self.assertEqual(hashlib.sha256(contract_bytes).hexdigest(),
+                         "b1d26c68826b7f7034169a7acf13267f042f3a116181943cde75c6482895044b")
+        self.contract = json.loads(contract_bytes)
+        self.identity = {"revision": ARTIFACT.LEGACY_COMMIT, "version": ARTIFACT.LEGACY_VERSION}
+        self.provenance = {
+            "branch": "HEAD", "commit": ARTIFACT.LEGACY_COMMIT, "dirty": False,
+            "releaseVerified": True, "tag": "v1.2.12", "version": ARTIFACT.LEGACY_VERSION,
+        }
+        self.public = {
+            name: encode(self.identity) if name == "release.json" else f"Synthetic {name}".encode()
+            for name in self.contract["required"]
+        }
+        self.public["404.html"] = b"Page not found"
+        self.policies = {}
+        for name in self.contract["adapterFiles"]:
+            data = subprocess.check_output(["git", "show", f"v1.2.12:{name}"], cwd=ROOT)
+            self.policies[name] = data
+        self.assertEqual(hashlib.sha256(self.policies["deploy/nginx/server-policy.conf"]).hexdigest(),
+                         "47543fa3a2efe19b0b514a9c028058ef28c955195e201308bcde0e31c0fa8eb0")
+        self.assertIn(b'Cross-Origin-Opener-Policy "same-origin" always',
+                      self.policies["deploy/nginx/server-policy.conf"])
+        self.assertIn(b'Cross-Origin-Resource-Policy "same-origin" always',
+                      self.policies["deploy/nginx/server-policy.conf"])
+        self.rebuild()
+
+    def legacy_source(self):
+        self.prepare_legacy()
+        provenance_patcher = patch.object(
+            ARTIFACT, "LEGACY_PROVENANCE_SHA256", hashlib.sha256(encode(self.provenance)).hexdigest()
+        )
+        provenance_patcher.start()
+        self.addCleanup(provenance_patcher.stop)
+        source = self.root / "serving"
+        source.mkdir(mode=0o755)
+        payload = {
+            ARTIFACT.MANIFEST_NAME: encode(self.manifest),
+            ARTIFACT.PROVENANCE_NAME: encode(self.provenance),
+            **{f"{self.contract['publicRoot']}/{name}": data for name, data in self.public.items()},
+            **self.policies,
+        }
+        for name, data in payload.items():
+            path = source / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+            path.chmod(0o644)
+        for directory, children, files in os.walk(source):
+            Path(directory).chmod(0o755)
+        current = self.root / "current"
+        current.symlink_to(source, target_is_directory=True)
+        active_root = self.root / "active"
+        active_root.mkdir()
+        active = {}
+        for name, data in self.policies.items():
+            path = active_root / PurePosixPath(name).name
+            path.write_bytes(data)
+            active[path.name] = path
+        releases = self.root / "artifact-releases"
+        releases.mkdir(mode=0o755)
+        return source, current, active, releases, encode(self.manifest)
+
+    def test_genuine_v1212_contract_is_accepted_only_for_exact_retained_identity(self):
+        self.prepare_legacy()
+        contract, expected = ARTIFACT.expected_inventory(
+            self.manifest, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
+        )
+        self.assertEqual(contract, self.contract)
+        self.assertEqual(len(expected), len(self.public) + len(self.policies) + 2)
+        with self.assertRaisesRegex(ValueError, "host adapter update required"):
+            ARTIFACT.expected_inventory(
+                self.manifest, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION
+            )
+        with self.assertRaisesRegex(ValueError, "host adapter update required"):
+            ARTIFACT.expected_inventory(
+                self.manifest, COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
+            )
+        changed = deepcopy(self.manifest)
+        changed["contract"]["excluded"] += " Unreviewed addition."
+        with self.assertRaisesRegex(ValueError, "unsupported original"):
+            ARTIFACT.expected_inventory(
+                changed, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
+            )
+        changed = deepcopy(self.manifest)
+        changed["provenance"]["branch"] = "main"
+        with self.assertRaisesRegex(ValueError, "original v1.2.12 provenance"):
+            ARTIFACT.expected_inventory(
+                changed, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
+            )
+
+    def test_legacy_capture_preserves_original_bytes_and_rejects_rewrites(self):
+        source, current, active, releases, trusted = self.legacy_source()
+        (source / "unrelated.txt").write_text("never copy this")
+        approved = hashlib.sha256(trusted).hexdigest()
+        with self.assertRaisesRegex(ValueError, "digest mismatch"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        patcher = patch.object(ARTIFACT, "LEGACY_MANIFEST_SHA256", approved)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        policy_path = active["server-policy.conf"]
+        original_policy = policy_path.read_bytes()
+        policy_path.write_bytes(original_policy + b"\n# changed\n")
+        with self.assertRaisesRegex(ValueError, "active Nginx policy differs"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        policy_path.write_bytes(original_policy)
+        destination = ARTIFACT.capture_legacy_release(
+            source, trusted, active, releases, current
+        )
+        self.assertEqual(destination.parent, releases)
+        self.assertEqual(current.resolve(), source)
+        self.assertFalse((destination / "unrelated.txt").exists())
+        self.assertEqual((destination / ARTIFACT.MANIFEST_NAME).read_bytes(), trusted)
+        self.assertEqual((destination / ARTIFACT.PROVENANCE_NAME).read_bytes(),
+                         (source / ARTIFACT.PROVENANCE_NAME).read_bytes())
+        ARTIFACT.verify_tree(destination, self.manifest, retained=True)
+        with self.assertRaisesRegex(ValueError, "already exists"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        public = source / self.contract["publicRoot"] / "index.html"
+        public.write_text("tampered")
+        tamper_releases = self.root / "tamper-releases"
+        tamper_releases.mkdir(mode=0o755)
+        with self.assertRaisesRegex(ValueError, "original public file differs"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, tamper_releases, current
+            )
+
+    def test_legacy_capture_rejects_changed_provenance_and_linked_public_files(self):
+        source, current, active, releases, trusted = self.legacy_source()
+        approved = hashlib.sha256(trusted).hexdigest()
+        patcher = patch.object(ARTIFACT, "LEGACY_MANIFEST_SHA256", approved)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        provenance = source / ARTIFACT.PROVENANCE_NAME
+        provenance.write_bytes(encode({**self.provenance, "branch": "main"}))
+        with self.assertRaisesRegex(ValueError, "original provenance differs"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        provenance.write_text(json.dumps(self.provenance, indent=2))
+        with self.assertRaisesRegex(ValueError, "original provenance differs"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        provenance.write_bytes(encode(self.provenance))
+        public = source / self.contract["publicRoot"] / "index.html"
+        data = public.read_bytes()
+        public.unlink()
+        outside = self.root / "outside.html"
+        outside.write_bytes(data)
+        public.symlink_to(outside)
+        with self.assertRaisesRegex(ValueError, "link or special file"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        self.assertFalse(any(releases.iterdir()))
+
+    def test_legacy_capture_rejects_unlisted_public_files(self):
+        source, current, active, releases, trusted = self.legacy_source()
+        manifest_patcher = patch.object(
+            ARTIFACT, "LEGACY_MANIFEST_SHA256", hashlib.sha256(trusted).hexdigest()
+        )
+        manifest_patcher.start()
+        self.addCleanup(manifest_patcher.stop)
+        extra = source / self.contract["publicRoot"] / "unlisted.html"
+        extra.write_text("not in the original inventory")
+        with self.assertRaisesRegex(ValueError, "serving public inventory differs"):
+            ARTIFACT.capture_legacy_release(
+                source, trusted, active, releases, current
+            )
+        self.assertFalse(any(releases.iterdir()))
 
     def test_exact_archive_is_sealed_and_remains_verifiable(self):
         self.inspect()

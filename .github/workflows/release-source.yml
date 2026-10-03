@@ -55,7 +55,7 @@ jobs:
             | sudo tee /etc/apparmor.d/avasan-artifact-bwrap >/dev/null
           sudo apparmor_parser -r /etc/apparmor.d/avasan-artifact-bwrap
 
-      - name: Validate and package exact source
+      - name: Validate exact source
         shell: bash
         run: |
           set -euo pipefail
@@ -69,6 +69,13 @@ jobs:
           npm run typecheck
           npm test
           python3 -B -m unittest discover -s test -p 'test_verified_static_artifact.py' -v
+
+      - name: Package exact source with historical rollback fixture
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
           bash scripts/test-attested-promotion.sh
           printf '\n/.ai-work/\n' >> "$(git rev-parse --git-path info/exclude)"
           mkdir -p .ai-work/runs/tagged-release

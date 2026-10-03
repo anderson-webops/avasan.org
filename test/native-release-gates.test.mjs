@@ -28,6 +28,7 @@ async function createReleaseRepository() {
   const directory = await mkdtemp(join(tmpdir(), 'avasan-release-gate-'))
   temporaryDirectories.push(directory)
   git(directory, 'init', '--quiet', '--initial-branch=main')
+  git(directory, 'config', 'core.hooksPath', join(directory, '.git', 'synthetic-test-hooks'))
   git(directory, 'config', 'user.email', 'release-gate@example.invalid')
   git(directory, 'config', 'user.name', 'Release Gate Test')
   await writeFile(join(directory, 'release.txt'), 'release\n')

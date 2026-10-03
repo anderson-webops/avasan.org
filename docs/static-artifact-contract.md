@@ -96,7 +96,9 @@ HTTP reference; production TLS, HTTP2/3, certificates and redirects remain opera
 acceptance responsibilities. Static sites do not acquire artificial health APIs.
 
 The separate `test-attested-promotion.sh` runs the installed promoter inside a
-disposable UID0 user namespace. Root-owned synthetic archives and command stubs
+disposable UID0 user namespace. It downloads the original v1.2.12 archive and
+manifest from the canonical draft release and pins their SHA-256 digests before
+capture. Root-owned synthetic candidate archives and command stubs
 exercise successful activation, rejected health, rollback, protected-input
 rejection, nested rollback-target rejection, and failed rollback acceptance. It
 checks the prior pointer, exact policy bytes, dual-stack probes, and retained
@@ -129,6 +131,55 @@ before installing a sealed tree. No script from the candidate is executed.
 The one-time host transition must first seal the serving release as a direct
 protected child of `artifact-releases`, with its own verified manifest and exact
 active Nginx snippets. The promoter rejects a mutable or nested rollback target.
+Only the original v1.2.12 release at
+`d696406b0531224f5ec734f61334890b8c5ba7c5` may use the legacy-retained
+path. Its original `static-artifact.json` GitHub release asset has SHA-256
+`9c46331f51490878a607293a021ce40123f4df6b8b335d1c91be6b93e6bc22af`;
+the original archive has SHA-256
+`d2ceb57706c1b5f163a723353a2f8af594a754a0ef2b7c2114b435a4b0c502f9`.
+The retained verifier accepts the exact historical contract and provenance
+only for that commit and version. It still checks every inventoried public
+file, original sidecar, identity, file type and sealed mode, and both Nginx
+policy hashes. Candidate verification continues to require the current
+deployment contract and exact installed policy.
+
+For the reviewed one-time capture, the operator must independently obtain the
+original manifest asset, verify its digest above, and stage it root-owned at
+`/srv/avasan.org/artifact-incoming/v1.2.12-static-artifact.json`. The installed,
+root-owned `verified-static-artifact.py` exposes
+`capture-retained-v1.2.12 d696406b0531224f5ec734f61334890b8c5ba7c5`.
+It reads the actual serving `current` target through no-follow file descriptors,
+compares its original manifest byte-for-byte with that independently trusted
+asset, rejects unlisted public files, checks every listed public file and the
+original provenance bytes, and requires
+the exact active snippet bytes to match the old manifest. It copies only those
+listed files and sidecars to a protected temporary directory, seals files and
+directories, verifies the entire sealed tree against the original inventory,
+and moves it into a direct child of `artifact-releases`. It does not regenerate
+the manifest, add `deployment` metadata, change `current`, reload Nginx, or
+modify the original serving tree. Any mismatch must stop the transition.
+The host must hold its deployment lock and quiesce the old serving tree during
+capture; the helper rechecks its directory identity, public inventory, file
+bytes, provenance, and active policies before sealing.
+The host adapter must separately preserve its original pointer and policy,
+verify the installed helper and active `nginx -T` snippet inclusion, then switch
+`current` to the sealed copy under its deployment lock with restoration on
+failure. Recheck `/release.json`, the branded 404, headers, and both address
+families before allowing a candidate promotion. Do not treat the source
+fixture or a self-calculated digest of a mutable checkout as approval.
+
+The historical v1.2.12 `server-policy.conf` in that original release has
+`Cross-Origin-Opener-Policy: same-origin`,
+`Cross-Origin-Resource-Policy: same-origin`, and
+`X-Content-Type-Options: nosniff` as `always` headers. The rollback probe
+uses that exact legacy policy profile rather than applying an unverified
+new-release policy assumption. The isolated fault-injection fixture uses the
+genuine v1.2.12 contract and policy bytes from the annotated tag plus the
+independently checked original archive and manifest, captures the latter,
+promotes a synthetic current-format artifact, forces acceptance failure,
+and verifies both address-family probes plus the exact retained pointer,
+manifest, branded 404 and snippet bytes.
+
 Retain the surrounding TLS/IPv4/IPv6/HTTP2/HTTP3 configuration and existing
 public routing. Do not change the host-wide Node installation, private
 configuration, DNS, or certificates. Until the host adapter is reviewed and

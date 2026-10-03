@@ -13,6 +13,7 @@ import tarfile
 
 ROOT = Path('/usr/local/libexec/avasan.org')
 BASE = Path('/srv/avasan.org')
+LEGACY_ROOT = Path('/source/legacy')
 SCRIPT = ROOT / 'deploy/direct/promote-attested-release.sh'
 SPEC = importlib.util.spec_from_file_location('artifact', ROOT / 'deploy/direct/verified-static-artifact.py')
 ARTIFACT = importlib.util.module_from_spec(SPEC)
@@ -24,10 +25,11 @@ def encode(value):
     return (json.dumps(value, sort_keys=True) + '\n').encode()
 
 
-def archive_for(commit, version, policy_overrides=None):
-    contract = json.loads((ROOT / 'deploy/static-artifact.json').read_text())
+def archive_for(commit, version, policy_overrides=None, contract_override=None):
+    contract = contract_override or json.loads((ROOT / 'deploy/static-artifact.json').read_text())
     identity = {'revision': commit, 'version': version}
-    provenance = {'commit': commit, 'version': version, 'branch': 'main', 'tag': f'v{version}',
+    branch = 'HEAD' if commit == ARTIFACT.LEGACY_COMMIT else 'main'
+    provenance = {'commit': commit, 'version': version, 'branch': branch, 'tag': f'v{version}',
                   'dirty': False, 'releaseVerified': True}
     public = {name: encode(identity) if name == 'release.json' else f'Synthetic {name}'.encode()
               for name in contract['required']}
@@ -80,30 +82,43 @@ incoming.mkdir(mode=0o700)
 recovery.mkdir(mode=0o700)
 Path('/etc/nginx/snippets').mkdir(parents=True, exist_ok=True)
 (incoming / 'attestation.jsonl').write_text('synthetic attestation checked by the fixture command')
-previous_commit = 'b' * 40
+previous_commit = ARTIFACT.LEGACY_COMMIT
 candidate_commit = 'a' * 40
 contract = json.loads((ROOT / 'deploy/static-artifact.json').read_text())
-previous_policies = {name: (ROOT / name).read_bytes() + b'\n# retained policy\n'
-                     for name in contract['adapterFiles']}
-old_policy_root = Path('/tmp/previous-policy')
-old_policy_root.mkdir()
-for name, data in previous_policies.items():
-    (old_policy_root / PurePosixPath(name).name).write_bytes(data)
-previous_archive, previous_sha = archive_for(previous_commit, '1.2.12', previous_policies)
+legacy_contract = json.loads((LEGACY_ROOT / 'contract.json').read_text())
+assert 'deployment' not in legacy_contract
+previous_policies = {name: (LEGACY_ROOT / PurePosixPath(name).name).read_bytes()
+                     for name in legacy_contract['adapterFiles']}
+assert b'Cross-Origin-Opener-Policy "same-origin" always' in previous_policies['deploy/nginx/server-policy.conf']
+assert b'Cross-Origin-Resource-Policy "same-origin" always' in previous_policies['deploy/nginx/server-policy.conf']
 candidate_archive, candidate_sha = archive_for(candidate_commit, '1.2.13')
-previous = releases / 'previous'
-previous.mkdir(mode=0o700)
-current_policy_root = ARTIFACT.POLICY_ROOT
-ARTIFACT.POLICY_ROOT = old_policy_root
-try:
-    ARTIFACT.unpack_verified(previous_archive, previous_sha, previous_commit, '1.2.12', previous)
-finally:
-    ARTIFACT.POLICY_ROOT = current_policy_root
+serving = BASE / 'legacy-serving'
+serving.mkdir(mode=0o755)
+previous_archive = LEGACY_ROOT / 'avasan-v1.2.12-d696406b0531-static.tar.gz'
+legacy_manifest_bytes = (LEGACY_ROOT / 'static-artifact.json').read_bytes()
+assert hashlib.sha256(previous_archive.read_bytes()).hexdigest() == 'd2ceb57706c1b5f163a723353a2f8af594a754a0ef2b7c2114b435a4b0c502f9'
+assert hashlib.sha256(legacy_manifest_bytes).hexdigest() == ARTIFACT.LEGACY_MANIFEST_SHA256
+with tarfile.open(previous_archive) as bundle:
+    bundle.extractall(serving, filter='data')
+assert (serving / ARTIFACT.MANIFEST_NAME).read_bytes() == legacy_manifest_bytes
+assert all((serving / name).read_bytes() == data for name, data in previous_policies.items())
 current = BASE / 'current'
-current.symlink_to(previous)
+current.symlink_to(serving)
 for name in ['http-maps', 'server-policy']:
-    shutil.copyfile(previous / f'deploy/nginx/{name}.conf',
+    shutil.copyfile(serving / f'deploy/nginx/{name}.conf',
                     Path(f'/etc/nginx/snippets/avasan.org-{name}.conf'))
+(incoming / 'v1.2.12-static-artifact.json').write_bytes(legacy_manifest_bytes)
+capture = subprocess.run(
+    ['/usr/bin/python3', '-I', '-B', str(ROOT / 'deploy/direct/verified-static-artifact.py'),
+     'capture-retained-v1.2.12', previous_commit],
+    capture_output=True, text=True, timeout=30, check=False,
+)
+assert capture.returncode == 0, capture.stderr
+previous = Path(capture.stdout.strip())
+assert previous.parent == releases and current.resolve() == serving
+ARTIFACT.verify_tree(previous, json.loads(legacy_manifest_bytes), retained=True)
+current.unlink()
+current.symlink_to(previous)
 
 result = invoke(candidate_archive, candidate_sha, candidate_commit, '1.2.13', previous_commit, 'success')
 assert result.returncode == 0, result.stderr
@@ -128,6 +143,12 @@ for name in ['http-maps', 'server-policy']:
 result = invoke(candidate_archive, candidate_sha, candidate_commit, '1.2.13', previous_commit, 'bad-health')
 assert result.returncode != 0 and 'Restored and verified' in result.stderr, result.stderr
 assert current.resolve() == previous
+ARTIFACT.verify_tree(previous, json.loads(legacy_manifest_bytes), retained=True)
+assert (previous / ARTIFACT.MANIFEST_NAME).read_bytes() == legacy_manifest_bytes
+assert b'Page not found' in (previous / 'front-end/.output/public/404.html').read_bytes()
+probes = (BASE / 'probes').read_text().splitlines()
+assert f'{previous.name} avasan.org:443:127.0.0.1' in probes
+assert f'{previous.name} avasan.org:443:[::1]' in probes
 assert not list(recovery.glob('promotion-state-*'))
 assert not list(recovery.glob('avasan-*'))
 for name in ['http-maps', 'server-policy']:

@@ -126,6 +126,15 @@ if [[ "$(dirname -- "$previous_target")" != "$release_root" ]]; then
 fi
 previous_version="$(/usr/bin/timeout --signal=KILL 30s /usr/bin/python3 -I -B "$artifact_tool" \
   verify --retained "$previous_target" "$expected_current")"
+retained_profile=post-contract
+if [[ "$previous_version" == 1.2.12 ]]; then
+  if [[ "$(/usr/bin/sha256sum "$previous_target/deploy/nginx/server-policy.conf" | /usr/bin/cut -d ' ' -f 1)" \
+    != 47543fa3a2efe19b0b514a9c028058ef28c955195e201308bcde0e31c0fa8eb0 ]]; then
+    echo 'Host update required: original v1.2.12 Nginx policy differs from the retained contract.' >&2
+    exit 1
+  fi
+  retained_profile=legacy-v1.2.12
+fi
 if ! /usr/bin/cmp -s "$previous_target/deploy/nginx/http-maps.conf" "$maps_target" \
   || ! /usr/bin/cmp -s "$previous_target/deploy/nginx/server-policy.conf" "$policy_target"; then
   echo 'Host update required: active Nginx policy differs from the sealed rollback artifact.' >&2
@@ -174,7 +183,9 @@ restore_snippet() {
 }
 
 probe_release() {
-  local target="$1" strict="$2" address status attempt
+  local target="$1" profile="$2" address status attempt
+  if [[ "$profile" != candidate && "$profile" != post-contract \
+    && "$profile" != legacy-v1.2.12 ]]; then return 1; fi
   for ((attempt = 1; attempt <= 20; attempt += 1)); do
     local complete=true
     for address in '127.0.0.1' '[::1]'; do
@@ -188,9 +199,11 @@ probe_release() {
         --resolve "avasan.org:443:$address" --output "$response_file" \
         --dump-header "$headers_file" --write-out '%{http_code}' "$site_origin/")" || { complete=false; break; }
       if [[ "$status" != 200 ]]; then complete=false; break; fi
-      if [[ "$strict" == true ]] && {
-        ! /usr/bin/grep -Eiq '^Cross-Origin-Opener-Policy:[[:space:]]*same-origin' "$headers_file" \
-          || ! /usr/bin/grep -Eiq '^Cross-Origin-Resource-Policy:[[:space:]]*same-origin' "$headers_file";
+      if {
+        ! /usr/bin/grep -Eiq '^Cross-Origin-Opener-Policy:[[:space:]]*same-origin[[:space:]]*$' "$headers_file" \
+          || ! /usr/bin/grep -Eiq '^Cross-Origin-Resource-Policy:[[:space:]]*same-origin[[:space:]]*$' "$headers_file" \
+          || { [[ "$profile" == legacy-v1.2.12 ]] \
+            && ! /usr/bin/grep -Eiq '^X-Content-Type-Options:[[:space:]]*nosniff[[:space:]]*$' "$headers_file"; };
       }; then complete=false; break; fi
       status="$(/usr/bin/curl --noproxy '*' --silent --show-error --max-time 5 \
         --resolve "avasan.org:443:$address" --output "$response_file" \
@@ -215,8 +228,11 @@ rollback() {
       verify --retained "$previous_target" "$expected_current" "$previous_version" >/dev/null \
     && /usr/bin/cmp -s "$previous_target/deploy/nginx/http-maps.conf" "$maps_target" \
     && /usr/bin/cmp -s "$previous_target/deploy/nginx/server-policy.conf" "$policy_target" \
-    && /usr/sbin/nginx -t && /usr/bin/systemctl reload nginx \
-    && probe_release "$previous_target" true; then
+    && /usr/sbin/nginx -t \
+    && /usr/sbin/nginx -T >"$nginx_dump" 2>&1 \
+    && "$snippet_gate" "$nginx_dump" "$maps_target" "$policy_target" \
+    && /usr/bin/systemctl reload nginx \
+    && probe_release "$previous_target" "$retained_profile"; then
     echo 'Restored and verified the sealed previous Avasan release.' >&2
     return 0
   fi
@@ -240,6 +256,12 @@ trap on_exit EXIT
 trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
+
+if ! /usr/sbin/nginx -T >"$nginx_dump" 2>&1 \
+  || ! "$snippet_gate" "$nginx_dump" "$maps_target" "$policy_target"; then
+  echo 'Host update required: retained Nginx snippets are not active.' >&2
+  exit 1
+fi
 
 /usr/bin/timeout --signal=KILL 60s /usr/bin/env -u GH_TOKEN -u GITHUB_TOKEN \
   GH_CONFIG_DIR="$recovery_root/gh-config" /usr/bin/gh attestation verify "$archive" \
@@ -279,7 +301,7 @@ if ! /usr/bin/cmp -s "$candidate/deploy/nginx/http-maps.conf" "$maps_target" \
   || ! /usr/sbin/nginx -t \
   || ! activate_target "$candidate" \
   || ! /usr/bin/systemctl reload nginx \
-  || ! probe_release "$candidate" true; then
+  || ! probe_release "$candidate" candidate; then
   echo 'Candidate activation failed; restoring the sealed previous release.' >&2
   exit 1
 fi
