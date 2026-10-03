@@ -18,6 +18,10 @@ and security boundaries.
 - Replaced Nitro's deprecated Archiver 7 transitive path with a focused, tested compatibility bridge that delegates to
   Archiver 8 while preserving the factory API Nitro 2 still imports. The local bridge has a semver-compatible identity,
   is pinned by repository tests, and remains distinguishable from public registry code.
+- Adopted the reviewed Vitesse template fix for unpatched `braces` stack exhaustion in build tooling. A local MIT fork
+  caps parser and recursive AST-walker depth without disabling normal patterns, and tests cover strings, direct ASTs,
+  nested parentheses, lockfile resolution, and ordinary expansions. The static production artifact does not ship this
+  build-only package.
 - Pinned Node, npm, and GitHub Actions. Lifecycle scripts are denied by default and narrowly approved
   by exact package version; Puppeteer's download script remains disabled because validation uses an explicitly located
   browser.

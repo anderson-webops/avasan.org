@@ -5,7 +5,7 @@ export default antfu(
     root: true,
     unocss: true,
     formatters: true,
-    ignores: ['**/*.d.ts', '**/dist/**', '**/.nuxt/**', '**/.output/**'],
+    ignores: ['**/*.d.ts', '**/dist/**', '**/.nuxt/**', '**/.output/**', 'vendor/braces/**'],
   },
   {
     files: ['README.md'],
