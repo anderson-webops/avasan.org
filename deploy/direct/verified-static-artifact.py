@@ -138,6 +138,8 @@ def verify_public_inventory(directory, public_root, expected_files):
                             if not safe_name(relative) or len(found_files) + len(found_directories) >= MAX_MEMBERS:
                                 raise ValueError("serving public inventory exceeds bounds")
                             metadata = os.stat(entry.name, dir_fd=current_descriptor, follow_symlinks=False)
+                            if stat.S_ISLNK(metadata.st_mode):
+                                raise ValueError("serving public inventory contains a link or special file")
                             if metadata.st_mode & 0o022:
                                 raise ValueError("serving public inventory is mutable")
                             if stat.S_ISDIR(metadata.st_mode):

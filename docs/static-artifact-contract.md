@@ -41,6 +41,11 @@ after checking their exact CI bytes. A successful tagged build is source-release
 evidence, not proof of production activation or approval to bypass the host
 promotion boundary.
 
+The v1.2.15 tag at `be197035b156346d9871442b354e321359657be3` failed its
+Linux release gates and has no approved artifact bundle. It is not a deployable
+release and must not be moved or reused. The next candidate must pass those
+gates under its own immutable tag.
+
 The output directory must be empty and locally ignored. The package contains
 only the public tree, two snippets and two sidecars. The checked-in verifier
 rejects missing independently required paths, missing HTML-referenced assets,
@@ -97,8 +102,9 @@ acceptance responsibilities. Static sites do not acquire artificial health APIs.
 
 The separate `test-attested-promotion.sh` runs the installed promoter inside a
 disposable UID0 user namespace. It downloads the original v1.2.12 archive and
-manifest from the canonical draft release and pins their SHA-256 digests before
-capture. Root-owned synthetic candidate archives and command stubs
+manifest by their fixed GitHub release-asset IDs, because the draft release is
+not addressable through GitHub's tag-based download endpoint. It checks their
+SHA-256 digests before capture. Root-owned synthetic candidate archives and command stubs
 exercise successful activation, rejected health, rollback, protected-input
 rejection, nested rollback-target rejection, and failed rollback acceptance. It
 checks the prior pointer, exact policy bytes, dual-stack probes, and retained
