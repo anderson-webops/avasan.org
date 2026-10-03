@@ -48,11 +48,11 @@
 		"commander": "15.0.0",
 		"eslint": "^10.11.0",
 		"eslint-plugin-format": "^2.0.1",
-		"lint-staged": "^17.5.1",
+		"lint-staged": "^17.6.0",
 		"listhen": "file:vendor/listhen",
-		"puppeteer": "^25.11.0",
+		"puppeteer": "^25.12.0",
 		"simple-git-hooks": "^2.13.1",
-		"taze": "^21.1.0",
+		"taze": "^21.2.0",
 		"typescript": "^6.0.3"
 	},
 	"simple-git-hooks": {
