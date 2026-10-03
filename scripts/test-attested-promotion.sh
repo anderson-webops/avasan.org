@@ -27,11 +27,13 @@ git -C "$root" show v1.2.12:deploy/nginx/server-policy.conf > "$fixture/legacy/s
 cp -- "$root/test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz" \
   "$fixture/legacy/"
 cp -- "$root/test/fixtures/legacy-v1212/static-artifact.json" "$fixture/legacy/"
+cp -R -- "$root/test/fixtures/legacy-v1212/host-build" "$fixture/legacy/"
 test "$(sha256sum "$fixture/legacy/contract.json" | cut -d ' ' -f 1)" = b1d26c68826b7f7034169a7acf13267f042f3a116181943cde75c6482895044b
 test "$(sha256sum "$fixture/legacy/http-maps.conf" | cut -d ' ' -f 1)" = d2e95bda927a9ccb8f0bb963aa7b048eb2a27575491a17720f97ef2c7eeb718a
 test "$(sha256sum "$fixture/legacy/server-policy.conf" | cut -d ' ' -f 1)" = 47543fa3a2efe19b0b514a9c028058ef28c955195e201308bcde0e31c0fa8eb0
 test "$(sha256sum "$fixture/legacy/avasan-v1.2.12-d696406b0531-static.tar.gz" | cut -d ' ' -f 1)" = d2ceb57706c1b5f163a723353a2f8af594a754a0ef2b7c2114b435a4b0c502f9
 test "$(sha256sum "$fixture/legacy/static-artifact.json" | cut -d ' ' -f 1)" = 9c46331f51490878a607293a021ce40123f4df6b8b335d1c91be6b93e6bc22af
+test "$(sha256sum "$fixture/legacy/host-build/static-artifact.json" | cut -d ' ' -f 1)" = 61405f4b02757629d1cebd84054ecaee15b966779e32a2b9749d4057c6d0538d
 printf '\n' >> "$fixture/installed/deploy/nginx/http-maps.conf"
 printf '\n' >> "$fixture/installed/deploy/nginx/server-policy.conf"
 for binary in gh nginx curl systemctl sleep; do
@@ -42,18 +44,21 @@ sudo cp -R -- "$fixture/installed" "$fixture/stubs" "$fixture/legacy" "$sandbox_
 sudo cp -- "$root/scripts/test-attested-promotion.py" "$sandbox_source/test.py"
 sudo chown -R 0:0 -- "$sandbox_source"
 sudo chmod 0755 -- "$sandbox_source" "$sandbox_source/installed" "$sandbox_source/stubs"
-timeout -k 5 90 sudo bwrap --unshare-all --die-with-parent --new-session --uid 0 --gid 0 \
-  --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib \
-  --tmpfs /usr/local --dir /usr/local/libexec \
-  --ro-bind "$sandbox_source/installed" /usr/local/libexec/avasan.org \
-  --ro-bind "$sandbox_source/stubs/gh" /usr/bin/gh \
-  --ro-bind "$sandbox_source/stubs/nginx" /usr/sbin/nginx \
-  --ro-bind "$sandbox_source/stubs/curl" /usr/bin/curl \
-  --ro-bind "$sandbox_source/stubs/systemctl" /usr/bin/systemctl \
-  --ro-bind "$sandbox_source/stubs/sleep" /usr/bin/sleep \
-  --tmpfs /etc --dir /etc/nginx --dir /etc/nginx/snippets \
-  --tmpfs /srv --proc /proc --dev /dev --tmpfs /tmp \
-  --dir /source --dir /source/legacy --ro-bind "$sandbox_source/legacy" /source/legacy \
-  --ro-bind "$sandbox_source/test.py" /source/test.py \
-  --clearenv --setenv PATH /usr/sbin:/usr/bin:/sbin:/bin --setenv HOME /tmp \
-  --chdir /tmp /usr/bin/python3 -B /source/test.py
+for profile in ci host; do
+  timeout -k 5 90 sudo bwrap --unshare-all --die-with-parent --new-session --uid 0 --gid 0 \
+    --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib \
+    --tmpfs /usr/local --dir /usr/local/libexec \
+    --ro-bind "$sandbox_source/installed" /usr/local/libexec/avasan.org \
+    --ro-bind "$sandbox_source/stubs/gh" /usr/bin/gh \
+    --ro-bind "$sandbox_source/stubs/nginx" /usr/sbin/nginx \
+    --ro-bind "$sandbox_source/stubs/curl" /usr/bin/curl \
+    --ro-bind "$sandbox_source/stubs/systemctl" /usr/bin/systemctl \
+    --ro-bind "$sandbox_source/stubs/sleep" /usr/bin/sleep \
+    --tmpfs /etc --dir /etc/nginx --dir /etc/nginx/snippets \
+    --tmpfs /srv --proc /proc --dev /dev --tmpfs /tmp \
+    --dir /source --dir /source/legacy --ro-bind "$sandbox_source/legacy" /source/legacy \
+    --ro-bind "$sandbox_source/test.py" /source/test.py \
+    --clearenv --setenv PATH /usr/sbin:/usr/bin:/sbin:/bin --setenv HOME /tmp \
+    --setenv AVASAN_LEGACY_PROFILE "$profile" \
+    --chdir /tmp /usr/bin/python3 -B /source/test.py
+done

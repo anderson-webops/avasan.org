@@ -102,16 +102,19 @@ HTTP reference; production TLS, HTTP2/3, certificates and redirects remain opera
 acceptance responsibilities. Static sites do not acquire artificial health APIs.
 
 The separate `test-attested-promotion.sh` runs the installed promoter inside a
-disposable UID0 user namespace. It copies the exact original v1.2.12 archive
-and manifest from the checked-in public-only fixture, because GitHub's CI token
-cannot access draft-release assets. It checks their SHA-256 digests before
-capture. Root-owned synthetic candidate archives and command stubs
-exercise successful activation, rejected health, rollback, protected-input
-rejection, nested rollback-target rejection, and failed rollback acceptance. It
-checks the prior pointer, exact policy bytes, dual-stack probes, and retained
-recovery evidence. It makes no requests to production and runs no real systemd or
-host Nginx commands. The fixture attestation is a stub, not published-release
-provenance; the tagged workflow independently attests the exact archive bytes.
+disposable UID0 user namespace. It checks the exact original v1.2.12 CI archive
+and both pinned manifest profiles before capture. The host-build fixture
+reconstructs the actual serving public inventory from that archive and the five
+public-file differences recorded in `test/fixtures/legacy-v1212/host-build/`;
+the reconstructed manifest matches the independently reported protected host
+copy byte-for-byte by SHA-256 and length. Each profile separately exercises
+successful activation, rejected health, rollback, mutable-source and mutable-base
+rejection, protected-input rejection, nested rollback-target rejection, and
+failed rollback acceptance. It checks the prior pointer, exact policy bytes,
+dual-stack probes, and retained recovery evidence. It makes no requests to
+production and runs no real systemd or host Nginx commands. The fixture
+attestation is a stub, not published-release provenance; the tagged workflow
+independently attests the exact archive bytes.
 The CI fixture uses a disposable root-owned `/tmp` mirror only for Bubblewrap
 bind inputs because the hosted runner's home directory is not traversable from
 the isolated namespace; repository scratch remains under `.ai-work/` and both
@@ -140,22 +143,32 @@ protected child of `artifact-releases`, with its own verified manifest and exact
 active Nginx snippets. The promoter rejects a mutable or nested rollback target.
 Only the original v1.2.12 release at
 `d696406b0531224f5ec734f61334890b8c5ba7c5` may use the legacy-retained
-path. Its original `static-artifact.json` GitHub release asset has SHA-256
-`9c46331f51490878a607293a021ce40123f4df6b8b335d1c91be6b93e6bc22af`;
-the original archive has SHA-256
+path. The CI-built `static-artifact.json` GitHub release asset has SHA-256
+`9c46331f51490878a607293a021ce40123f4df6b8b335d1c91be6b93e6bc22af`.
+The separately built, actual serving manifest is 5,072 bytes with SHA-256
+`61405f4b02757629d1cebd84054ecaee15b966779e32a2b9749d4057c6d0538d`.
+The CI archive has SHA-256
 `d2ceb57706c1b5f163a723353a2f8af594a754a0ef2b7c2114b435a4b0c502f9`.
-The retained verifier accepts the exact historical contract and provenance
-only for that commit and version. It still checks every inventoried public
-file, original sidecar, identity, file type and sealed mode, and both Nginx
-policy hashes. Candidate verification continues to require the current
-deployment contract and exact installed policy.
+The retained verifier accepts only those two exact original manifest digests,
+the historical contract and provenance, and the exact commit and version. Each
+capture name includes the approved manifest digest to keep the profiles
+distinct. It still checks every inventoried public file, original sidecar,
+identity, file type and sealed mode, and both Nginx policy hashes. Candidate
+verification continues to require the current deployment contract and exact
+installed policy.
 
-For the reviewed one-time capture, the operator must independently obtain the
-original manifest asset, verify its digest above, and stage it root-owned at
+For the reviewed one-time capture of this host, the operator must use the
+protected actual serving manifest, not the CI-built asset. The reviewed
+read-only server copy is
+`/opt/server-tools/deploy-repair-20261002/avasan-live-v1.2.12-manifest.json`;
+independently verify its exact 5,072 bytes and host-build SHA-256 above before
+staging it root-owned at
 `/srv/avasan.org/artifact-incoming/v1.2.12-static-artifact.json`. The installed,
 root-owned `verified-static-artifact.py` exposes
 `capture-retained-v1.2.12 d696406b0531224f5ec734f61334890b8c5ba7c5`.
-It reads the actual serving `current` target through no-follow file descriptors,
+It accepts only the exact `current` target
+`/srv/avasan.org/releases/v1.2.12`, with a protected `releases` parent. It
+reads that target through no-follow file descriptors,
 compares its original manifest byte-for-byte with that independently trusted
 asset, rejects unlisted public files, checks every listed public file and the
 original provenance bytes, and requires
@@ -168,12 +181,31 @@ modify the original serving tree. Any mismatch must stop the transition.
 The host must hold its deployment lock and quiesce the old serving tree during
 capture; the helper rechecks its directory identity, public inventory, file
 bytes, provenance, and active policies before sealing.
+Before capture, the operator must pause Avasan's old checkout builder and
+automatic promotion while leaving Nginx serving, then hold the deployment lock
+through capture and pointer transition. Record the current pointer, file modes,
+ownership, setgid bits, and complete access/default ACLs in a root-only backup
+for `/srv/avasan.org`, its `releases` and exact `v1.2.12` path, every traversed
+public and policy directory, the manifest-listed files, and the active Nginx
+snippets. The existing group-writable/setgid/ACL layout is not safe to capture
+as-is. Under that backup and lock, revoke non-root write access on only the
+reviewed path chain and listed inputs, including ACL grants, and make the base,
+`releases` parent, staging and artifact roots root-owned and non-writable by
+other users. Keep the existing Nginx read/traverse access intact. Verify the
+protected path and exact original manifest, provenance, public inventory, and
+active policy before invoking the helper; stop and restore the recorded metadata
+if any preflight fails. Do not broadly chmod unrelated `/srv` trees or copy an
+unreviewed candidate manifest into the protected staging area.
 The host adapter must separately preserve its original pointer and policy,
 verify the installed helper and active `nginx -T` snippet inclusion, then switch
 `current` to the sealed copy under its deployment lock with restoration on
 failure. Recheck `/release.json`, the branded 404, headers, and both address
 families before allowing a candidate promotion. Do not treat the source
 fixture or a self-calculated digest of a mutable checkout as approval.
+Retain the mode/ACL backup and old checkout until rollback acceptance completes;
+never restore write permissions to the captured artifact or its parent. Restore
+legacy checkout metadata only after it is no longer the active or rollback
+target and the operator has reviewed the effect on Nginx and deploy tooling.
 
 The historical v1.2.12 `server-policy.conf` in that original release has
 `Cross-Origin-Opener-Policy: same-origin`,

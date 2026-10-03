@@ -1,5 +1,6 @@
 """Synthetic trust-boundary checks for the installed static artifact verifier."""
 
+import base64
 import hashlib
 import importlib.util
 import io
@@ -182,6 +183,76 @@ class VerifiedStaticArtifactTests(unittest.TestCase):
             ARTIFACT.expected_inventory(
                 changed, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
             )
+
+    def test_host_built_v1212_inventory_is_exactly_pinned(self):
+        fixture_root = ROOT / "test/fixtures/legacy-v1212"
+        ci_bytes = (fixture_root / "static-artifact.json").read_bytes()
+        host_bytes = (fixture_root / "host-build/static-artifact.json").read_bytes()
+        self.assertEqual(ARTIFACT.legacy_manifest_digest(ci_bytes), ARTIFACT.LEGACY_MANIFEST_SHA256)
+        self.assertEqual(ARTIFACT.legacy_manifest_digest(host_bytes), ARTIFACT.LEGACY_HOST_MANIFEST_SHA256)
+        self.assertEqual(len(host_bytes), 5072)
+        with self.assertRaisesRegex(ValueError, "manifest digest mismatch"):
+            ARTIFACT.legacy_manifest_digest(host_bytes + b"\n")
+        ci_manifest = ARTIFACT.load_json(ci_bytes)
+        host_manifest = ARTIFACT.load_json(host_bytes)
+        self.assertEqual(host_manifest["contract"], ci_manifest["contract"])
+        self.assertEqual(host_manifest["identity"], ci_manifest["identity"])
+        self.assertEqual(host_manifest["provenance"], ci_manifest["provenance"])
+        self.assertEqual(host_manifest["adapterFiles"], ci_manifest["adapterFiles"])
+        ARTIFACT.expected_inventory(
+            host_manifest, ARTIFACT.LEGACY_COMMIT, ARTIFACT.LEGACY_VERSION, retained=True
+        )
+        old_meta = next(name for name in ci_manifest["files"] if name.startswith("_nuxt/builds/meta/"))
+        new_meta = "_nuxt/builds/meta/7580dabd-e428-4891-8ec5-026921a2ecdf.json"
+        delta = ARTIFACT.load_json((fixture_root / "host-build/public-delta.json").read_bytes())
+        self.assertEqual(set(delta), {
+            "index.html", "200.html", "_payload.json", "_nuxt/builds/latest.json", new_meta,
+        })
+        self.assertEqual(set(ci_manifest["files"]) - set(host_manifest["files"]), {old_meta})
+        self.assertEqual(set(host_manifest["files"]) - set(ci_manifest["files"]), {new_meta})
+        self.assertEqual(len(host_manifest["files"]), 26)
+        for name, details in host_manifest["files"].items():
+            if name not in delta:
+                self.assertEqual(details, ci_manifest["files"][name])
+            else:
+                data = base64.b64decode(delta[name], validate=True)
+                self.assertEqual(details, {"sha256": hashlib.sha256(data).hexdigest(), "size": len(data)})
+
+    def test_actual_host_build_fixture_captures_without_rewriting_manifest(self):
+        fixture_root = ROOT / "test/fixtures/legacy-v1212"
+        manifest_bytes = (fixture_root / "host-build/static-artifact.json").read_bytes()
+        manifest = ARTIFACT.load_json(manifest_bytes)
+        source = self.root / "releases/v1.2.12"
+        source.mkdir(parents=True, mode=0o755)
+        archive = fixture_root / "avasan-v1.2.12-d696406b0531-static.tar.gz"
+        with tarfile.open(archive) as bundle:
+            bundle.extractall(source, filter="data")
+        ci_manifest = ARTIFACT.load_json((fixture_root / "static-artifact.json").read_bytes())
+        old_meta = next(name for name in ci_manifest["files"] if name.startswith("_nuxt/builds/meta/"))
+        public = source / manifest["contract"]["publicRoot"]
+        (public / old_meta).unlink()
+        delta = ARTIFACT.load_json((fixture_root / "host-build/public-delta.json").read_bytes())
+        for name, encoded in delta.items():
+            (public / name).write_bytes(base64.b64decode(encoded, validate=True))
+        (source / ARTIFACT.MANIFEST_NAME).write_bytes(manifest_bytes)
+        self.assertEqual(hashlib.sha256((source / ARTIFACT.PROVENANCE_NAME).read_bytes()).hexdigest(),
+                         ARTIFACT.LEGACY_PROVENANCE_SHA256)
+        current = self.root / "current"
+        current.symlink_to(source, target_is_directory=True)
+        active_root = self.root / "active"
+        active_root.mkdir()
+        active = {}
+        for name in manifest["adapterFiles"]:
+            path = active_root / PurePosixPath(name).name
+            path.write_bytes((source / name).read_bytes())
+            active[path.name] = path
+        releases = self.root / "artifact-releases"
+        releases.mkdir(mode=0o755)
+        captured = ARTIFACT.capture_legacy_release(source, manifest_bytes, active, releases, current)
+        self.assertEqual(captured.name[-16:], ARTIFACT.LEGACY_HOST_MANIFEST_SHA256[:16])
+        self.assertEqual((captured / ARTIFACT.MANIFEST_NAME).read_bytes(), manifest_bytes)
+        self.assertEqual((source / ARTIFACT.MANIFEST_NAME).read_bytes(), manifest_bytes)
+        ARTIFACT.verify_tree(captured, manifest, retained=True)
 
     def test_legacy_capture_preserves_original_bytes_and_rejects_rewrites(self):
         source, current, active, releases, trusted = self.legacy_source()

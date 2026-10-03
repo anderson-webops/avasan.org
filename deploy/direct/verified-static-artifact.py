@@ -31,8 +31,8 @@ LEGACY_COMMIT = "d696406b0531224f5ec734f61334890b8c5ba7c5"
 LEGACY_VERSION = "1.2.12"
 LEGACY_CONTRACT_SHA256 = "43050738984394e257241ab8c29508d79f6d9b22a75e0fe57c7c3321d828bdef"
 LEGACY_MANIFEST_SHA256 = "9c46331f51490878a607293a021ce40123f4df6b8b335d1c91be6b93e6bc22af"
+LEGACY_HOST_MANIFEST_SHA256 = "61405f4b02757629d1cebd84054ecaee15b966779e32a2b9749d4057c6d0538d"
 LEGACY_PROVENANCE_SHA256 = "6b65e785d88fc284b55d070b2b4fc49292617e593eeebc533b3bceb9053e87d8"
-LEGACY_CAPTURE_NAME = f"legacy-v{LEGACY_VERSION}-{LEGACY_COMMIT[:12]}-{LEGACY_MANIFEST_SHA256[:16]}"
 
 
 def unique_object(pairs):
@@ -174,6 +174,13 @@ def verify_public_inventory(directory, public_root, expected_files):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def legacy_manifest_digest(data):
+    checksum = digest(data)
+    if checksum not in (LEGACY_MANIFEST_SHA256, LEGACY_HOST_MANIFEST_SHA256):
+        raise ValueError("original v1.2.12 manifest digest mismatch")
+    return checksum
 
 
 def safe_name(name):
@@ -407,9 +414,8 @@ def verify_tree(destination, trusted_manifest, retained=False):
     if manifest_path.stat().st_size > MAX_MANIFEST_BYTES:
         raise ValueError("artifact tree manifest exceeds bound")
     manifest_bytes = manifest_path.read_bytes()
-    if (retained and trusted_manifest["identity"] == {"revision": LEGACY_COMMIT, "version": LEGACY_VERSION}
-            and digest(manifest_bytes) != LEGACY_MANIFEST_SHA256):
-        raise ValueError("retained original v1.2.12 manifest digest mismatch")
+    if retained and trusted_manifest["identity"] == {"revision": LEGACY_COMMIT, "version": LEGACY_VERSION}:
+        legacy_manifest_digest(manifest_bytes)
     if load_json(manifest_bytes) != trusted_manifest:
         raise ValueError("artifact tree manifest changed")
     if load_json((destination / PROVENANCE_NAME).read_bytes()) != trusted_manifest["provenance"]:
@@ -429,13 +435,12 @@ def verify_tree(destination, trusted_manifest, retained=False):
 
 
 def capture_legacy_release(source, trusted_manifest_bytes, active_policies, release_root, current_link):
-    if digest(trusted_manifest_bytes) != LEGACY_MANIFEST_SHA256:
-        raise ValueError("original v1.2.12 manifest digest mismatch")
+    manifest_checksum = legacy_manifest_digest(trusted_manifest_bytes)
     manifest = load_json(trusted_manifest_bytes)
     contract, expected = expected_inventory(manifest, LEGACY_COMMIT, LEGACY_VERSION, retained=True)
     source = Path(source)
     release_root = Path(release_root)
-    destination = release_root / LEGACY_CAPTURE_NAME
+    destination = release_root / f"legacy-v{LEGACY_VERSION}-{LEGACY_COMMIT[:12]}-{manifest_checksum[:16]}"
     if current_link.resolve(strict=True) != source.resolve(strict=True):
         raise ValueError("serving release changed before capture")
     if destination.exists() or destination.is_symlink():
@@ -585,8 +590,9 @@ def main():
         finally:
             os.close(trusted_descriptor)
         source = current.resolve(strict=True)
-        if not source.is_relative_to(base) or source.is_relative_to(base / "artifact-releases"):
-            raise ValueError("original serving path is outside the legacy release area")
+        if source != base / "releases/v1.2.12":
+            raise ValueError("original serving path is not the reviewed v1.2.12 release")
+        require_protected_root_path(source.parent)
         policies = {
             "http-maps.conf": Path("/etc/nginx/snippets/avasan.org-http-maps.conf"),
             "server-policy.conf": Path("/etc/nginx/snippets/avasan.org-server-policy.conf"),

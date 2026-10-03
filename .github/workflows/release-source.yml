@@ -145,6 +145,13 @@ jobs:
           assert receipt['hostCapabilitiesVerified'] is False
           assert manifest['contract'] == source_contract
           assert receipt['deploymentContract'] == manifest['contract']['deployment']
+          for name in [
+              'test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz',
+              'test/fixtures/legacy-v1212/static-artifact.json',
+              'test/fixtures/legacy-v1212/host-build/static-artifact.json',
+              'test/fixtures/legacy-v1212/host-build/public-delta.json',
+          ]:
+              assert receipt['harnessSha256'][name] == hashlib.sha256(Path(name).read_bytes()).hexdigest()
           assert manifest['format'] == 1
           assert set(source_contract['required']).issubset(manifest['files'])
           assert set(manifest['adapterFiles']) == set(source_contract['adapterFiles'])
