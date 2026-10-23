@@ -1,14 +1,16 @@
 # Repository Guidelines
 
-## GitGuardian Availability
-
-- Use GitGuardian/`ggshield` when available. Quota, authentication, network, or service failures are not commit or push blockers. Record the scan as unavailable, review staged and outgoing changes, run an available independent local secret scan, and proceed with the other required checks. Never ignore a confirmed secret finding or claim a failed scan passed.
-- If only the global GitGuardian hook blocks delivery, inspect it for other checks, then use a command-scoped `core.hooksPath` pointing to the repository's own hooks for that commit or push. Do not disable hooks globally or skip unrelated checks.
+Shared Sites policy (`../AGENTS.md` when available) applies. These essentials also apply in standalone checkouts:
+- Never SSH, SCP, SFTP, tunnel to, or configure access to production. Do not deploy it; protected server-side automation owns activation, and source delivery alone does not prove deployment.
+- GitGuardian quota, authentication, network, or service failure is not a commit/push blocker. Review outgoing changes, run another available local secret scan, preserve other hooks, and stop on real secret findings.
+- Commit small, coherent, validated changes frequently as work progresses and push completed work through this repository's authorized source path, usually its default branch; use pull requests only when required.
+- Group related changes into meaningful deployable milestones. Align version metadata, create a new immutable annotated semver tag, and publish its matching verified GitHub release with the required accepted artifacts.
+- Complete finished deployable work through the published release consumed by protected deployment. Independently verify public release identity and acceptance read-only, or report the exact remaining blocker. Never move published tags or replace published release assets.
 
 ## Project Structure & Module Organization
 
 - `front-end/` contains the Nuxt 4 application. UI lives in `src/components`, layouts in `src/layouts`, routes in
-  `src/pages`, composables in `src/composables`, and app-level config under `src/config` and `src/constants`.
+  `src/pages`, composables in `src/composables`, constants in `src/constants`, and Nuxt config in `nuxt.config.ts`.
 - `deploy/nginx/http-maps.conf`, `deploy/nginx/server-policy.conf`, the
   standalone `deploy/nginx/default.conf`, and `deploy/direct/` define the single
   supported native static deployment surface and its security headers.
@@ -21,10 +23,11 @@
   teacher, with a primary link to `https://cs.avasan.org` and a secondary link to `https://math.avasan.org`.
 - Do not add navigation, booking, testimonials, course catalogs, contact forms, or extra routes unless the user asks.
 - Preserve the Vitesse-derived typography, color-mode support, responsive layout, and accessible interaction states.
+- Keep the site static and tracker-free. Do not add analytics, a server workspace, runtime API configuration, or third-party scripts without an explicit product decision.
 
 ## Build, Test, and Development Commands
 
-- `npm install` installs all workspace dependencies. Use npm at the repo root; do not mix package managers for normal
+- `npm ci` installs the committed workspace dependencies. Use npm at the repo root; do not mix package managers for normal
   development.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
 - `npm run typecheck` runs the Nuxt TypeScript check.
@@ -44,12 +47,9 @@
 
 ## Testing & Verification
 
-- Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run a11y`, both audit commands, the
-  production dependency-graph check, and the native-binding verifier before pushing site changes.
+- Run `npm run lint`, `npm run typecheck`, `npm test`, `npm run a11y`, both audit commands, the
+  production dependency-graph check, and the native-binding verifier before delivering site changes. `npm test` includes the production build and static-deployment check.
 - Treat homepage regressions as high impact because this single page is the site’s entire public experience.
-- Keep the application static. Do not add analytics, a server workspace,
-  runtime API configuration, or third-party scripts without an explicit product
-  decision.
 
 ## Template Workflow
 
@@ -57,57 +57,13 @@
 - `origin` is the published `anderson-webops/avasan.org` repository.
 - Review template updates before merging them so site-specific content and metadata are preserved.
 
-## Agent Delivery Workflow
-
-- Do not leave completed work uncommitted. After each coherent, validated change set, create a commit and push it in
-  the same session.
-- Keep `package-lock.json` synchronized with dependency changes before every commit or push.
-- Prefer small, logically grouped commits over one mixed commit.
-
 ## Dependency & Lockfile Discipline
 
-- Treat the repo-root `npm ci` path as the source of truth for deploy readiness.
-- Any time `package.json`, any workspace `package.json`, dependency ranges, `package-lock.json`, or dependency update tooling changes, verify lockfile parity from the repo root before committing.
-- Do not rely on `npm install` fallback as success. A change is not deploy-ready unless root `npm ci` succeeds.
-
-Required production/dev dependency update flow before every dependency commit:
-1. Check production and development dependency freshness from the repository root with `npm outdated --workspaces --long` or the repo's documented equivalent.
-2. Review both `dependencies` and `devDependencies` in the root and every workspace package; do not limit updates to production-only packages.
-3. Apply needed updates with the narrowest command that updates the relevant manifest and lockfile together, such as `npm install -w <workspace> <package>@<version>` or `npm install -D -w <workspace> <package>@<version>`.
-4. If the update is only a lockfile/security refresh, regenerate from the root with `npm install --package-lock-only --ignore-scripts --no-fund --no-audit`.
-5. Run `npm audit` from the repository root and resolve remaining production or dev advisories before committing unless a documented upstream limitation prevents it.
-
-Required dependency verification before every commit/push:
-1. Run `npm ci` from the repository root.
-2. Run `npm run lint`.
-3. Run `npm run typecheck`.
-4. Run `npm test`.
-5. Run `npm run build`.
-6. Run `npm run test:static`.
-7. Run `npm run audit`.
-8. Run `npm run audit:production`.
-9. Run `npm run verify:dependency-graph`.
-10. Run `npm run verify:native-bindings`.
-
-If `npm ci` fails because `package.json` and `package-lock.json` are out of sync:
-1. Run `npm install --package-lock-only --ignore-scripts --no-fund --no-audit` from the repository root.
-2. Re-run `npm ci` from the repository root.
-3. Commit the resulting `package-lock.json` change with the related dependency/package change.
-
-Never commit or push dependency/package changes if root `npm ci` fails.
-
-## Direct Delivery and Pull Requests
-
-- After a coherent change set passes the repository's required checks, default to committing it and pushing it directly to the repository's default branch. Do not open a pull request unless the user explicitly asks for one, branch protection requires it, or an external-contribution policy makes direct integration inappropriate.
-- For a release-worthy application change, update the project version as required, create an annotated tag, and publish or update the corresponding GitHub release in the same work session. Keep documentation-only, formatting-only, and other non-deployable housekeeping changes as committed and pushed source changes without inventing an application release.
-- Never force-push a shared branch or move an existing published tag unless the user explicitly authorizes that exact history rewrite.
-- If automation or repository policy creates a pull request, review it, wait for required checks, merge it when safe, and remove the merged branch before wrapping up. Do not leave redundant pull requests or branches open.
-- Treat commit, push, tag, and GitHub release publication as source delivery only. Do not claim or perform production deployment unless it was separately authorized and verified.
+- Keep the root `package-lock.json` aligned with every workspace manifest. For dependency changes, review production and development packages, regenerate and include the lockfile, and run a clean root `npm ci` (not an install fallback), both audits, and the validation gates above.
 
 ## Static artifact and recovery acceptance
 
-- Preserve the static-only, tracker-free contract. Adopt shared template fixes
-  selectively; its API/worker runtime is not needed here.
+- Adopt shared template fixes selectively; its API/worker runtime is not needed here.
 - For release changes, run the Linux ARM64 `scripts/package-static-release.sh`
   against the clean annotated candidate after the source gates. Verify the exact
   unpacked archive and a copied tree with the published manifest. Keep both
@@ -118,6 +74,6 @@ Never commit or push dependency/package changes if root `npm ci` fails.
 - Preserve existing snippets, ownership, ports, listeners and the prior release;
   retain protected backups if rollback fails. No application writable state is
   required. Consult `docs/static-artifact-contract.md` for recovery limits.
-- The current production source gate requires main and its annotated version tag
+- The release source gate requires main and its annotated version tag
   to match exactly. Include release documentation in that source commit; do not
   advance main with an evidence-only commit that makes the release gate fail.
