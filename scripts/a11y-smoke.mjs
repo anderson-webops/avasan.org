@@ -146,7 +146,9 @@ async function analyzePage(browser, route, scheme) {
   page.setDefaultTimeout(30_000)
   await page.setViewport({ width: 1280, height: 1000, deviceScaleFactor: 1 })
   if (scheme === 'dark' || scheme === 'light') {
-    await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: scheme }])
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: scheme },
+    ])
   }
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 })
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 8_000 }).catch(() => {})

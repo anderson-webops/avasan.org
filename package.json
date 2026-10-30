@@ -29,7 +29,7 @@
 		"lint:repo": "eslint \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\" \"vendor/**/*.js\"",
 		"lint-fix": "npm run -w front-end lint-fix",
 		"typecheck": "npm run -w front-end typecheck",
-		"test": "node scripts/run-selected-npm.mjs run build && node --test test/archiver-compat.test.mjs test/braces-compat.test.mjs test/build-runtime-boundary.test.mjs test/listhen-compat.test.mjs test/native-release-gates.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs test/static-artifact.test.mjs test/static-preview.test.mjs",
+		"test": "node scripts/run-selected-npm.mjs run build && node --test test/archiver-compat.test.mjs test/braces-compat.test.mjs test/build-runtime-boundary.test.mjs test/deepmerge-compat.test.mjs test/listhen-compat.test.mjs test/native-release-gates.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs test/static-artifact.test.mjs test/static-preview.test.mjs",
 		"audit": "npm audit --audit-level=low",
 		"audit:production": "npm audit --omit=dev --audit-level=low",
 		"audit:signatures": "npm audit signatures",
@@ -43,17 +43,18 @@
 		"test:static": "node --test test/static-deployment.test.mjs"
 	},
 	"devDependencies": {
-		"@antfu/eslint-config": "^9.2.0",
-		"axe-core": "^4.11.4",
+		"@antfu/eslint-config": "^10.0.0",
+		"axe-core": "^4.14.0",
 		"braces": "file:vendor/braces",
 		"commander": "15.0.0",
-		"eslint": "^10.11.0",
+		"deepmerge": "file:vendor/deepmerge",
+		"eslint": "^10.13.0",
 		"eslint-plugin-format": "^2.0.1",
-		"lint-staged": "^17.5.1",
+		"lint-staged": "^17.6.0",
 		"listhen": "file:vendor/listhen",
-		"puppeteer": "^25.11.0",
+		"puppeteer": "^25.16.0",
 		"simple-git-hooks": "^2.13.1",
-		"taze": "^21.1.0",
+		"taze": "^21.3.0",
 		"typescript": "^6.0.3"
 	},
 	"simple-git-hooks": {
@@ -66,7 +67,10 @@
 	},
 	"overrides": {
 		"braces": "$braces",
+		"deepmerge": "$deepmerge",
 		"listhen": "$listhen",
+		"katex": "0.18.2",
+		"tinypool": "2.1.2",
 		"esbuild": "0.28.2",
 		"js-yaml": "4.3.2",
 		"launch-editor": {
@@ -97,7 +101,7 @@
 	"allowScripts": {
 		"esbuild@0.28.2": true,
 		"fsevents@2.3.3": true,
-		"puppeteer@25.11.0": false,
+		"puppeteer@25.16.0": false,
 		"simple-git-hooks@2.14.0": true,
 		"unrs-resolver@1.12.2": true
 	}

@@ -1,0 +1,11 @@
+{
+	"name": "deepmerge",
+	"version": "4.3.2-webops.1",
+	"description": "Deep merge with guarded prototype keys",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"license": "MIT",
+	"engines": {
+		"node": ">=18"
+	}
+}
