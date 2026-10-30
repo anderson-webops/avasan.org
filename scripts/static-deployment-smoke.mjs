@@ -72,11 +72,15 @@ const assetPath = html.match(/(?:href|src)="(\/_nuxt\/[^"]+)"/u)?.[1]
 assert.ok(assetPath, 'Generated HTML must reference a hashed Nuxt asset.')
 assert.doesNotMatch(html, /analytics|googletagmanager|doubleclick|segment\.com/iu)
 
-const externalScripts = [...html.matchAll(/<script\b[^>]*\ssrc=(["'])(https?:\/\/.+?)\1/giu)]
+const externalScripts = [
+  ...html.matchAll(/<script\b[^>]*\ssrc=(["'])(https?:\/\/.+?)\1/giu),
+]
   .map(match => match[2])
 assert.deepEqual(externalScripts, [], 'The homepage must not load external scripts.')
 
-const externalAnchors = [...html.matchAll(/<a\b[^>]*\shref=(["'])(https?:\/\/.+?)\1/giu)]
+const externalAnchors = [
+  ...html.matchAll(/<a\b[^>]*\shref=(["'])(https?:\/\/.+?)\1/giu),
+]
   .map(match => new URL(match[2]).href)
   .sort()
 assert.deepEqual(externalAnchors, [

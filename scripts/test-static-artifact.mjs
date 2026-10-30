@@ -7,7 +7,13 @@ import process from 'node:process'
 import { setTimeout as delay } from 'node:timers/promises'
 
 assert.equal(process.cwd(), '/app')
-for (const path of ['/app/node_modules', '/app/.git', '/app/back-end', '/home/builder/source', '/mnt/input'])
+for (const path of [
+  '/app/node_modules',
+  '/app/.git',
+  '/app/back-end',
+  '/home/builder/source',
+  '/mnt/input',
+])
   await assert.rejects(access(path))
 const identity = JSON.parse(await readFile('/app/front-end/.output/public/release.json', 'utf8'))
 const held = net.createServer()
@@ -30,14 +36,23 @@ client_body_temp_path /tmp/body; proxy_temp_path /tmp/proxy; fastcgi_temp_path /
 uwsgi_temp_path /tmp/uwsgi; scgi_temp_path /tmp/scgi;
 ${serverBlock}
 }`)
-const server = spawn('/usr/sbin/nginx', ['-p', '/tmp', '-c', '/tmp/nginx.conf'], { stdio: ['ignore', 'pipe', 'pipe'] })
+const server = spawn('/usr/sbin/nginx', ['-p', '/tmp', '-c', '/tmp/nginx.conf'], {
+  stdio: ['ignore', 'pipe', 'pipe'],
+})
 let output = ''
 for (const stream of [server.stdout, server.stderr])
   stream.on('data', bytes => output = (output + bytes.toString()).slice(-4000))
 const exit = new Promise(resolve => server.once('exit', (code, signal) => resolve({ code, signal })))
 function request(path, { method = 'GET', ipv6 = false } = {}) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ hostname: ipv6 ? '::1' : '127.0.0.1', port, path, method, headers: { Host: 'avasan.org' }, agent: false }, (response) => {
+    const req = http.request({
+      hostname: ipv6 ? '::1' : '127.0.0.1',
+      port,
+      path,
+      method,
+      headers: { Host: 'avasan.org' },
+      agent: false,
+    }, (response) => {
       let body = ''
       response.setEncoding('utf8')
       response.on('data', (bytes) => {
@@ -80,7 +95,16 @@ try {
     const assetPath = home.body.match(/(?:href|src)="(\/_nuxt\/[^"]+)"/u)?.[1]
     assert.ok(assetPath)
     assert.match((await request(assetPath, { ipv6 })).headers['cache-control'], /immutable/u)
-    for (const path of ['/missing', '/404.html', '/api', '/api/health', '/healthz', '/readyz', '/.env', '/.avasan-static-release.json']) {
+    for (const path of [
+      '/missing',
+      '/404.html',
+      '/api',
+      '/api/health',
+      '/healthz',
+      '/readyz',
+      '/.env',
+      '/.avasan-static-release.json',
+    ]) {
       const response = await request(path, { ipv6 })
       assert.equal(response.status, 404, path)
       assert.match(response.body, /Page not found/u)
@@ -94,7 +118,14 @@ try {
   }
   server.kill('SIGQUIT')
   assert.deepEqual(await exit, { code: 0, signal: null })
-  console.log(JSON.stringify({ sterileStaticArtifact: 'passed', server: 'nginx', revision: identity.revision, version: identity.version, residentApplicationProcessesRequired: 0, addressFamilies: ['IPv4', 'IPv6'] }))
+  console.log(JSON.stringify({
+    sterileStaticArtifact: 'passed',
+    server: 'nginx',
+    revision: identity.revision,
+    version: identity.version,
+    residentApplicationProcessesRequired: 0,
+    addressFamilies: ['IPv4', 'IPv6'],
+  }))
 }
 finally {
   if (server.exitCode === null && server.signalCode === null) {

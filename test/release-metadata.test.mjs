@@ -38,6 +38,14 @@ test('release metadata rejects a missing or abbreviated revision', () => {
 })
 
 test('release metadata rejects an unrelated full commit override', () => {
-  for (const key of ['AVASAN_RELEASE_REVISION', 'SOURCE_REVISION', 'COMMIT_REF', 'GITHUB_SHA'])
-    assert.throws(() => releaseMetadata({ [key]: 'a'.repeat(40) }), /differs from the actual/u)
+  for (const key of [
+    'AVASAN_RELEASE_REVISION',
+    'SOURCE_REVISION',
+    'COMMIT_REF',
+    'GITHUB_SHA',
+  ]) {
+    assert.throws(() => releaseMetadata({
+      [key]: 'a'.repeat(40),
+    }), /differs from the actual/u)
+  }
 })

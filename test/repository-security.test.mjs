@@ -21,7 +21,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.2': true,
     'fsevents@2.3.3': true,
-    'puppeteer@25.11.0': false,
+    'puppeteer@25.16.0': false,
     'simple-git-hooks@2.14.0': true,
     'unrs-resolver@1.12.2': true,
   })
@@ -30,8 +30,8 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(releaseWorkflow, /runs-on: ubuntu-24\.04-arm/u)
   assert.match(releaseWorkflow, /git cat-file -t/u)
   assert.match(releaseWorkflow, /scripts\/package-static-release\.sh/u)
-  assert.match(releaseWorkflow, /actions\/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a/u)
-  assert.match(releaseWorkflow, /actions\/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c/u)
+  assert.match(releaseWorkflow, /actions\/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9/u)
+  assert.match(releaseWorkflow, /actions\/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333/u)
   assert.match(releaseWorkflow, /actions\/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8/u)
   assert.doesNotMatch(releaseWorkflow.split('  attest-arm64:')[0], /id-token: write/u)
   assert.match(releaseWorkflow.split('  attest-arm64:')[1], /id-token: write/u)

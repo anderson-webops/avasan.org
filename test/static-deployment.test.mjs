@@ -47,7 +47,9 @@ test('the generated site remains a one-page, tracker-free static homepage', () =
   assert.equal(release.version, rootPackage.version)
   assert.match(release.revision, /^[0-9a-f]{40}$/u)
   assert.deepEqual(
-    [...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g)]
+    [
+      ...html.matchAll(/<script[^>]*\ssrc="([^"]+)"/g),
+    ]
       .map(match => match[1])
       .filter(source => /^https?:\/\//.test(source)),
     [],
@@ -140,7 +142,9 @@ test('the direct Nginx release path is dual-stack and atomic', () => {
 
 test('retired checkout release commands fail closed', () => {
   for (const command of ['prepare-static-release.sh', 'promote-static-release.sh']) {
-    const result = spawnSync('bash', [resolve(projectRoot, 'deploy/direct', command)], {
+    const result = spawnSync('bash', [
+      resolve(projectRoot, 'deploy/direct', command),
+    ], {
       encoding: 'utf8',
     })
     assert.equal(result.status, 1)
