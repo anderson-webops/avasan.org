@@ -73,7 +73,7 @@
 			".": "2.14.1",
 			"shell-quote": "1.9.0"
 		},
-		"shell-quote": "1.10.0",
+		"shell-quote": "1.12.0",
 		"@nuxt/devtools": {
 			"launch-editor": "2.14.1"
 		},
