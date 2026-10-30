@@ -70,12 +70,12 @@
 		"esbuild": "0.28.2",
 		"js-yaml": "4.3.2",
 		"launch-editor": {
-			".": "2.14.1",
-			"shell-quote": "1.9.0"
+			".": "2.14.2",
+			"shell-quote": "1.12.0"
 		},
 		"shell-quote": "1.12.0",
 		"@nuxt/devtools": {
-			"launch-editor": "2.14.1"
+			"launch-editor": "2.14.2"
 		},
 		"vite": {
 			".": "^8.2.0",
