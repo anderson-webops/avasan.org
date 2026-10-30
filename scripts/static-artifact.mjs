@@ -32,7 +32,9 @@ function readStableRegularFile(path, encoding) {
     const after = fstatSync(descriptor, { bigint: true })
     assert.deepEqual(stableFileIdentity(after), stableFileIdentity(before), `Artifact file changed while it was read: ${path}`)
     assert.equal(BigInt(contents.byteLength), after.size, `Artifact file size changed while it was read: ${path}`)
-    return encoding ? contents.toString(encoding) : contents
+    return encoding
+      ? contents.toString(encoding)
+      : contents
   }
   finally {
     closeSync(descriptor)
@@ -79,7 +81,10 @@ export function inspectStatic(root, allowPreview = false) {
       else {
         assert.ok(entry.isFile(), `Non-file in static artifact: ${relative}`)
         const contents = readStableRegularFile(path)
-        files[relative] = { sha256: hash(contents), size: contents.byteLength }
+        files[relative] = {
+          sha256: hash(contents),
+          size: contents.byteLength,
+        }
       }
     }
   }
@@ -117,9 +122,19 @@ export function inspectStatic(root, allowPreview = false) {
   for (const path of contract.adapterFiles) {
     const absolutePath = resolve(root, path)
     const contents = readStableRegularFile(absolutePath)
-    adapterFiles[path] = { sha256: hash(contents), size: contents.byteLength }
+    adapterFiles[path] = {
+      sha256: hash(contents),
+      size: contents.byteLength,
+    }
   }
-  return { format: 1, contract, identity, provenance, files, adapterFiles }
+  return {
+    format: 1,
+    contract,
+    identity,
+    provenance,
+    files,
+    adapterFiles,
+  }
 }
 
 export function verifyStatic(root, { trustedManifest, commit, runtimeOnly = false } = {}) {
@@ -131,7 +146,12 @@ export function verifyStatic(root, { trustedManifest, commit, runtimeOnly = fals
     assert.equal(declared.identity.revision, commit)
   assert.deepEqual(readStableJson(resolve(root, '.avasan-static-release.json')), declared.provenance)
   if (runtimeOnly) {
-    assert.deepEqual(readdirSync(root).sort(), [manifestName, '.avasan-static-release.json', 'front-end', 'deploy'].sort())
+    assert.deepEqual(readdirSync(root).sort(), [
+      manifestName,
+      '.avasan-static-release.json',
+      'front-end',
+      'deploy',
+    ].sort())
     assert.deepEqual(readdirSync(resolve(root, 'deploy')), ['nginx'])
     assert.deepEqual(readdirSync(resolve(root, 'deploy/nginx')).sort(), ['http-maps.conf', 'server-policy.conf'])
     assert.deepEqual(readdirSync(resolve(root, 'front-end')), ['.output'])
@@ -147,13 +167,18 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const root = resolve(directory)
   if (operation === 'create') {
     const version = readStableJson(resolve(root, 'package.json')).version
-    const provenance = { ...releaseIdentity(root, version, { SOURCE_RELEASE_REQUIRED: '1' }), version }
+    const provenance = {
+      ...releaseIdentity(root, version, { SOURCE_RELEASE_REQUIRED: '1' }),
+      version,
+    }
     writeRegularFile(resolve(root, '.avasan-static-release.json'), `${JSON.stringify(provenance, null, 2)}\n`)
     const manifest = inspectStatic(root)
     writeRegularFile(resolve(root, manifestName), `${JSON.stringify(manifest, null, 2)}\n`)
   }
   const result = verifyStatic(root, {
-    trustedManifest: trustedPath ? readStableJson(resolve(trustedPath)) : undefined,
+    trustedManifest: trustedPath
+      ? readStableJson(resolve(trustedPath))
+      : undefined,
     commit,
     runtimeOnly: operation === 'runtime',
   })

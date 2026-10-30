@@ -75,7 +75,9 @@ for (const expected of expectedBindings) {
 }
 
 if (process.platform === 'linux' && process.arch === 'arm64') {
-  const runtimeVariant = process.report.getReport().header.glibcVersionRuntime ? 'gnu' : 'musl'
+  const runtimeVariant = process.report.getReport().header.glibcVersionRuntime
+    ? 'gnu'
+    : 'musl'
   const expectedInstalledBindings = expectedBindings.filter(({ dependencyName }) =>
     !dependencyName.endsWith('-gnu') && !dependencyName.endsWith('-musl')
       ? true

@@ -7,7 +7,9 @@ const expectedUnusedNames = [
 ]
 
 function normalizedPath(value: unknown) {
-  return typeof value === 'string' ? value.replaceAll('\\', '/') : ''
+  return typeof value === 'string'
+    ? value.replaceAll('\\', '/')
+    : ''
 }
 
 export function isExpectedNitroH3BridgeWarning(warning: unknown) {
