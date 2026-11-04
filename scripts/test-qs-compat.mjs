@@ -44,6 +44,38 @@ for (const mode of ['module', 'global', 'amd']) {
 }
 
 for (const { name, library, input, evaluate, prototype } of variants) {
+  test(`${name}: overflow appends preserve numeric own keys and prototypes`, () => {
+    for (const plainObjects of [false, true]) {
+      const options = {
+        arrayLimit: 1,
+        plainObjects,
+        allowDots: true,
+        allowPrototypes: true,
+      }
+      const ordinary = library.parse('values=first&values=second&values=__proto__&values=constructor', options)
+      assert.equal(Array.isArray(ordinary.values), false)
+      assert.deepEqual(Object.keys(ordinary.values), ['0', '1', '2', '3'])
+      assert.deepEqual(Object.values(ordinary.values), [
+        'first',
+        'second',
+        '__proto__',
+        'constructor',
+      ])
+      assert.equal(Object.getPrototypeOf(ordinary.values), plainObjects ? null : prototype)
+      for (const query of [
+        'values=first&values=second&values=third&values[__proto__][qsOverflowInjected]=yes',
+        'values=first&values=second&values=third&values[%5F%5Fproto%5F%5F][qsOverflowInjected]=yes',
+        'values=first&values=second&values=third&values.__proto__.qsOverflowInjected=yes',
+      ]) {
+        const result = library.parse(query, options)
+        assert.deepEqual(Object.keys(result.values), ['0', '1', '2'])
+        assert.deepEqual(Object.values(result.values), ['first', 'second', 'third'])
+        assert.equal(Object.getPrototypeOf(result.values), plainObjects ? null : prototype)
+        assert.equal(prototype.qsOverflowInjected, undefined)
+      }
+    }
+  })
+
   test(`${name}: zero-depth parsing guards the bracket-normalized prototype key`, () => {
     for (const depth of [0, false]) {
       for (const query of ['[toString]=blocked', '%5BhasOwnProperty%5D=blocked', '.toString=blocked']) {
