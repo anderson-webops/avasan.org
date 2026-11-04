@@ -21,12 +21,16 @@ outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
 API rather than silently accepting the root's compatible 0.7 provider.
 
-The private qs 6.17.2-webops.2 patch is based on current upstream 6.17.1.
+The private qs 6.17.2-webops.3 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
 comma-array coercion across realms. The source, license and compatibility
 boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all
 three browser interfaces pass the same security and ordinary-input fixtures.
 The locked build reproduces both the browser distribution and local npm archive.
+Overflow appends retain exact decimal indexes beyond the safe integer range,
+including merged and shifted containers, without losing prior values. This
+correctness repair is distinct from the numeric-side-channel prototype alert;
+prototype and ordinary parsing regressions remain required.
 
 Intrinsic-array coercion reads each index once and converts it before reading
 the next index. This prevents changing getters from bypassing normalization and
@@ -41,7 +45,7 @@ without changing archive bytes. Archive and installed-file comparisons use
 bounded equality checks rather than formatting binary diffs. Regressions cover
 a 0600 checkout, a 0077 builder umask and rejection under a 256 MiB Node heap.
 
-The local archive at `vendor/qs-6.17.2-webops.2.tgz` is a source installation
+The local archive at `vendor/qs-6.17.2-webops.3.tgz` is a source installation
 input for development-tool dependencies. Avasan publishes static files only;
 the archive, compiler, dependencies and source are absent from the runtime.
 Its existing artifact layout and retained-release verification remain unchanged.
