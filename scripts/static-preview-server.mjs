@@ -1,5 +1,6 @@
-import { createReadStream, existsSync, statSync } from 'node:fs'
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import http from 'node:http'
+import https from 'node:https'
 import { extname, resolve, sep } from 'node:path'
 import process from 'node:process'
 import { pipeline } from 'node:stream'
@@ -7,6 +8,30 @@ import { pipeline } from 'node:stream'
 const root = resolve('front-end/.output/public')
 const port = Number(process.env.PORT || 18_080)
 const host = '127.0.0.1'
+const options = process.argv.slice(2)
+if (options.length > 1 || options.some(option => option !== '--https'))
+  throw new Error('The static preview accepts only the optional --https flag.')
+const secure = options.includes('--https')
+const protocol = secure ? 'https' : 'http'
+
+function createPreviewServer(handler) {
+  if (!secure)
+    return http.createServer(handler)
+  const key = process.env.AVASAN_PREVIEW_TLS_KEY
+  const cert = process.env.AVASAN_PREVIEW_TLS_CERT
+  if (!key || !cert)
+    throw new Error('HTTPS preview requires AVASAN_PREVIEW_TLS_KEY and AVASAN_PREVIEW_TLS_CERT.')
+  try {
+    return https.createServer({
+      key: readFileSync(key),
+      cert: readFileSync(cert),
+      handshakeTimeout: 10_000,
+    }, handler)
+  }
+  catch {
+    throw new Error('HTTPS preview requires readable, valid PEM key and certificate files.')
+  }
+}
 
 if (!Number.isSafeInteger(port) || port < 1 || port > 65_535)
   throw new Error('PORT must be an integer between 1 and 65535.')
@@ -91,10 +116,10 @@ function resolveRequest(pathname) {
   return null
 }
 
-const server = http.createServer((request, response) => {
+const server = createPreviewServer((request, response) => {
   let url
   try {
-    url = new URL(request.url || '/', `http://${host}:${port}`)
+    url = new URL(request.url || '/', `${protocol}://${host}:${port}`)
   }
   catch {
     sendStatus(request, response, 400)
@@ -140,8 +165,13 @@ server.headersTimeout = 15_000
 server.keepAliveTimeout = 5_000
 server.maxHeadersCount = 100
 server.requestTimeout = 10_000
+const connections = new Set()
+server.on('connection', (connection) => {
+  connections.add(connection)
+  connection.once('close', () => connections.delete(connection))
+})
 server.listen(port, host, () => {
-  console.log(`Avasan static production preview listening on http://${host}:${port}.`)
+  console.log(`Avasan static production preview listening on ${protocol}://${host}:${port}.`)
 })
 
 let stopping = false
@@ -149,7 +179,11 @@ function shutdown() {
   if (stopping)
     return
   stopping = true
-  const deadline = setTimeout(() => server.closeAllConnections(), 5000)
+  const deadline = setTimeout(() => {
+    server.closeAllConnections()
+    for (const connection of connections)
+      connection.destroy()
+  }, 5000)
   deadline.unref()
   server.close(() => clearTimeout(deadline))
   server.closeIdleConnections()

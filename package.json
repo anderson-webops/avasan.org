@@ -1,7 +1,7 @@
 {
   "name": "avasan-org",
   "type": "module",
-  "version": "1.2.21",
+  "version": "1.2.22",
   "private": true,
   "packageManager": "npm@12.2.1",
   "engines": {
@@ -20,7 +20,7 @@
     "build": "node scripts/run-selected-npm.mjs run -w front-end build && node --test test/static-deployment.test.mjs",
     "dev": "npm run -w front-end dev",
     "serve": "npm run -w front-end serve",
-    "preview": "npm run -w front-end preview",
+    "preview": "node scripts/static-preview-server.mjs",
     "postinstall": "simple-git-hooks && node scripts/run-selected-npm.mjs run -w front-end prepare",
     "lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
     "lint": "npm run lint:repo && npm run -w front-end lint",
