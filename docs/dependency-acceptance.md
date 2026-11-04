@@ -1,5 +1,14 @@
 # Dependency acceptance
 
+The static-compatible changes from canonical template v2.1.18 at
+`bfe71d97f50afca7fd7f663414ba6337ea371efc` are integrated under Avasan's
+linear-history delivery policy. The existing DevTools, Archiver, HTTPS and
+Node-resolution changes remain adopted. The new large-array-limit parser fix
+and strict native lockfile/policy/integrity checks complete this reviewed delta.
+Shared API, worker, backend compiler and service packaging changes remain
+inapplicable to this static-only site; its independent artifact, attestation
+and recovery contracts remain authoritative.
+
 Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The unmodified Vue plugin's
 9.0.0-rc.2 distribution declares the 0.7.6 API line. The frontend now directly
 uses 0.8.2 while normal nested resolution supplies the original plugin's
@@ -21,7 +30,7 @@ outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
 API rather than silently accepting the root's compatible 0.7 provider.
 
-The private qs 6.17.2-webops.3 patch is based on current upstream 6.17.1.
+The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
 comma-array coercion across realms. The source, license and compatibility
 boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all
@@ -31,6 +40,10 @@ Overflow appends retain exact decimal indexes beyond the safe integer range,
 including merged and shifted containers, without losing prior values. This
 correctness repair is distinct from the numeric-side-channel prototype alert;
 prototype and ordinary parsing regressions remain required.
+Indexes outside JavaScript's array-index range retain object representation
+even with large or infinite configured limits. Prefix/append, sparse modes,
+ordinary/null prototypes and strict limit behavior are regression-tested;
+ordinary small arrays retain their representation.
 
 Intrinsic-array coercion reads each index once and converts it before reading
 the next index. This prevents changing getters from bypassing normalization and
@@ -45,7 +58,7 @@ without changing archive bytes. Archive and installed-file comparisons use
 bounded equality checks rather than formatting binary diffs. Regressions cover
 a 0600 checkout, a 0077 builder umask and rejection under a 256 MiB Node heap.
 
-The local archive at `vendor/qs-6.17.2-webops.3.tgz` is a source installation
+The local archive at `vendor/qs-6.17.2-webops.4.tgz` is a source installation
 input for development-tool dependencies. Avasan publishes static files only;
 the archive, compiler, dependencies and source are absent from the runtime.
 Its existing artifact layout and retained-release verification remain unchanged.

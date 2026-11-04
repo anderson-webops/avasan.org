@@ -7,6 +7,13 @@ import { resolveOptionalBinding } from './lockfile-native-bindings.mjs'
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const lockfile = JSON.parse(readFileSync(resolve(repoRoot, 'package-lock.json'), 'utf8'))
 const packages = lockfile.packages || {}
+const npmConfig = readFileSync(resolve(repoRoot, '.npmrc'), 'utf8')
+if (lockfile.lockfileVersion !== 3)
+  throw new Error('package-lock.json must use lockfile v3')
+for (const requirement of ['include=optional', 'engine-strict=true', 'strict-allow-scripts=true']) {
+  if (!npmConfig.split(/\r?\n/u).includes(requirement))
+    throw new Error(`.npmrc must retain ${requirement}`)
+}
 const requiredBindingNames = [
   '@esbuild/linux-arm64',
   '@oxc-parser/binding-linux-arm64-gnu',
@@ -55,7 +62,7 @@ for (const expected of expectedBindings) {
     throw new Error(`${expected.packagePath} must target arm64`)
   if (!packageRecord.os?.includes('linux'))
     throw new Error(`${expected.packagePath} must target Linux`)
-  if (!packageRecord.integrity)
+  if (!packageRecord.integrity?.startsWith('sha512-'))
     throw new Error(`${expected.packagePath} must retain registry integrity metadata`)
   if (/^\d+\.\d+\.\d+(?:[-+].+)?$/u.test(expected.declaredVersion) && packageRecord.version !== expected.declaredVersion) {
     throw new Error(

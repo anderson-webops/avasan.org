@@ -43,7 +43,52 @@ for (const mode of ['module', 'global', 'amd']) {
   })
 }
 
+function* largeArrayLimitOptions() {
+  for (const arrayLimit of [Infinity, 1e20]) {
+    for (const allowSparse of [false, true]) {
+      for (const plainObjects of [false, true]) {
+        for (const throwOnLimitExceeded of [false, true]) {
+          yield {
+            arrayLimit,
+            allowSparse,
+            plainObjects,
+            throwOnLimitExceeded,
+          }
+        }
+      }
+    }
+  }
+}
+
 for (const { name, library, input, evaluate, prototype } of variants) {
+  test(`${name}: large configured array limits preserve non-array indexes`, () => {
+    for (const options of largeArrayLimitOptions()) {
+      for (const index of ['4294967295', '9007199254740992']) {
+        const next = String(BigInt(index) + 1n)
+        for (const [query, expected] of [
+          [
+            `a=first&a[${index}]=second`,
+            { 0: 'first', [next]: 'second' },
+          ],
+          [
+            `a[${index}]=first&a=second`,
+            { [index]: 'first', [next]: 'second' },
+          ],
+        ]) {
+          const result = library.parse(query, options).a
+          assert.equal(Array.isArray(result), false)
+          assert.deepEqual(Object.entries(result), Object.entries(expected))
+          assert.equal(Object.getPrototypeOf(result), options.plainObjects ? null : prototype)
+        }
+      }
+      assert.equal(JSON.stringify(library.parse('a[0]=first&a[1]=second', options)), '{"a":["first","second"]}')
+    }
+    assert.throws(() => library.parse('a[4294967295]=blocked', {
+      arrayLimit: 20,
+      throwOnLimitExceeded: true,
+    }), { name: 'RangeError' })
+  })
+
   test(`${name}: overflow indexes retain precision and every original value`, () => {
     const cases = [
       [

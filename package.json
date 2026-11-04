@@ -1,7 +1,7 @@
 {
   "name": "avasan-org",
   "type": "module",
-  "version": "1.2.20",
+  "version": "1.2.21",
   "private": true,
   "packageManager": "npm@12.2.1",
   "engines": {
@@ -68,7 +68,7 @@
     "eslint-plugin-sonarjs": "^4.2.2",
     "nitropack": "2.13.6",
     "vite-plugin-vue-devtools": "9.0.0-rc.2",
-    "qs": "file:vendor/qs-6.17.2-webops.3.tgz",
+    "qs": "file:vendor/qs-6.17.2-webops.4.tgz",
     "@vitejs/devtools-kit": "0.7.6"
   },
   "simple-git-hooks": {
