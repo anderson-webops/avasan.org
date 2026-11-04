@@ -13,7 +13,7 @@ test('every locked braces dependency resolves to the guarded fork', () => {
   for (const [, entry] of entries) {
     assert.equal(entry.resolved, 'vendor/braces')
   }
-  assert.equal(lock.packages['vendor/braces'].version, '3.0.4-webops.1')
+  assert.equal(lock.packages['vendor/braces'].version, '3.0.4-webops.2')
 })
 
 test('ordinary brace patterns keep their compile, expand, and stringify behavior', () => {

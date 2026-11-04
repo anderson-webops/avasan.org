@@ -71,6 +71,8 @@ test('the source tree has no optional API workspace', () => {
   const rootPackage = JSON.parse(read('package.json'))
 
   assert.deepEqual(rootPackage.workspaces, ['front-end'])
+  assert.equal(rootPackage.devDependencies.archiver, '^8.0.0')
+  assert.equal(rootPackage.dependencies.archiver, undefined)
   assert.ok(!existsSync(resolve(projectRoot, 'back-end/package.json')))
   assert.ok(!Object.hasOwn(rootPackage.scripts, 'server'))
   assert.ok(!Object.hasOwn(rootPackage.scripts, 'server:once'))

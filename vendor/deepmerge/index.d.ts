@@ -13,8 +13,8 @@ declare namespace deepmerge {
 		cloneUnlessOtherwiseSpecified(value: object, options?: Options): object;
 	}
 
-	export function all(objects: object[], options?: Options): object;
-	export function all<T>(objects: Partial<T>[], options?: Options): T;
+	export function all (objects: object[], options?: Options): object;
+	export function all<T> (objects: Partial<T>[], options?: Options): T;
 }
 
 export = deepmerge;

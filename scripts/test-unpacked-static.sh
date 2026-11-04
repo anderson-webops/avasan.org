@@ -6,7 +6,7 @@ node=$(realpath "$(command -v node)")
 test "$(id -u)" -ne 0
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
-test "$(node --version)" = v24.18.1
+test "$(node --version)" = v26.13.0
 node "$scripts/static-artifact.mjs" runtime "$root"
 timeout -k 5 60 bwrap --unshare-all --die-with-parent --new-session \
   --ro-bind /usr /usr --symlink usr/bin /bin --symlink usr/lib /lib \

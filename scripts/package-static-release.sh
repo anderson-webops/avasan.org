@@ -4,8 +4,8 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
-test "$(node --version)" = v24.18.1
-test "$(npm --version)" = 12.0.2
+test "$(node --version)" = v26.13.0
+test "$(npm --version)" = 12.2.1
 test -z "$(git status --porcelain)"
 output=$(realpath "${1:?Pass an empty owned output directory under .ai-work/runs}")
 case "$output/" in "$root/.ai-work/runs/"*) ;; *) exit 1;; esac

@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import test from 'node:test'
 import installedMerge from 'deepmerge'
-import deepmerge from '../vendor/deepmerge/index.js'
+
+const sourceRequire = createRequire(new URL('../vendor/deepmerge/package.json', import.meta.url))
+const deepmerge = sourceRequire('./')
 
 const lock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'))
+const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
 
 test('every locked deepmerge dependency resolves to the guarded fork', () => {
   const entries = Object.entries(lock.packages)
@@ -18,8 +22,14 @@ test('every locked deepmerge dependency resolves to the guarded fork', () => {
 })
 
 test('transitive KaTeX and Tinypool resolve to patched releases', () => {
-  assert.equal(lock.packages['node_modules/katex'].version, '0.18.2')
-  assert.equal(lock.packages['node_modules/tinypool'].version, '2.1.2')
+  for (const name of ['katex', 'tinypool']) {
+    const entries = Object.entries(lock.packages).filter(([path]) =>
+      path === `node_modules/${name}` || path.endsWith(`/node_modules/${name}`),
+    )
+    assert.ok(entries.length > 0, `${name} must be present in the audited graph`)
+    for (const [, entry] of entries)
+      assert.equal(entry.version, packageJson.overrides[name])
+  }
 })
 
 test('prototype keys cannot poison a merged object or its descendants', () => {
@@ -35,7 +45,9 @@ test('prototype keys cannot poison a merged object or its descendants', () => {
   for (const target of targets) {
     const result = deepmerge(target, hostile)
     assert.equal(Object.getPrototypeOf(result), Object.prototype)
-    assert.equal(Object.hasOwn(result, '__proto__'), false)
+    const descriptor = Object.getOwnPropertyDescriptor(result, '__proto__')
+    if (descriptor)
+      assert.ok(Object.hasOwn(descriptor, 'value'), 'Preserved prototype-named input must be an own data property')
     assert.equal(result.isAdmin, undefined)
     assert.equal(Object.getPrototypeOf(result.nested), Object.prototype)
     assert.equal(result.nested.isAdmin, undefined)

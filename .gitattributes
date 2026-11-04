@@ -26,6 +26,7 @@
 .gitattributes text eol=lf
 Dockerfile text eol=lf
 vendor/listhen/LICENSE text eol=lf
+vendor/qs/dist/qs.js.LICENSES.txt text eol=lf
 
 *.gif binary
 *.ico binary

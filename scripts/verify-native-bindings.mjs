@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { resolveOptionalBinding } from './lockfile-native-bindings.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const lockfile = JSON.parse(readFileSync(resolve(repoRoot, 'package-lock.json'), 'utf8'))
@@ -22,14 +23,6 @@ const requiredBindingNames = [
   'lightningcss-linux-arm64-musl',
 ]
 
-function dependencyRoot(packagePath) {
-  const marker = 'node_modules/'
-  const markerIndex = packagePath.lastIndexOf(marker)
-  if (markerIndex < 0)
-    throw new Error(`Cannot resolve dependency root for ${packagePath}`)
-  return packagePath.slice(0, markerIndex + marker.length)
-}
-
 const expectedBindings = Object.entries(packages).flatMap(([packagePath, packageRecord]) => {
   const optionalDependencies = packageRecord.optionalDependencies || {}
   return Object.entries(optionalDependencies)
@@ -37,7 +30,8 @@ const expectedBindings = Object.entries(packages).flatMap(([packagePath, package
     .map(([dependencyName, declaredVersion]) => ({
       declaredVersion,
       dependencyName,
-      packagePath: `${dependencyRoot(packagePath)}${dependencyName}`,
+      packagePath: resolveOptionalBinding(packages, packagePath, dependencyName)?.packagePath
+        || `${packagePath}/node_modules/${dependencyName}`,
       parentPath: packagePath,
     }))
 })

@@ -57,6 +57,20 @@ function writeRegularFile(path, contents) {
   }
 }
 
+function verifyReferencedAssets(publicRoot, files) {
+  for (const name of Object.keys(files).filter(name => name.endsWith('.html'))) {
+    const html = readStableRegularFile(resolve(publicRoot, name), 'utf8')
+    for (const [, value] of html.matchAll(/(?:src|href)=["'](\/[^"']+)["']/gu)) {
+      const url = new URL(value, 'https://artifact.invalid')
+      if (url.origin !== 'https://artifact.invalid')
+        continue
+      const pathname = decodeURIComponent(url.pathname)
+      if (/\.(?:js|css|json|svg|png|jpe?g|webp|ico|woff2?)$/iu.test(pathname))
+        assert.ok(files[pathname.slice(1)], `Referenced asset missing: ${pathname} from ${name}`)
+    }
+  }
+}
+
 export function inspectStatic(root, allowPreview = false) {
   const publicRoot = resolve(root, contract.publicRoot)
   let parent = root
@@ -91,17 +105,7 @@ export function inspectStatic(root, allowPreview = false) {
   walk(publicRoot)
   for (const name of contract.required)
     assert.ok(files[name], `Required static path missing: ${name}`)
-  for (const name of Object.keys(files).filter(name => name.endsWith('.html'))) {
-    const html = readStableRegularFile(resolve(publicRoot, name), 'utf8')
-    for (const [, value] of html.matchAll(/(?:src|href)=["'](\/[^"']+)["']/gu)) {
-      const url = new URL(value, 'https://artifact.invalid')
-      if (url.origin !== 'https://artifact.invalid')
-        continue
-      const pathname = decodeURIComponent(url.pathname)
-      if (/\.(?:js|css|json|svg|png|jpe?g|webp|ico|woff2?)$/iu.test(pathname))
-        assert.ok(files[pathname.slice(1)], `Referenced asset missing: ${pathname} from ${name}`)
-    }
-  }
+  verifyReferencedAssets(publicRoot, files)
   const identity = readStableJson(resolve(publicRoot, 'release.json'))
   assert.deepEqual(Object.keys(identity).sort(), ['revision', 'version'])
   assert.match(identity.revision, /^[0-9a-f]{40}$/u)

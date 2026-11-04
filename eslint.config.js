@@ -5,18 +5,26 @@ export default antfu(
     root: true,
     unocss: true,
     formatters: true,
-    ignores: ['**/*.d.ts', '**/dist/**', '**/.nuxt/**', '**/.output/**', 'vendor/braces/**'],
+    antislop: true,
+    ignores: [
+      '**/*.d.ts',
+      '**/dist/**',
+      '**/.nuxt/**',
+      '**/.output/**',
+      'vendor/braces/**',
+      'vendor/qs/lib/**',
+    ],
+  },
+  {
+    files: ['test/**/*.{js,ts,mjs,cjs}', 'scripts/test-*.mjs'],
+    rules: {
+      'test/no-import-node-test': 'off',
+    },
   },
   {
     files: ['README.md'],
     rules: {
       'markdown/heading-increment': 'off',
-    },
-  },
-  {
-    files: ['test/**/*.test.mjs'],
-    rules: {
-      'test/no-import-node-test': 'off',
     },
   },
 )
