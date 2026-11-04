@@ -58,7 +58,7 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 
 ## Build, Test, and Development Commands
 
-- `npm ci` installs the committed workspace dependencies. Use npm at the repo root; do not mix package managers for normal
+- `npm ci` installs the committed workspace dependencies with Node 26.13.0 and npm 12.2.1. Use npm at the repo root; do not mix package managers for normal
   development.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
 - `npm run typecheck` runs the Nuxt TypeScript check.
@@ -91,6 +91,7 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 ## Dependency & Lockfile Discipline
 
 - Keep the root `package-lock.json` aligned with every workspace manifest. For dependency changes, review production and development packages, regenerate and include the lockfile, and run a clean root `npm ci` (not an install fallback), both audits, and the validation gates above.
+- Vue and its checker retain the TypeScript 6 compiler API. Frontend DevTools 0.8.2 and the original plugin's separate 0.7 dependencies must pass the complete peer graph and real host fixtures without altered peer metadata. Build-time Archiver 8 uses the framework's supported named exports; no application backend is present.
 
 ## Static artifact and recovery acceptance
 

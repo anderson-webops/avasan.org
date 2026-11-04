@@ -8,7 +8,7 @@ fi
 node_bin_dir_real="$(cd -- "$node_bin_dir" && pwd -P)"
 PATH="$node_bin_dir_real:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
-if [[ "$(node --version)" != v24.18.1 ]]; then
-  echo 'Node 24.18.1 is required; select its existing directory with NODE_BIN_DIR.' >&2
+if [[ "$(node --version)" != v26.13.0 ]]; then
+  echo 'Node 26.13.0 is required; select its existing directory with NODE_BIN_DIR.' >&2
   exit 1
 fi

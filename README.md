@@ -22,7 +22,7 @@ npm run dev
 ```
 
 The committed package manager and production release toolchain are Node
-24.18.1 with npm 12.0.2. The wider npm engine range exists only so GitHub's
+26.13.0 with npm 12.2.1. The wider npm engine range exists only so GitHub's
 dependency updater can install the workspace; release preparation rejects any
 other npm version.
 

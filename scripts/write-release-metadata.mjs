@@ -16,7 +16,12 @@ export function releaseMetadata(environment = process.env) {
   const version = rootPackage.version
   const identity = releaseIdentity(projectRoot, version, { SOURCE_RELEASE_REQUIRED: environment.SOURCE_RELEASE_REQUIRED })
   const revision = identity.commit
-  for (const key of ['AVASAN_RELEASE_REVISION', 'SOURCE_REVISION', 'COMMIT_REF', 'GITHUB_SHA']) {
+  for (const key of [
+    'AVASAN_RELEASE_REVISION',
+    'SOURCE_REVISION',
+    'COMMIT_REF',
+    'GITHUB_SHA',
+  ]) {
     const expected = environment[key]?.trim().toLowerCase()
     if (expected && !sourceRevisionPattern.test(expected))
       throw new Error('The release revision must be a full 40-character Git commit SHA.')
@@ -42,6 +47,8 @@ export async function writeReleaseMetadata(
   return metadata
 }
 
-const invokedUrl = process.argv[1] ? pathToFileURL(resolve(process.argv[1])).href : ''
+const invokedUrl = process.argv[1]
+  ? pathToFileURL(resolve(process.argv[1])).href
+  : ''
 if (import.meta.url === invokedUrl)
   await writeReleaseMetadata()

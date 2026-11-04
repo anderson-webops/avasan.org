@@ -1,7 +1,7 @@
 {
   "name": "avasan-front-end",
   "type": "module",
-  "version": "2.0.0",
+  "version": "1.2.20",
   "private": true,
   "description": "The avasan.org teaching homepage",
   "author": "Jacob Anderson",
@@ -24,15 +24,20 @@
     "vue": "^3.5.44"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^3.4.0",
-    "@nuxt/eslint": "^1.16.0",
-    "@nuxtjs/color-mode": "^4.0.1",
-    "@unocss/eslint-config": "^66.5.4",
-    "@unocss/nuxt": "^66.5.4",
-    "nuxt": "^4.6.3",
-    "unocss": "^66.5.4",
+    "@nuxt/devtools": "^4.1.0",
+    "@nuxt/eslint": "^1.17.0",
+    "@nuxtjs/color-mode": "^4.1.0",
+    "@unocss/eslint-config": "^66.12.0",
+    "@unocss/nuxt": "^66.12.0",
+    "@unocss/preset-web-fonts": "^66.12.0",
+    "@vitejs/devtools": "0.8.2",
+    "@vitejs/devtools-kit": "0.8.2",
+    "@vue/compiler-sfc": "^3.5.44",
+    "c12": "^3.3.4",
+    "nuxt": "^4.6.4",
+    "unocss": "^66.12.0",
     "vue-router": "^5.3.1",
-    "vue-tsc": "^3.1.2"
+    "vue-tsc": "^3.3.14"
   },
   "browserslist": [
     "> 1%",

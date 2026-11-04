@@ -50,7 +50,9 @@ function sendStatus(request, response, status) {
   if (status === 405)
     headers.Allow = 'GET, HEAD'
   response.writeHead(status, headers)
-  response.end(request.method === 'HEAD' ? undefined : `${status}\n`)
+  response.end(request.method === 'HEAD'
+    ? undefined
+    : `${status}\n`)
 }
 
 function sendNotFound(request, response) {

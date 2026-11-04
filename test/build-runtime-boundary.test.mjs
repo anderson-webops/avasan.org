@@ -56,17 +56,38 @@ test('the Nitro warning policy matches only the exact upstream H3 bridge warning
     code: 'UNUSED_EXTERNAL_IMPORT',
     exporter: 'file:///project/node_modules/@nuxt/nitro-server/node_modules/h3/dist/index.mjs',
     ids: ['/project/node_modules/@nuxt/nitro-server/dist/h3.mjs'],
-    names: ['H3Event', 'setCookie', 'H3Error', 'getCookie', 'deleteCookie'],
+    names: [
+      'H3Event',
+      'setCookie',
+      'H3Error',
+      'getCookie',
+      'deleteCookie',
+    ],
   }
 
   assert.equal(isExpectedNitroH3BridgeWarning(expectedWarning), true)
   for (const changedWarning of [
     { ...expectedWarning, code: 'UNRESOLVED_IMPORT' },
     { ...expectedWarning, exporter: 'file:///project/node_modules/h3/dist/index.mjs' },
-    { ...expectedWarning, ids: ['/project/src/server.ts'] },
-    { ...expectedWarning, names: expectedWarning.names.slice(1) },
-    { ...expectedWarning, names: [...expectedWarning.names, 'unexpectedExport'] },
-    { ...expectedWarning, names: [...expectedWarning.names.slice(1), 42] },
+    {
+      ...expectedWarning,
+      ids: ['/project/src/server.ts'],
+    },
+    {
+      ...expectedWarning,
+      names: expectedWarning.names.slice(1),
+    },
+    {
+      ...expectedWarning,
+      names: [...expectedWarning.names, 'unexpectedExport'],
+    },
+    {
+      ...expectedWarning,
+      names: [
+        ...expectedWarning.names.slice(1),
+        42,
+      ],
+    },
   ]) {
     assert.equal(isExpectedNitroH3BridgeWarning(changedWarning), false)
   }

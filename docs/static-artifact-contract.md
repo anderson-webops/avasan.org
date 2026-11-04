@@ -21,7 +21,7 @@ root in `.avasan-static-release.json`; `.avasan-static-artifact.json` is likewis
 not served. Do not add credentials, private configuration, writable state or
 source/dependency directories to the archive.
 
-On Linux ARM64 with Node24.18.1/npm12.0.2, after clean locked source validation
+On Linux ARM64 with Node26.13.0/npm12.2.1, after clean locked source validation
 and an annotated version tag at HEAD:
 
 ```bash

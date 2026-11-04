@@ -23,9 +23,14 @@ test('preview normalizes static policy and drains interrupted clients after repe
   await once(held, 'listening')
   const port = held.address().port
   await new Promise(resolve => held.close(resolve))
-  const child = spawn(process.execPath, [fileURLToPath(new URL('../scripts/static-preview-server.mjs', import.meta.url))], {
+  const child = spawn(process.execPath, [
+    fileURLToPath(new URL('../scripts/static-preview-server.mjs', import.meta.url)),
+  ], {
     cwd: root,
-    env: { ...process.env, PORT: String(port) },
+    env: {
+      ...process.env,
+      PORT: String(port),
+    },
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   const exit = once(child, 'exit')
@@ -38,7 +43,14 @@ test('preview normalizes static policy and drains interrupted clients after repe
       await delay(30)
     assert.match(logs, /listening/u)
     const base = `http://127.0.0.1:${port}`
-    for (const path of ['/404.html', '/%34%30%34.html', '/api', '/healthz', '/readyz', '/.env']) {
+    for (const path of [
+      '/404.html',
+      '/%34%30%34.html',
+      '/api',
+      '/healthz',
+      '/readyz',
+      '/.env',
+    ]) {
       const response = await fetch(base + path)
       assert.equal(response.status, 404, path)
       assert.equal(await response.text(), 'Page not found')

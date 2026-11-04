@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { dirname, resolve } from 'node:path'
+import { dirname, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import puppeteer from 'puppeteer'
@@ -11,7 +11,8 @@ const axeSourcePath = require.resolve('axe-core/axe.min.js')
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(scriptDir, '..')
 const frontendRoot = resolve(projectRoot, 'front-end')
-const nuxtPackagePath = require.resolve('nuxt/package.json')
+const frontendRequire = createRequire(resolve(frontendRoot, 'package.json'))
+const nuxtPackagePath = frontendRequire.resolve('nuxt/package.json')
 const nuxtPackage = JSON.parse(readFileSync(nuxtPackagePath, 'utf8'))
 const nuxtCliPath = resolve(dirname(nuxtPackagePath), nuxtPackage.bin.nuxt)
 
@@ -65,6 +66,9 @@ async function waitForHttp(url, timeoutMs = 45_000) {
 }
 
 function startFrontend() {
+  const childTemporaryDirectory = process.env.TMPDIR
+    ? relative(frontendRoot, resolve(process.env.TMPDIR))
+    : ''
   const child = spawn(process.execPath, [
     nuxtCliPath,
     'dev',
@@ -77,6 +81,9 @@ function startFrontend() {
     detached: process.platform !== 'win32',
     env: {
       ...process.env,
+      ...(process.platform === 'darwin' && childTemporaryDirectory && childTemporaryDirectory.length < process.env.TMPDIR.length
+        ? { TMPDIR: childTemporaryDirectory }
+        : {}),
       BROWSER: 'none',
       NUXT_A11Y_SCAN: 'true',
       NUXT_TELEMETRY_DISABLED: '1',
@@ -146,7 +153,9 @@ async function analyzePage(browser, route, scheme) {
   page.setDefaultTimeout(30_000)
   await page.setViewport({ width: 1280, height: 1000, deviceScaleFactor: 1 })
   if (scheme === 'dark' || scheme === 'light') {
-    await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: scheme }])
+    await page.emulateMediaFeatures([
+      { name: 'prefers-color-scheme', value: scheme },
+    ])
   }
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 })
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 8_000 }).catch(() => {})

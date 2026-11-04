@@ -3,7 +3,11 @@ import { realpathSync } from 'node:fs'
 
 export function releaseIdentity(root, version, env = {}) {
   function git(...args) {
-    return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+    return execFileSync('git', args, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
   }
   function optionalGit(...args) {
     try {
@@ -35,5 +39,11 @@ export function releaseIdentity(root, version, env = {}) {
     throw new Error('SOURCE_TAG must be an exact annotated tag of the clean checkout.')
   if (env.SOURCE_RELEASE_REQUIRED === '1' && !releaseVerified)
     throw new Error('Release preparation requires a clean checkout at its annotated version tag.')
-  return { commit, branch, tag, dirty, releaseVerified }
+  return {
+    commit,
+    branch,
+    tag,
+    dirty,
+    releaseVerified,
+  }
 }

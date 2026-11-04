@@ -17,8 +17,17 @@ function fixture(t) {
     mkdirSync(resolve(path, '..'), { recursive: true })
     writeFileSync(path, '<!doctype html><title>Synthetic fixture</title>')
   }
-  const identity = { revision: 'a'.repeat(40), version: '1.2.12' }
-  const provenance = { commit: identity.revision, version: identity.version, tag: 'v1.2.12', dirty: false, releaseVerified: true }
+  const identity = {
+    revision: 'a'.repeat(40),
+    version: '1.2.12',
+  }
+  const provenance = {
+    commit: identity.revision,
+    version: identity.version,
+    tag: 'v1.2.12',
+    dirty: false,
+    releaseVerified: true,
+  }
   writeFileSync(resolve(publicRoot, 'release.json'), JSON.stringify(identity))
   writeFileSync(resolve(root, '.avasan-static-release.json'), JSON.stringify(provenance))
   for (const path of contract.adapterFiles) {
@@ -32,7 +41,11 @@ function fixture(t) {
 
 test('complete static artifact has no application runtime or private state', (t) => {
   const { root, manifest } = fixture(t)
-  verifyStatic(root, { runtimeOnly: true, trustedManifest: manifest, commit: 'a'.repeat(40) })
+  verifyStatic(root, {
+    runtimeOnly: true,
+    trustedManifest: manifest,
+    commit: 'a'.repeat(40),
+  })
   mkdirSync(resolve(root, 'back-end'))
   assert.throws(() => verifyStatic(root, { runtimeOnly: true }))
 })
@@ -87,7 +100,11 @@ test('a complete copied artifact preserves every file and source identity', (t) 
   const copy = `${root}-copy`
   t.after(() => rmSync(copy, { recursive: true, force: true }))
   cpSync(root, copy, { recursive: true })
-  verifyStatic(copy, { trustedManifest: manifest, commit: 'a'.repeat(40), runtimeOnly: true })
+  verifyStatic(copy, {
+    trustedManifest: manifest,
+    commit: 'a'.repeat(40),
+    runtimeOnly: true,
+  })
 })
 
 test('adapter tampering or omission cannot pass a copied artifact', (t) => {
@@ -99,7 +116,12 @@ test('adapter tampering or omission cannot pass a copied artifact', (t) => {
 })
 
 test('FIFO sidecars and adapter files fail without blocking verification', (t) => {
-  for (const relativePath of [manifestName, '.avasan-static-release.json', contract.adapterFiles[0], 'trusted-manifest.json']) {
+  for (const relativePath of [
+    manifestName,
+    '.avasan-static-release.json',
+    contract.adapterFiles[0],
+    'trusted-manifest.json',
+  ]) {
     const { root } = fixture(t)
     const fifoPath = resolve(root, relativePath)
     if (relativePath === 'trusted-manifest.json')

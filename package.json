@@ -1,104 +1,123 @@
 {
-	"name": "avasan-org",
-	"type": "module",
-	"version": "1.2.19",
-	"private": true,
-	"packageManager": "npm@12.0.2",
-	"engines": {
-		"node": ">=24.18.1 <25",
-		"npm": ">=11.19.0 <13"
-	},
-	"description": "Julio's math and computer science teaching homepage",
-	"author": "Jacob Anderson",
-	"license": "MIT",
-	"keywords": [],
-	"workspaces": [
-		"front-end"
-	],
-	"dependencies": {
-		"archiver": "file:vendor/archiver-nitro-compat"
-	},
-	"scripts": {
-		"build": "node scripts/run-selected-npm.mjs run -w front-end build && node --test test/static-deployment.test.mjs",
-		"dev": "npm run -w front-end dev",
-		"serve": "npm run -w front-end serve",
-		"preview": "npm run -w front-end preview",
-		"postinstall": "simple-git-hooks && node scripts/run-selected-npm.mjs run -w front-end prepare",
-		"lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
-		"lint": "npm run lint:repo && npm run -w front-end lint",
-		"lint:repo": "eslint \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\" \"vendor/**/*.js\"",
-		"lint-fix": "npm run -w front-end lint-fix",
-		"typecheck": "npm run -w front-end typecheck",
-		"test": "node scripts/run-selected-npm.mjs run build && node --test test/archiver-compat.test.mjs test/braces-compat.test.mjs test/build-runtime-boundary.test.mjs test/listhen-compat.test.mjs test/native-release-gates.test.mjs test/release-metadata.test.mjs test/repository-security.test.mjs test/static-artifact.test.mjs test/static-preview.test.mjs",
-		"audit": "npm audit --audit-level=low",
-		"audit:production": "npm audit --omit=dev --audit-level=low",
-		"audit:signatures": "npm audit signatures",
-		"verify:dependency-graph": "npm ls --all --omit=dev",
-		"verify:native-bindings": "node scripts/verify-native-bindings.mjs",
-		"smoke:deployment": "node scripts/static-deployment-smoke.mjs",
-		"preview:production": "node scripts/static-preview-server.mjs",
-		"clean": "rm -rf node_modules front-end/node_modules front-end/.nuxt front-end/.output dist",
-		"up": "taze major --write && npm install --package-lock-only --ignore-scripts --no-fund --no-audit",
-		"a11y": "node scripts/a11y-smoke.mjs",
-		"test:static": "node --test test/static-deployment.test.mjs"
-	},
-	"devDependencies": {
-		"@antfu/eslint-config": "^9.2.0",
-		"axe-core": "^4.11.4",
-		"braces": "file:vendor/braces",
-		"commander": "15.0.0",
-		"eslint": "^10.11.0",
-		"eslint-plugin-format": "^2.0.1",
-		"lint-staged": "^17.5.1",
-		"listhen": "file:vendor/listhen",
-		"puppeteer": "^25.11.0",
-		"simple-git-hooks": "^2.13.1",
-		"taze": "^21.1.0",
-		"typescript": "^6.0.3"
-	},
-	"simple-git-hooks": {
-		"pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
-	},
-	"lint-staged": {
-		"*.{js,ts,vue,mjs,cjs}": [
-			"eslint --fix"
-		]
-	},
-	"overrides": {
-		"braces": "$braces",
-		"listhen": "$listhen",
-		"esbuild": "0.28.2",
-		"js-yaml": "4.3.2",
-		"launch-editor": {
-			".": "2.14.2",
-			"shell-quote": "1.12.0"
-		},
-		"shell-quote": "1.12.0",
-		"@nuxt/devtools": {
-			"launch-editor": "2.14.2"
-		},
-		"vite": {
-			".": "^8.2.0",
-			"esbuild": "0.28.2"
-		},
-		"nitropack": {
-			".": "2.13.4",
-			"archiver": "$archiver"
-		},
-		"simple-git": "3.36.0",
-		"brace-expansion": "5.0.12",
-		"fast-uri": "3.1.9",
-		"postcss": "8.5.28",
-		"svgo": "4.1.0",
-		"tar": "7.5.22",
-		"valibot": "1.4.2",
-		"nanoid": "3.3.18"
-	},
-	"allowScripts": {
-		"esbuild@0.28.2": true,
-		"fsevents@2.3.3": true,
-		"puppeteer@25.11.0": false,
-		"simple-git-hooks@2.14.0": true,
-		"unrs-resolver@1.12.2": true
-	}
+  "name": "avasan-org",
+  "type": "module",
+  "version": "1.2.20",
+  "private": true,
+  "packageManager": "npm@12.2.1",
+  "engines": {
+    "node": ">=26.13.0 <27",
+    "npm": ">=12.2.1 <13"
+  },
+  "description": "Julio's math and computer science teaching homepage",
+  "author": "Jacob Anderson",
+  "license": "MIT",
+  "keywords": [],
+  "workspaces": [
+    "front-end"
+  ],
+  "dependencies": {},
+  "scripts": {
+    "build": "node scripts/run-selected-npm.mjs run -w front-end build && node --test test/static-deployment.test.mjs",
+    "dev": "npm run -w front-end dev",
+    "serve": "npm run -w front-end serve",
+    "preview": "npm run -w front-end preview",
+    "postinstall": "simple-git-hooks && node scripts/run-selected-npm.mjs run -w front-end prepare",
+    "lint-serve": "npm run -w front-end lint-fix && npm run -w front-end serve",
+    "lint": "npm run lint:repo && npm run -w front-end lint",
+    "lint:repo": "eslint \"*.{js,mjs,cjs,ts}\" \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\"",
+    "lint-fix": "npm run -w front-end lint-fix",
+    "typecheck": "npm run -w front-end typecheck",
+    "test": "node scripts/run-selected-npm.mjs run build && node --test test/*.test.mjs && npm run test:dependencies && npm run test:devtools",
+    "audit": "npm audit --audit-level=low && npm run audit:qs",
+    "audit:production": "npm audit --omit=dev --audit-level=low",
+    "audit:signatures": "npm audit signatures",
+    "verify:dependency-graph": "npm ls --all --omit=dev",
+    "verify:native-bindings": "node scripts/verify-native-bindings.mjs",
+    "smoke:deployment": "node scripts/static-deployment-smoke.mjs",
+    "preview:production": "node scripts/static-preview-server.mjs",
+    "clean": "rm -rf node_modules front-end/node_modules front-end/.nuxt front-end/.output dist",
+    "up": "taze major --write && npm install --package-lock-only --ignore-scripts --no-fund --no-audit",
+    "a11y": "node scripts/a11y-smoke.mjs",
+    "test:static": "node --test test/static-deployment.test.mjs",
+    "test:dependencies": "node --test scripts/test-glob-compat.mjs scripts/test-listhen-compat.mjs scripts/test-braces-compat.mjs scripts/test-deepmerge-compat.mjs scripts/test-qs-compat.mjs scripts/test-vendored-qs-packaging.mjs scripts/test-vue-devtools-compat.mjs scripts/test-frontend-command.mjs scripts/test-devtools-provider.mjs",
+    "test:devtools": "node scripts/test-vue-devtools-host.mjs",
+    "package:qs": "node scripts/package-vendored-qs.mjs",
+    "check:qs-package": "node scripts/package-vendored-qs.mjs --check",
+    "audit:qs": "npm audit --prefix vendor/qs --workspaces=false --audit-level=low && npm audit --prefix vendor/qs --workspaces=false --omit=dev --audit-level=low"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^10.0.0",
+    "axe-core": "^4.14.0",
+    "braces": "file:vendor/braces",
+    "commander": "15.0.0",
+    "deepmerge": "file:vendor/deepmerge",
+    "eslint": "^10.14.0",
+    "eslint-plugin-format": "^2.0.1",
+    "lint-staged": "^17.6.0",
+    "listhen": "file:vendor/listhen",
+    "puppeteer": "^25.16.0",
+    "simple-git-hooks": "^2.14.0",
+    "taze": "^21.3.0",
+    "typescript": "^6.0.3",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/types": "^8.72.1",
+    "@unocss/eslint-plugin": "^66.12.0",
+    "archiver": "^8.0.0",
+    "esbuild": "^0.28.2",
+    "eslint-plugin-slop": "^0.1.3",
+    "eslint-plugin-sonarjs": "^4.2.2",
+    "nitropack": "2.13.6",
+    "vite-plugin-vue-devtools": "9.0.0-rc.2",
+    "qs": "file:vendor/qs-6.17.2-webops.3.tgz",
+    "@vitejs/devtools-kit": "0.7.6"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue,mjs,cjs}": [
+      "eslint --fix"
+    ]
+  },
+  "overrides": {
+    "unimport@7.0.2": "7.0.1",
+    "braces": "$braces",
+    "listhen": "$listhen",
+    "nanoid@^3": "3.3.18",
+    "qs": "$qs",
+    "glob": "14.0.3",
+    "minimatch": "11.0.4",
+    "esbuild": "^0.28.2",
+    "launch-editor": {
+      ".": "2.14.2",
+      "shell-quote": "1.12.0"
+    },
+    "shell-quote": "1.12.0",
+    "@nuxt/devtools": {
+      "launch-editor": "2.14.2"
+    },
+    "vite": {
+      ".": "^8.3.5",
+      "esbuild": "^0.28.2"
+    },
+    "brace-expansion": "5.0.12",
+    "fast-uri": "3.1.9",
+    "serialize-javascript": "7.1.4",
+    "postcss": "8.5.32",
+    "svgo": "4.1.0",
+    "tar": "7.5.22",
+    "valibot": "1.5.0",
+    "devalue@^5": "5.9.4",
+    "simple-git@^3": "3.36.0",
+    "deepmerge": "$deepmerge",
+    "katex": "0.19.1",
+    "tinypool": "2.2.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "puppeteer@25.16.0": false,
+    "simple-git-hooks@2.14.0": true,
+    "unrs-resolver@1.12.2": true
+  }
 }
