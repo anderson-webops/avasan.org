@@ -69,7 +69,7 @@
     "nitropack": "2.13.6",
     "vite-plugin-vue-devtools": "9.0.0-rc.2",
     "qs": "file:vendor/qs-6.17.2-webops.4.tgz",
-    "@vitejs/devtools-kit": "0.7.6"
+    "@vitejs/devtools-kit": "0.8.0"
   },
   "simple-git-hooks": {
     "pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
