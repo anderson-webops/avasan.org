@@ -5,7 +5,8 @@ cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
 test "$(node --version)" = v26.13.0
-test "$(npm --version)" = 12.2.1
+test "$(npm --version)" = 12.2.2
+node scripts/check-build-toolchain.mjs
 test -z "$(git status --porcelain)"
 output=$(realpath "${1:?Pass an empty owned output directory under .ai-work/runs}")
 case "$output/" in "$root/.ai-work/runs/"*) ;; *) exit 1;; esac
@@ -56,7 +57,7 @@ receipt = {"commit": sys.argv[3], "archive": archive.name, "sha256": sys.argv[4]
            "deploymentContract": json.loads(Path("deploy/static-artifact.json").read_text())["deployment"],
            "checks": ["required paths and hashes", "exact annotated identity", "static-only archive", "isolated unpacked routes and assets", "copied artifact", "missing-asset rejection", "attested promoter recovery fault injection"],
            "harnessSha256": {name: hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in [
-               "deploy/static-artifact.json", "deploy/nginx/default.conf", "deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf", "scripts/release-identity.mjs", "scripts/static-artifact.mjs", "scripts/package-static-release.sh", "scripts/test-unpacked-static.sh", "scripts/static-preview-server.mjs", "scripts/static-deployment-smoke.mjs", "scripts/test-static-artifact.mjs", "scripts/test-attested-promotion.sh", "scripts/test-attested-promotion.py", "scripts/test-attested-promotion-stub.py", "deploy/direct/promote-static-release.sh", "deploy/direct/promote-attested-release.sh", "deploy/direct/verified-static-artifact.py", "deploy/direct/verify-nginx-snippet-dump.sh", "test/test_verified_static_artifact.py", "test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz", "test/fixtures/legacy-v1212/static-artifact.json", "test/fixtures/legacy-v1212/host-build/static-artifact.json", "test/fixtures/legacy-v1212/host-build/public-delta.json"]}}
+               "deploy/static-artifact.json", "deploy/nginx/default.conf", "deploy/nginx/http-maps.conf", "deploy/nginx/server-policy.conf", "scripts/release-identity.mjs", "scripts/static-artifact.mjs", "scripts/package-static-release.sh", "scripts/test-unpacked-static.sh", "scripts/static-preview-server.mjs", "scripts/static-deployment-smoke.mjs", "scripts/test-static-artifact.mjs", "scripts/test-attested-promotion.sh", "scripts/test-attested-promotion.py", "scripts/test-attested-promotion-stub.py", "deploy/direct/promote-static-release.sh", "deploy/direct/promote-attested-release.sh", "deploy/direct/verified-static-artifact.py", "deploy/direct/verify-nginx-snippet-dump.sh", "test/test_verified_static_artifact.py", "test/fixtures/legacy-v1212/avasan-v1.2.12-d696406b0531-static.tar.gz", "test/fixtures/legacy-v1212/static-artifact.json", "test/fixtures/legacy-v1212/host-build/static-artifact.json", "test/fixtures/legacy-v1212/host-build/public-delta.json", "scripts/build-toolchain.mjs", "scripts/build-toolchain-state.mjs", "scripts/check-build-toolchain.mjs", "build-toolchain/UPSTREAM.json", "build-toolchain/package.json", "build-toolchain/package-lock.json", "build-toolchain/.npmrc"]}}
 (output / "acceptance.json").write_text(json.dumps(receipt, indent=2) + "\n")
 PY
 echo "Accepted exact static artifact: $archive"

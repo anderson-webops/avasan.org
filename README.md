@@ -17,18 +17,24 @@ cookies, or a runtime API.
 From the repository root:
 
 ```bash
+export PATH="$(node scripts/build-toolchain.mjs --print-bin):$PATH"
 npm ci
 npm run dev
 ```
 
 The committed package manager and production release toolchain are Node
-26.13.0 with npm 12.2.1. The wider npm engine range exists only so GitHub's
-dependency updater can install the workspace; release preparation rejects any
-other npm version.
+26.13.0 with npm 12.2.2. The independently locked build-only profile preserves
+upstream npm CLI bytes while maintaining its dependency graph. The stock npm
+bundled with Node may bootstrap that profile; application and release checks
+require its verified npm, npx and Node commands. Both the app and build tools
+must pass complete full/production audits. No build tooling is shipped in the
+static runtime.
 
 Useful checks:
 
 - `npm run lint`
+- `npm run check:build-toolchain`
+- `npm run check:toolchain-package`
 - `npm run typecheck`
 - `npm test`
 - `npm run build`

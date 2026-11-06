@@ -1,4 +1,5 @@
 **/.DS_Store
+/.ai-work/
 **/node_modules
 **/dist
 !/vendor/listhen/dist/

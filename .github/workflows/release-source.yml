@@ -31,15 +31,18 @@ jobs:
           node-version: 26.13.0
           cache: npm
 
-      - name: Pin npm version
-        run: npm install --global npm@12.2.1 --allow-scripts=npm
+      - name: Prepare independently locked build tools
+        run: |
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
 
       - name: Verify annotated release identity
         shell: bash
         run: |
           set -euo pipefail
           test "$(node --version)" = v26.13.0
-          test "$(npm --version)" = 12.2.1
+          test "$(npm --version)" = 12.2.2
           test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
           test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = tag
           test "$(git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}")" = "$(git rev-parse HEAD)"
@@ -114,6 +117,13 @@ jobs:
             test/fixtures/legacy-v1212/static-artifact.json
             test/fixtures/legacy-v1212/host-build/static-artifact.json
             test/fixtures/legacy-v1212/host-build/public-delta.json
+            scripts/build-toolchain.mjs
+            scripts/build-toolchain-state.mjs
+            scripts/check-build-toolchain.mjs
+            build-toolchain/.npmrc
+            build-toolchain/UPSTREAM.json
+            build-toolchain/package.json
+            build-toolchain/package-lock.json
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -154,6 +164,13 @@ jobs:
               'test/fixtures/legacy-v1212/static-artifact.json',
               'test/fixtures/legacy-v1212/host-build/static-artifact.json',
               'test/fixtures/legacy-v1212/host-build/public-delta.json',
+              'scripts/build-toolchain.mjs',
+              'scripts/build-toolchain-state.mjs',
+              'scripts/check-build-toolchain.mjs',
+              'build-toolchain/.npmrc',
+              'build-toolchain/UPSTREAM.json',
+              'build-toolchain/package.json',
+              'build-toolchain/package-lock.json',
           ]:
               assert receipt['harnessSha256'][name] == hashlib.sha256(Path(name).read_bytes()).hexdigest()
           assert manifest['format'] == 1

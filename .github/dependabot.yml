@@ -10,7 +10,9 @@ updates:
           - "*"
 
   - package-ecosystem: npm
-    directory: /
+    directories:
+      - /
+      - /build-toolchain
     schedule:
       interval: weekly
     groups:

@@ -1,7 +1,7 @@
 {
   "name": "avasan-front-end",
   "type": "module",
-  "version": "1.2.22",
+  "version": "1.2.23",
   "private": true,
   "description": "The avasan.org teaching homepage",
   "author": "Jacob Anderson",
@@ -21,7 +21,7 @@
     "prepare": "nuxt prepare"
   },
   "dependencies": {
-    "vue": "^3.5.44"
+    "vue": "^3.5.45"
   },
   "devDependencies": {
     "@nuxt/devtools": "^4.1.0",
@@ -32,7 +32,7 @@
     "@unocss/preset-web-fonts": "^66.12.0",
     "@vitejs/devtools": "0.8.2",
     "@vitejs/devtools-kit": "0.8.2",
-    "@vue/compiler-sfc": "^3.5.44",
+    "@vue/compiler-sfc": "^3.5.45",
     "c12": "^3.3.4",
     "nuxt": "^4.6.4",
     "unocss": "^66.12.0",

@@ -58,7 +58,7 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 
 ## Build, Test, and Development Commands
 
-- `npm ci` installs the committed workspace dependencies with Node 26.13.0 and npm 12.2.1. Use npm at the repo root; do not mix package managers for normal
+- Prepare the independently locked npm profile with `node scripts/build-toolchain.mjs --print-bin`; select its returned directory on PATH. `npm ci` then installs the committed workspace dependencies with Node 26.13.0 and npm 12.2.2. Use npm at the repo root; do not mix package managers for normal
   development.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
 - `npm run typecheck` runs the Nuxt TypeScript check.

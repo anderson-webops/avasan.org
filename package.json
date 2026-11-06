@@ -1,12 +1,12 @@
 {
   "name": "avasan-org",
   "type": "module",
-  "version": "1.2.22",
+  "version": "1.2.23",
   "private": true,
-  "packageManager": "npm@12.2.1",
+  "packageManager": "npm@12.2.2",
   "engines": {
     "node": ">=26.13.0 <27",
-    "npm": ">=12.2.1 <13"
+    "npm": ">=12.2.2 <13"
   },
   "description": "Julio's math and computer science teaching homepage",
   "author": "Jacob Anderson",
@@ -17,7 +17,7 @@
   ],
   "dependencies": {},
   "scripts": {
-    "build": "node scripts/run-selected-npm.mjs run -w front-end build && node --test test/static-deployment.test.mjs",
+    "build": "node scripts/check-build-toolchain.mjs && node scripts/run-selected-npm.mjs run -w front-end build && node --test test/static-deployment.test.mjs",
     "dev": "npm run -w front-end dev",
     "serve": "npm run -w front-end serve",
     "preview": "node scripts/static-preview-server.mjs",
@@ -27,9 +27,15 @@
     "lint:repo": "eslint \"*.{js,mjs,cjs,ts}\" \"scripts/**/*.{js,mjs,cjs,ts}\" \"test/**/*.{js,mjs,cjs,ts}\"",
     "lint-fix": "npm run -w front-end lint-fix",
     "typecheck": "npm run -w front-end typecheck",
-    "test": "node scripts/run-selected-npm.mjs run build && node --test test/*.test.mjs && npm run test:dependencies && npm run test:devtools",
-    "audit": "npm audit --audit-level=low && npm run audit:qs",
-    "audit:production": "npm audit --omit=dev --audit-level=low",
+    "test": "node scripts/run-selected-npm.mjs run build && node --test test/*.test.mjs && npm run test:build-toolchain && npm run test:toolchain-package && npm run test:dependencies && npm run test:devtools",
+    "test:build-toolchain": "node --test scripts/test-build-toolchain.mjs",
+    "test:toolchain-package": "python3 -B -m unittest discover -s scripts -p test_build_toolchain.py -v",
+    "toolchain:prepare": "node scripts/build-toolchain.mjs --print-bin",
+    "check:build-toolchain": "node scripts/check-build-toolchain.mjs",
+    "check:toolchain-package": "node scripts/check-toolchain-package.mjs",
+    "audit:toolchain": "node scripts/audit-build-toolchain.mjs",
+    "audit": "npm run audit:toolchain && npm audit --audit-level=low && npm run audit:qs",
+    "audit:production": "npm run audit:toolchain -- --omit=dev && npm audit --omit=dev --audit-level=low",
     "audit:signatures": "npm audit signatures",
     "verify:dependency-graph": "npm ls --all --omit=dev",
     "verify:native-bindings": "node scripts/verify-native-bindings.mjs",
@@ -83,10 +89,10 @@
     "unimport@7.0.2": "7.0.1",
     "braces": "$braces",
     "listhen": "$listhen",
-    "nanoid@^3": "3.3.18",
+    "nanoid@^3": "3.3.20",
     "qs": "$qs",
     "glob": "14.0.3",
-    "minimatch": "11.0.4",
+    "minimatch": "11.0.5",
     "esbuild": "^0.28.2",
     "launch-editor": {
       ".": "2.14.2",
@@ -97,7 +103,7 @@
       "launch-editor": "2.14.2"
     },
     "vite": {
-      ".": "^8.3.5",
+      ".": "^8.3.6",
       "esbuild": "^0.28.2"
     },
     "brace-expansion": "5.0.12",

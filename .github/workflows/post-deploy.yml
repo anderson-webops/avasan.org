@@ -28,13 +28,16 @@ jobs:
         with:
           node-version: 26.13.0
 
-      - name: Pin npm version
-        run: npm install --global npm@12.2.1 --allow-scripts=npm
+      - name: Prepare independently locked build tools
+        run: |
+          bin="$(node scripts/build-toolchain.mjs --print-bin)"
+          printf '%s\n' "$bin" >> "$GITHUB_PATH"
+          "$bin/node" scripts/check-build-toolchain.mjs
 
       - name: Verify pinned toolchain
         run: |
           test "$(node --version)" = "v26.13.0"
-          test "$(npm --version)" = "12.2.1"
+          test "$(npm --version)" = "12.2.2"
 
       - name: Verify avasan.org production
         env:

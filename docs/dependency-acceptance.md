@@ -1,13 +1,30 @@
 # Dependency acceptance
 
-The static-compatible changes from canonical template v2.1.18 at
-`bfe71d97f50afca7fd7f663414ba6337ea371efc` are integrated under Avasan's
-linear-history delivery policy. The existing DevTools, Archiver, HTTPS and
-Node-resolution changes remain adopted. The new large-array-limit parser fix
-and strict native lockfile/policy/integrity checks complete this reviewed delta.
-Shared API, worker, backend compiler and service packaging changes remain
-inapplicable to this static-only site; its independent artifact, attestation
-and recovery contracts remain authoritative.
+The static-compatible changes from canonical template v2.1.20 at
+`08f40b830f461b081d7fc41b4266c39f508edc8b` are integrated under Avasan's
+linear-history policy. Preserve the previously accepted parser, DevTools,
+Archiver, HTTPS and native-lock protections. Shared API, worker, backend,
+Netlify and service packaging surfaces remain inapplicable; the independent
+static artifact, attestation and recovery contracts remain authoritative.
+
+## Independently locked build tools
+
+Use Node 26.13.0 and `node scripts/build-toolchain.mjs --print-bin` to prepare
+and select the reviewed `webops-locked-npm-v1` build-only profile. Its frozen
+installation, full/production audits, registry signatures and complete graph
+check qualify npm 12.2.2, glob 14.0.3, minimatch 11.0.5 and Undici 8.12.4.
+The stock Node npm may bootstrap that isolated profile; it does not qualify
+the app. Paired npm/npx/Node commands retain the selected verified CLI.
+
+`build-toolchain/UPSTREAM.json` records the original npm archive integrity,
+every preserved CLI/documentation/license hash and the maintained archive/lock
+digests. `npm run check:toolchain-package` reproduces the reviewed archive from
+the original registry distribution. Both root and build-only graphs require
+complete full/production audits, alongside the existing vendor checks.
+The tagged Linux ARM64 acceptance receipt binds the profile inputs to exact
+source. No build tools, dependencies or compiler enter the static runtime.
+
+## Preserved compatibility and security boundaries
 
 Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The unmodified Vue plugin's
 9.0.0-rc.2 distribution declares the 0.7.6 API line. The frontend now directly
@@ -90,7 +107,7 @@ destination keys as own data properties. Its package provenance and compatibilit
 boundary are recorded in `vendor/deepmerge/UPSTREAM.md`; the security regressions
 and complete consumer-lock assertions remain part of `npm test`.
 
-Glob 14.0.3 and Minimatch 11.0.4 replace vulnerable older transitive majors.
+Glob 14.0.3 and Minimatch 11.0.5 replace vulnerable older transitive majors.
 Nitro 2.13.6 now uses Archiver 8's named `ZipArchive` API directly. Unmodified
 Archiver 8.0.0 replaces the obsolete local default-factory bridge. Both the root
 and actual Nitro consumer resolve the reviewed modern version and create real

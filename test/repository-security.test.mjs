@@ -13,14 +13,14 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   const staticArtifact = readText('scripts/static-artifact.mjs')
   const readme = readText('README.md')
 
-  assert.equal(packageJson.packageManager, 'npm@12.2.1')
+  assert.equal(packageJson.packageManager, 'npm@12.2.2')
   assert.equal(packageJson.overrides['unimport@7.0.2'], '7.0.1')
   const frontendPackage = JSON.parse(readText('front-end/package.json'))
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools'], '0.8.2')
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools-kit'], '0.8.2')
   assert.deepEqual(packageJson.engines, {
     node: '>=26.13.0 <27',
-    npm: '>=12.2.1 <13',
+    npm: '>=12.2.2 <13',
   })
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.2': true,
@@ -63,7 +63,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.match(postDeployWorkflow, /persist-credentials: false/u)
   assert.match(
     postDeployWorkflow,
-    /- name: Pin npm version\s+run: npm install --global npm@12\.2\.1 --allow-scripts=npm[\s\S]*- name: Verify pinned toolchain/u,
+    /- name: Prepare independently locked build tools[\s\S]*node scripts\/build-toolchain\.mjs --print-bin[\s\S]*- name: Verify pinned toolchain/u,
   )
   assert.match(postDeployWorkflow, /ALLOW_RELEASE_NO_CACHE: "true"/u)
   assert.match(postDeployWorkflow, /DEPLOYMENT_URL: https:\/\/avasan\.org/u)
@@ -74,7 +74,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.equal(existsSync(new URL('../Dockerfile', import.meta.url)), false)
   assert.equal(existsSync(new URL('../.dockerignore', import.meta.url)), false)
   assert.match(readText('deploy/direct/prepare-static-release.sh'), /checkout-based preparation is retired/u)
-  assert.match(readme, /release toolchain are Node\s+26\.13\.0 with npm 12\.2\.1/u)
+  assert.match(readme, /release toolchain are Node\s+26\.13\.0 with npm 12\.2\.2/u)
   assert.match(readme, /checkout-based preparation and promotion commands now fail closed/u)
   assert.doesNotMatch(readme, /sudo env NODE_BIN_DIR=/u)
   assert.match(staticArtifact, /openSync\(path, constants\.O_RDONLY \| constants\.O_NOFOLLOW \| constants\.O_NONBLOCK\)/u)
