@@ -5,6 +5,23 @@ import path from 'node:path'
 import test from 'node:test'
 import { selectedNpmCli, toolchainMetadata, verifyBuildToolchain } from '../scripts/build-toolchain-state.mjs'
 
+test('the locked Nuxt provider satisfies its original unimport API floor', () => {
+  const lock = JSON.parse(readFileSync(new URL('../package-lock.json', import.meta.url), 'utf8'))
+  const nuxt = lock.packages['node_modules/nuxt']
+  const provider = lock.packages['node_modules/nuxt/node_modules/unimport'] || lock.packages['node_modules/unimport']
+  const require = createRequire(path.resolve(path.dirname(selectedNpmCli()), '../package.json'))
+  assert.ok(require('semver').satisfies(provider.version, nuxt.dependencies.unimport), `Nuxt requires ${nuxt.dependencies.unimport}, locked ${provider.version}`)
+})
+
+test('the installed Nuxt provider preserves the original unimport dependency contract', () => {
+  const frontend = createRequire(new URL('../front-end/package.json', import.meta.url))
+  const nuxt = createRequire(frontend.resolve('nuxt/package.json'))
+  const metadata = nuxt('./package.json')
+  const provider = JSON.parse(readFileSync(path.resolve(path.dirname(nuxt.resolve('unimport')), '../package.json'), 'utf8'))
+  const require = createRequire(path.resolve(path.dirname(selectedNpmCli()), '../package.json'))
+  assert.ok(require('semver').satisfies(provider.version, metadata.dependencies.unimport), `Nuxt requires ${metadata.dependencies.unimport}, resolved ${provider.version}`)
+})
+
 test('static source qualification retains the canonical current build-only profile', () => {
   const receipt = verifyBuildToolchain()
   const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))

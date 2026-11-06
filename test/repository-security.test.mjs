@@ -14,7 +14,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   const readme = readText('README.md')
 
   assert.equal(packageJson.packageManager, 'npm@12.2.2')
-  assert.equal(packageJson.overrides['unimport@7.0.2'], '7.0.1')
+  assert.equal(packageJson.overrides['unimport@7.0.2'], undefined)
   const frontendPackage = JSON.parse(readText('front-end/package.json'))
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools'], '0.8.2')
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools-kit'], '0.8.2')
