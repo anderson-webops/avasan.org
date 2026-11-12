@@ -55,7 +55,7 @@
     "@antfu/eslint-config": "^10.0.0",
     "axe-core": "^4.14.0",
     "braces": "file:vendor/braces",
-    "commander": "15.0.0",
+    "commander": "15.1.0",
     "deepmerge": "file:vendor/deepmerge",
     "eslint": "^10.14.0",
     "eslint-plugin-format": "^2.0.1",
@@ -66,16 +66,16 @@
     "taze": "^21.3.0",
     "typescript": "^6.0.3",
     "@types/node": "^26.6.6",
-    "@typescript-eslint/types": "^8.72.1",
+    "@typescript-eslint/types": "^8.72.2",
     "@unocss/eslint-plugin": "^66.12.0",
     "archiver": "^8.0.0",
     "esbuild": "^0.28.2",
     "eslint-plugin-slop": "^0.1.3",
     "eslint-plugin-sonarjs": "^4.2.2",
     "nitropack": "2.13.6",
-    "vite-plugin-vue-devtools": "9.0.0-rc.2",
+    "vite-plugin-vue-devtools": "9.0.0-rc.3",
     "qs": "file:vendor/qs-6.17.2-webops.4.tgz",
-    "@vitejs/devtools-kit": "0.7.6"
+    "@vitejs/devtools-kit": "0.8.2"
   },
   "simple-git-hooks": {
     "pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
