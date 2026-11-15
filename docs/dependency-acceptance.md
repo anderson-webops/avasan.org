@@ -63,6 +63,21 @@ exact archives also reproduce from the preserved modern inputs and scoped locks.
 Every declared local input is checked on disk, and every locked local archive is
 hash-verified before installation, independently of package-manager caches.
 
+The official vite-plugin-checker1.0.0 archive replaces the maintained0.14.5
+bridge. CURRENT.json preserves its registry identity alongside the historical
+original and reproducible bridge. The reviewed Nuxt4.6.4 Vite-builder parent
+admits checker1 and its current overlay entrypoint. Validate real Nuxt/Vite
+diagnostics, worker repair/reconnection and rejected type-error production
+builds, preserving the source locations and native public declarations.
+
+The reviewed terminal-parent cohort admits Balanced-match5, Supports-color11,
+Is8, Chalk6 and Jest-worker30 through their actual formatter, worker, minifier
+and type consumers. Original distributions, metadata and licenses remain
+preserved. Exercise original/current formatting, bounded child/thread queues,
+worker failure/recovery, actual Webpack compression and TypeScript6/7 declaration
+consumers. These are build-time compatibility roles; the public site remains
+static and tracker-free.
+
 Original-input signature checks cover every installed independent reference
 graph, including direct dependencies of otherwise leaf-only graphs. The
 standalone-prefix audit keeps the graph root in scope; application workspace

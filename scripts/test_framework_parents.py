@@ -67,6 +67,8 @@ class FrameworkParentTests(unittest.TestCase):
                 expected["version"] = record["patchedVersion"]
                 expected["private"] = True
                 expected[policy["section"]][policy["provider"]] = policy["after"]
+                if "node" in policy:
+                    expected["engines"]["node"] = policy["node"]
                 self.assertEqual(json.loads(maintained["package/package.json"]), expected)
 
     def test_rejects_changed_archive_or_source_or_modes(self):
@@ -109,12 +111,35 @@ class FrameworkParentTests(unittest.TestCase):
 
     def test_cli_executable_modes_are_independently_required(self):
         for name, payload, record in self.originals():
+            if not PRODUCER.PACKAGES[name].get("has_bin", True):
+                continue
             files, modes = PRODUCER.archive_files(payload)
             filename = "package/" + next(iter(record["package"]["bin"].values())).removeprefix("./")
             modes[filename] = 0o644
             changed_payload, changed = self.changed_record(record, files, modes)
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "CLI must retain executable"):
                 PRODUCER.build_archive(changed_payload, changed)
+
+    def test_non_cli_nuxt_parent_admits_the_new_checker_without_introducing_commands(self):
+        record = RECORDS["@nuxt/vite-builder"]
+        original = (PRODUCER.SOURCE / record["archive"]).read_bytes()
+        files, modes = PRODUCER.archive_files(original)
+        metadata = json.loads(files["package/package.json"])
+        self.assertNotIn("bin", metadata)
+        maintained, maintained_modes = PRODUCER.archive_files(PRODUCER.build_archive(original, record))
+        self.assertEqual(maintained_modes['package/dist/index.mjs'], modes['package/dist/index.mjs'])
+        current = json.loads(maintained["package/package.json"])
+        self.assertNotIn("bin", current)
+        self.assertEqual(current["dependencies"]["vite-plugin-checker"], "^1.0.0")
+        self.assertEqual(current["engines"]["node"], "^26.13.1")
+        self.assertIn(b'/@vite-plugin-checker/overlay-entry', maintained['package/dist/index.mjs'])
+        self.assertNotIn(b'/@vite-plugin-checker-runtime-entry', maintained['package/dist/index.mjs'])
+        metadata["bin"] = {"unreviewed-command": "dist/index.mjs"}
+        files["package/package.json"] = (json.dumps(metadata) + "\n").encode()
+        payload, changed = self.changed_record(record, files, modes)
+        changed["package"] = metadata
+        with self.assertRaisesRegex(ValueError, "CLI ownership"):
+            PRODUCER.build_archive(payload, changed)
 
     def test_cli_rejects_source_path_before_opening_any_original_archive(self):
         records = copy.deepcopy(RECORDS)
