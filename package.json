@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.32",
+	"version": "2.1.33",
 	"private": true,
 	"packageManager": "npm@12.2.2",
 	"engines": {
@@ -35,7 +35,7 @@
 		"test:http-compat": "node --test --test-concurrency=2 scripts/test-http-compat.mjs scripts/test-http-types.mjs",
 		"package:http-compat": "node scripts/package-http-compat.mjs",
 		"check:http-compat": "node scripts/package-http-compat.mjs --check",
-		"test:build-toolchain": "node --test --test-concurrency=1 scripts/test-build-toolchain.mjs scripts/test-build-toolchain-cache.mjs scripts/test-npm-tool-majors.mjs",
+		"test:build-toolchain": "node --test --test-concurrency=1 scripts/test-build-toolchain.mjs scripts/test-build-toolchain-cache.mjs scripts/test-build-toolchain-seed.mjs scripts/test-npm-tool-majors.mjs",
 		"package:npm-compat": "node scripts/package-npm-compat.mjs",
 		"check:npm-compat": "node scripts/package-npm-compat.mjs --check",
 		"test:devtools": "node scripts/test-vue-devtools-host.mjs && DEVTOOLS_FIXTURE_MCP=true node scripts/test-vue-devtools-host.mjs",

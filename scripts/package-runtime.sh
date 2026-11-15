@@ -81,6 +81,7 @@ receipt["harnessSha256"] = {
     for name in ["deploy/runtime-artifact.json", "scripts/runtime-artifact.py", "scripts/package-runtime.sh", "scripts/test-unpacked-artifact.sh", "scripts/direct-runtime-smoke.mjs", "scripts/artifact-acceptance/runtime.mjs", "scripts/write-release-metadata.mjs", "deploy/systemd/install-service.sh", "deploy/systemd/promote-release.sh", "deploy/systemd/trusted-paths.py", "scripts/test-promotion-recovery.py", "scripts/test-promotion-recovery.sh", "scripts/test-bootstrap-in-vm.py", "scripts/build-toolchain.mjs", "scripts/build-toolchain-state.mjs", "scripts/build-toolchain-cache.mjs", "build-toolchain/PAYLOAD.json", "scripts/check-build-toolchain.mjs", "build-toolchain/UPSTREAM.json", "build-toolchain/package.json", "build-toolchain/package-lock.json"]
 }
 receipt["harnessSha256"]["scripts/test-retained-runtime.sh"] = hashlib.sha256(Path("scripts/test-retained-runtime.sh").read_bytes()).hexdigest()
+receipt["harnessSha256"]["scripts/build-toolchain-seed.mjs"] = hashlib.sha256(Path("scripts/build-toolchain-seed.mjs").read_bytes()).hexdigest()
 (output / "acceptance.json").write_text(json.dumps(receipt, indent=2) + "\n")
 PY
 echo "Exact unpacked production artifact accepted: $archive"
