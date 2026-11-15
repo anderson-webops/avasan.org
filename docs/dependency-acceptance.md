@@ -682,24 +682,29 @@ Existing compiled Nitro and browser checks remain separate required gates.
 
 ## Vite checker and native Babel 8 code frames
 
-The maintained `vite-plugin-checker@0.14.5-webops.1` distribution uses
-`@babel/code-frame@8.0.6`, its current identifier validator and tokenizer.
-Babel 8's code-frame columns are zero-based and its former `SourceLocation`
-type is no longer exported. The checker retains its one-based diagnostic
-locations and optional-column declarations, converting only at its code-frame
-boundary. Exclusive multiline end columns follow the actual source range;
-the previous renderer's extra final caret is corrected. Other checker engines,
-public entrypoints, peer contracts, runtime overlay and license remain unchanged.
+The official `vite-plugin-checker@1.0.0` distribution natively supports Babel8
+positions and optional-column declarations. It retains one-based diagnostic
+locations and converts them at the code-frame boundary. The application uses
+the original registry bytes rather than the retired maintained0.14.5 bridge.
+The reviewed Nuxt4.6.4 Vite-builder parent explicitly admits checker1 and routes
+its development-only injection through the current overlay entrypoint. The
+original archive, package metadata and MIT license remain preserved alongside
+the exact reviewed source correction and dependency/runtime declarations.
+Nuxt type-checking behavior requires real integration and browser acceptance.
 
 The integrity-bound original archive and independently locked original graph
 remain under `vendor/vite-plugin-checker/upstream` for comparison and audits.
-`npm run check:checker-package` verifies deterministic packaging, consuming
-integrity and every installed byte. `npm run test:checker` checks source and
+`CURRENT.json` binds the official1.0.0 archive, while `UPSTREAM.json` retains
+the historical0.14.5 reference and deterministic retired-archive reproduction.
+`npm run check:checker-package` verifies both references, every current locked
+consumer, every installed official byte and the actual Nuxt parent admission.
+`npm run test:checker` checks source and
 location preservation, original single-line output, correct multiline ranges,
-native public types, real ESLint diagnostics, Stylelint adapter fixtures and
+native public types, admitted terminal-color modes, real ESLint diagnostics, Stylelint adapter fixtures and
 actual TypeScript worker error/recovery. `npm run test:checker-browser` checks
 real overlay highlighting, reconnection, repeated repair and clean production
-builds, including a deliberately rejected type-error build. The full and
+builds through both Vite and Nuxt's actual type-checking parent, including
+deliberately rejected type-error builds. The full and
 production audit commands retain original package identities in that separate
 graph. Application Babel providers use major 8; original-version fixtures retain
 their own reviewed dependencies. Release/provenance and host acceptance remain

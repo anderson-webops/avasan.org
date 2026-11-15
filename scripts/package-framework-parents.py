@@ -71,6 +71,24 @@ PACKAGES = {
         "after": "^4.0.0-rc.4",
         "required": {"LICENSE", "dist/cli/index.mjs", "dist/core/index.mjs", "dist/core/index.d.ts", "dist/config/index.mjs", "dist/runtime/index.mjs"},
     },
+    "@nuxt/vite-builder": {
+        "version": "4.6.4",
+        "count": 16,
+        "section": "dependencies",
+        "provider": "vite-plugin-checker",
+        "before": "^0.14.5",
+        "after": "^1.0.0",
+        "node": "^26.13.1",
+        "has_bin": False,
+        "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts"},
+        "replacements": [
+            {
+                "file": "dist/index.mjs",
+                "before": 's.prepend("import \\"/@vite-plugin-checker-runtime-entry\\";\\n");',
+                "after": 's.prepend("import \\"/@vite-plugin-checker/overlay-entry\\";\\n");',
+            },
+        ],
+    },
 }
 
 
@@ -104,12 +122,12 @@ def pack_files(files, modes):
 
 
 def original_archive(name):
-    return "upstream/" + name + "-" + PACKAGES[name]["version"] + ".tgz"
+    return "upstream/" + name.removeprefix("@").replace("/", "-") + "-" + PACKAGES[name]["version"] + ".tgz"
 
 
 def maintained_archive(name):
     policy = PACKAGES[name]
-    return name + "-" + policy["version"] + "-webops." + str(policy.get("revision", 1)) + ".tgz"
+    return name.removeprefix("@").replace("/", "-") + "-" + policy["version"] + "-webops." + str(policy.get("revision", 1)) + ".tgz"
 
 
 def build_archive(payload, record):
@@ -134,7 +152,8 @@ def build_archive(payload, record):
     require(metadata == record["package"], "Original framework metadata changed")
     require(metadata["version"] == policy["version"] and metadata["license"] == "MIT", "Preserve the reviewed original version and license")
     require(metadata[policy["section"]][policy["provider"]] == policy["before"], "Original provider contract changed")
-    for filename in metadata["bin"].values():
+    require(("bin" in metadata) == policy.get("has_bin", True), "Review changed framework CLI ownership")
+    for filename in metadata.get("bin", {}).values():
         command = "package/" + filename.removeprefix("./")
         require(command in files and modes[command] == 0o755, "Required framework CLI must retain executable mode")
     for change in policy.get("replacements", []):
@@ -146,6 +165,8 @@ def build_archive(payload, record):
     metadata["version"] = record["patchedVersion"]
     metadata["private"] = True
     metadata[policy["section"]][policy["provider"]] = policy["after"]
+    if "node" in policy:
+        metadata["engines"]["node"] = policy["node"]
     files["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
     files["package/UPSTREAM-PACKAGE.json"] = original
     files["package/WEBOPS-PARENT.json"] = (json.dumps(record, indent=2) + "\n").encode()
