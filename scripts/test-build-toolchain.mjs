@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 import test from 'node:test'
-import { selectedNpmCli, stableVersionAtLeast, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
+import { selectedNpmCli, stableVersionAtLeast, toolchainInputNames, toolchainMetadata, toolchainSource, verifyBuildToolchain } from './build-toolchain-state.mjs'
 
 const npmCli = selectedNpmCli()
 const npmRoot = path.resolve(path.dirname(npmCli), '..')
@@ -55,14 +55,10 @@ test('changed locks, substituted CLI bytes and symlinked CLI files cannot qualif
       copyFileSync(path.join(npmRoot, relative), destination)
     }
     mkdirSync(path.join(directory, 'vendor'))
-    for (const name of [
-      'package.json',
-      'package-lock.json',
-      '.npmrc',
-      'UPSTREAM.json',
-      toolchainMetadata.archive,
-    ])
+    for (const name of toolchainInputNames) {
+      mkdirSync(path.dirname(path.join(directory, name)), { recursive: true })
       copyFileSync(path.join(profile, name), path.join(directory, name))
+    }
     const copiedCli = path.join(copiedNpm, 'bin/npm-cli.js')
     const rejectInputWithBoundedHeap = () => {
       const output = execFileSync(process.execPath, [
@@ -121,10 +117,12 @@ test('stable version bounds retain the existing semver minimums without loading 
     '11.0.0',
     '11.0.1',
     '11.0.5',
+    '11.0.8',
     '14.0.1',
     '14.0.2',
     '14.0.3',
     '14.0.4',
+    '14.0.6',
     '15.0.0',
     '8.12.2+build.001',
     'v8.12.2',
@@ -174,14 +172,10 @@ test('descriptor-bound verification preserves checked bytes across file substitu
           mode: constants.COPYFILE_FICLONE,
         })
         mkdirSync(path.join(directory, 'vendor'))
-        for (const name of [
-          'package.json',
-          'package-lock.json',
-          '.npmrc',
-          'UPSTREAM.json',
-          toolchainMetadata.archive,
-        ])
+        for (const name of toolchainInputNames) {
+          mkdirSync(path.dirname(path.join(directory, name)), { recursive: true })
           copyFileSync(path.join(profile, name), path.join(directory, name))
+        }
         const output = execFileSync(process.execPath, [
           ...(mode === 'missing-capabilities'
             ? ['--experimental-test-module-mocks']
@@ -315,14 +309,18 @@ process.stdout.write('descriptor fixture accepted');`,
 
 test('a clean source-only bootstrap installs the application through its isolated npm without leaking seed flags', { timeout: 300_000 }, (context) => {
   const directory = mkdtempSync(path.join(scratch, 'bootstrap-'))
-  let constructedProfile
   try {
     cpSync(toolchainSource, path.join(directory, 'build-toolchain'), {
       recursive: true,
       filter: filename => !filename.split(path.sep).includes('node_modules'),
     })
     mkdirSync(path.join(directory, 'scripts'))
-    for (const name of ['build-toolchain.mjs', 'build-toolchain-state.mjs'])
+    for (const name of [
+      'build-toolchain.mjs',
+      'build-toolchain-state.mjs',
+      'build-toolchain-cache.mjs',
+      'build-toolchain-seed.mjs',
+    ])
       cpSync(path.join(root, 'scripts', name), path.join(directory, 'scripts', name))
     const manifest = {
       name: 'webops-bootstrap-fixture',
@@ -340,6 +338,8 @@ test('a clean source-only bootstrap installs the application through its isolate
       },
     }))
     writeFileSync(path.join(directory, 'observe-install.cjs'), 'require("node:fs").writeFileSync("observed.json", JSON.stringify({cli:process.env.npm_execpath, cwd:process.cwd(), ignored:process.env.npm_config_ignore_scripts}))\n')
+    const nativePnpm = path.join(directory, 'pnpm')
+    writeFileSync(nativePnpm, Buffer.from([0x7F, 0x45, 0x4C, 0x46]))
     context.diagnostic('Preparing, auditing and installing the independent cold profile')
     const output = execFileSync(process.execPath, [
       path.join(directory, 'scripts/build-toolchain.mjs'),
@@ -353,14 +353,18 @@ test('a clean source-only bootstrap installs the application through its isolate
       encoding: 'utf8',
       timeout: 240_000,
       maxBuffer: 4 * 1024 * 1024,
-      env: { ...process.env, NPM_CONFIG_CACHE: process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache') },
+      env: {
+        ...process.env,
+        npm_execpath: nativePnpm,
+        NPM_CONFIG_CACHE: path.join(directory, 'cache'),
+      },
     })
     context.diagnostic('Cold profile and application commands completed; verifying source and executable identity')
     const selected = JSON.parse(output.trim().split('\n').at(-1))
     const observedProfile = path.resolve(path.dirname(selected.node), '..')
-    const managedRoot = realpathSync(path.join(process.env.NPM_CONFIG_CACHE || path.join(root, '.ai-work/runs/npm-cache'), '_site-toolchains'))
+    const managedRoot = realpathSync(path.join(directory, 'cache/_site-toolchains/reuse-v1'))
     assert.equal(path.dirname(observedProfile), managedRoot)
-    assert.ok(path.basename(observedProfile).startsWith(`${toolchainMetadata.profile}-`))
+    assert.match(path.basename(observedProfile), /^slot-[0-2]$/u)
     assert.notEqual(observedProfile, profile)
     assert.equal(selected.cwd, directory)
     const observed = JSON.parse(readFileSync(path.join(directory, 'observed.json'), 'utf8'))
@@ -368,11 +372,23 @@ test('a clean source-only bootstrap installs the application through its isolate
     assert.notEqual(observed.ignored, 'true')
     assert.equal(verifyBuildToolchain(observed.cli).profile, toolchainMetadata.profile)
     assert.ok(observed.cli.startsWith(`${observedProfile}${path.sep}`))
-    constructedProfile = observedProfile
+    const warm = execFileSync(process.execPath, [
+      path.join(directory, 'scripts/build-toolchain.mjs'),
+      '--print-bin',
+    ], {
+      cwd: directory,
+      encoding: 'utf8',
+      timeout: 120_000,
+      maxBuffer: 4 * 1024 * 1024,
+      env: {
+        ...process.env,
+        npm_execpath: nativePnpm,
+        NPM_CONFIG_CACHE: path.join(directory, 'cache'),
+      },
+    }).trim()
+    assert.equal(warm, path.dirname(selected.node), 'A warm bootstrap must return the identical qualified executable directory')
   }
   finally {
-    if (constructedProfile)
-      rmSync(constructedProfile, { recursive: true })
     rmSync(directory, { recursive: true })
   }
 })

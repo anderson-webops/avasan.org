@@ -7,7 +7,6 @@ import { fileURLToPath } from 'node:url'
 const scriptsDirectory = fileURLToPath(new URL('./', import.meta.url))
 const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
 const lockPackages = JSON.parse(readFileSync(new URL('../package-lock.json', import.meta.url), 'utf8')).packages
-const frontendPackageJson = JSON.parse(readFileSync(new URL('../front-end/package.json', import.meta.url), 'utf8'))
 const requireFromNitro = createRequire(new URL('../node_modules/nitropack/package.json', import.meta.url))
 const requireFromNft = createRequire(requireFromNitro.resolve('@vercel/nft'))
 const requireFromModern = createRequire(requireFromNitro.resolve('archiver'))
@@ -23,11 +22,6 @@ test('all locked glob and minimatch packages use reviewed patched majors', () =>
     if (path.endsWith('/minimatch'))
       assert.equal(entry.version, packageJson.overrides.minimatch)
   }
-
-  assert.deepEqual(packageJson.workspaces, ['front-end'])
-  assert.deepEqual(lockPackages[''].workspaces, packageJson.workspaces)
-  assert.deepEqual(lockPackages['front-end'].dependencies, frontendPackageJson.dependencies)
-  assert.deepEqual(lockPackages['front-end'].devDependencies, frontendPackageJson.devDependencies)
 })
 
 test('major upgrades preserve direct glob and minimatch matching', () => {

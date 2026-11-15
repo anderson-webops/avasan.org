@@ -15,10 +15,13 @@ test('every locked deepmerge dependency resolves to the guarded fork', () => {
     .filter(([name]) => name.endsWith('node_modules/deepmerge'))
 
   assert.ok(entries.length > 0)
-  for (const [, entry] of entries)
-    assert.equal(entry.resolved, 'vendor/deepmerge')
-  assert.equal(lock.packages['vendor/deepmerge'].version, '4.3.2-webops.1')
-  assert.equal(installedMerge, deepmerge)
+  for (const [, entry] of entries) {
+    assert.equal(entry.resolved, 'file:vendor/deepmerge-4.3.2-webops.2.tgz')
+    assert.equal(entry.version, '4.3.2-webops.2')
+    assert.equal(entry.link, undefined)
+  }
+  assert.equal(lock.packages['vendor/deepmerge'], undefined)
+  assert.equal(installedMerge.toString(), deepmerge.toString())
 })
 
 test('transitive KaTeX and Tinypool resolve to patched releases', () => {

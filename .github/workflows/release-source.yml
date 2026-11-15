@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(node --version)" = v26.13.0
+          test "$(node --version)" = v26.13.1
           test "$(npm --version)" = 12.2.2
           test "${GITHUB_REF_NAME}" = "v$(node -p 'require("./package.json").version')"
           test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = tag
@@ -62,7 +62,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          npm run prepare:unimport-source
           npm ci --include=optional --strict-allow-scripts
+          npm run prepare:compiler-fixtures
           npm run audit
           npm run audit:production
           npm run audit:signatures
@@ -119,7 +121,10 @@ jobs:
             test/fixtures/legacy-v1212/host-build/public-delta.json
             scripts/build-toolchain.mjs
             scripts/build-toolchain-state.mjs
+            scripts/build-toolchain-cache.mjs
+            scripts/build-toolchain-seed.mjs
             scripts/check-build-toolchain.mjs
+            build-toolchain/PAYLOAD.json
             build-toolchain/.npmrc
             build-toolchain/UPSTREAM.json
             build-toolchain/package.json
@@ -166,7 +171,10 @@ jobs:
               'test/fixtures/legacy-v1212/host-build/public-delta.json',
               'scripts/build-toolchain.mjs',
               'scripts/build-toolchain-state.mjs',
+              'scripts/build-toolchain-cache.mjs',
+              'scripts/build-toolchain-seed.mjs',
               'scripts/check-build-toolchain.mjs',
+              'build-toolchain/PAYLOAD.json',
               'build-toolchain/.npmrc',
               'build-toolchain/UPSTREAM.json',
               'build-toolchain/package.json',

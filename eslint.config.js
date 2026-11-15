@@ -13,6 +13,10 @@ export default antfu(
       '**/.output/**',
       'vendor/braces/**',
       'vendor/qs/lib/**',
+      'vendor/http-compat/*/compat.cjs',
+      'vendor/magicast/babel8.js',
+      'vendor/unplugin-remove/index.js',
+      'vendor/vite-plugin-checker/babel8.js',
     ],
   },
   {

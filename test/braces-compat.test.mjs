@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import installedBraces from 'braces'
 import braces from '../vendor/braces/index.js'
 
 const lock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'))
@@ -11,9 +12,12 @@ test('every locked braces dependency resolves to the guarded fork', () => {
 
   assert.ok(entries.length > 0)
   for (const [, entry] of entries) {
-    assert.equal(entry.resolved, 'vendor/braces')
+    assert.equal(entry.resolved, 'file:vendor/braces-3.0.4-webops.3.tgz')
+    assert.equal(entry.version, '3.0.4-webops.3')
+    assert.equal(entry.link, undefined)
   }
-  assert.equal(lock.packages['vendor/braces'].version, '3.0.4-webops.2')
+  assert.equal(lock.packages['vendor/braces'], undefined)
+  assert.equal(installedBraces.toString(), braces.toString())
 })
 
 test('ordinary brace patterns keep their compile, expand, and stringify behavior', () => {

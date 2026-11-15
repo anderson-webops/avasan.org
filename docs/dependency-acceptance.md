@@ -1,121 +1,114 @@
 # Dependency acceptance
 
-The static-compatible changes from canonical template v2.1.20 at
-`08f40b830f461b081d7fc41b4266c39f508edc8b` are integrated under Avasan's
-linear-history policy. Preserve the previously accepted parser, DevTools,
-Archiver, HTTPS and native-lock protections. Shared API, worker, backend,
-Netlify and service packaging surfaces remain inapplicable; the independent
-static artifact, attestation and recovery contracts remain authoritative.
+## Application boundary
+
+Avasan remains one tracker-free static homepage. The source integration reviews
+canonical template v2.1.33 at `2d8b4023ad031f779265c843759791d8ffa26e41`.
+Generic API services, workers, Netlify functions, example routes and their runtime
+promotion helpers are inapplicable. Avasan's static artifact, attestation,
+Nginx-snippet and retained-release recovery contracts remain authoritative.
+Preserve linear-history source delivery and the exact reviewed upstream identity.
 
 ## Independently locked build tools
 
-Use Node 26.13.0 and `node scripts/build-toolchain.mjs --print-bin` to prepare
-and select the reviewed `webops-locked-npm-v1` build-only profile. Its frozen
-installation, full/production audits, registry signatures and complete graph
-check qualify npm 12.2.2, glob 14.0.3, minimatch 11.0.5 and Undici 8.12.4.
-The stock Node npm may bootstrap that isolated profile; it does not qualify
-the app. Paired npm/npx/Node commands retain the selected verified CLI.
+Use Node26.13.1 and the independently locked npm12.2.2 build-only profile.
+`build-toolchain/UPSTREAM.json`, its lock, original source inventory and
+`PAYLOAD.json` bind the original npm CLI/licenses and maintained private graph.
+The selected paired npm/npx/Node commands must pass complete payload, input,
+native-runtime and installed dependency verification. Source-only cold/warm
+bootstrap fixtures include native pnpm callers and fail-closed seed selection.
+The source identity includes every bootstrap module; the static acceptance
+harness includes the cache, selector and complete payload declaration.
 
-`build-toolchain/UPSTREAM.json` records the original npm archive integrity,
-every preserved CLI/documentation/license hash and the maintained archive/lock
-digests. `npm run check:toolchain-package` reproduces the reviewed archive from
-the original registry distribution. Both root and build-only graphs require
-complete full/production audits, alongside the existing vendor checks.
-The tagged Linux ARM64 acceptance receipt binds the profile inputs to exact
-source. No build tools, dependencies or compiler enter the static runtime.
+Glob14.0.6, Minimatch11.0.8 and Undici8.12.4 are independently qualified in this
+profile. The application lock also selects the reviewed Glob/Minimatch versions
+through real parent consumers and interface tests. Stock npm may bootstrap the
+profile; application/release gates use its verified CLI rather than a version
+string alone. Build tools, dependencies and compilers stay outside the static
+runtime.
 
-## Preserved compatibility and security boundaries
+## Major-version compatibility
 
-Nuxt DevTools 4.1.0 uses the tested Vite DevTools 0.8.2 host and kit. The unmodified Vue plugin's
-9.0.0-rc.2 distribution declares the 0.7.6 API line. The frontend now directly
-uses 0.8.2 while normal nested resolution supplies the original plugin's
-separate supported 0.7 dependencies. Unhead 3 also requires the 0.7 kit API.
-The root compatibility kit and explicitly hoisted npm layout preserve those
-original peer contracts while the frontend uses 0.8.2. An incompatible nested
-layout is rejected by the complete installed graph, rather than accepted merely
-because installation exits successfully. Both APIs remain independently tested.
-The former metadata-only peer patch and local archive are retired. The original
-registry metadata, integrity and all 38 payload hashes remain checked against
-`vendor/vite-plugin-vue-devtools/UPSTREAM.json`. The complete installed graph
-must pass `npm ls --all` without forced or ignored peer ranges.
+The applicable shared graph includes the maintained Nuxt/Vite8/Rolldown1,
+Babel8, Unhead3, DevTools4/0.8, OXC, schema, watcher and tracing integrations.
+Original distributions, metadata, licenses and reviewed adapter changes remain
+separate and reproducible. File archives replace local-directory installation
+inputs where needed for correct locked and normal npm updates.
 
-The actual Nuxt-selected Vite DevTools 0.8 integration initializes the plugin, serves its
-exact UI and dock bytes, and transforms its actual injected HMR client over
-loopback. That integration remains part of `npm test`; full Nuxt types, site
-checks and artifact acceptance remain required. No provider version is forced
-outside its declared range, and neither dependency warnings nor checks are
-suppressed. The host test selects 0.8 explicitly through its public integration
-API rather than silently accepting the root's compatible 0.7 provider.
+The c12 4.0.0-rc.4 release candidate is a deliberately qualified build-only input
+of the updated framework adapter, with real configuration/watch/type fixtures.
+It is distinct from the original Nitro stable c12 peer contract, which remains
+preserved in the upstream reference. A version override alone is insufficient
+compatibility evidence.
 
-The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
-It retains that release's input-copy prototype protection and fixes native
-comma-array coercion across realms. The source, license and compatibility
-boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all
-three browser interfaces pass the same security and ordinary-input fixtures.
-The locked build reproduces both the browser distribution and local npm archive.
-Overflow appends retain exact decimal indexes beyond the safe integer range,
-including merged and shifted containers, without losing prior values. This
-correctness repair is distinct from the numeric-side-channel prototype alert;
-prototype and ordinary parsing regressions remain required.
-Indexes outside JavaScript's array-index range retain object representation
-even with large or infinite configured limits. Prefix/append, sparse modes,
-ordinary/null prototypes and strict limit behavior are regression-tested;
-ordinary small arrays retain their representation.
+Vue and typescript-eslint retain their required TypeScript6 compiler API.
+The separately named TypeScript7 CLI validates modern library types, including
+positive and negative cases, without replacing those compiler APIs or creating
+an application backend. Declared compiler/type peers must resolve inside this
+locked application rather than an ancestor installation.
 
-Intrinsic-array coercion reads each index once and converts it before reading
-the next index. This prevents changing getters from bypassing normalization and
-preserves conversion-driven mutations, fixed initial lengths, sparse separators,
-cycles, repeated aliases, custom hooks and original exceptions. The regressions
-cover both comma serialization and custom encoders delegating to the default
-encoder, across the installed CommonJS and three browser distributions.
+The maintained Unhead and Vue DevTools distributions declare the selected0.8.2
+host/kit compatibility contract. Their original0.7 peer metadata and payload
+hashes remain preserved separately. Real plugin, UI/dock, HMR/MCP and browser
+fixtures establish supported integration; complete installed peers must pass
+`npm ls --all` without ignored or forced ranges.
 
-Packing normalizes only its disposable public-library copy to 0644 files and
-0755 directories, so private source checkouts keep their original permissions
-without changing archive bytes. Archive and installed-file comparisons use
-bounded equality checks rather than formatting binary diffs. Regressions cover
-a 0600 checkout, a 0077 builder umask and rejection under a 256 MiB Node heap.
+The modern URL encoder uses the unchanged encodeurl3 implementation with the
+canonical callable CommonJS bridge. Its separate original-registry lock receives
+full/production/signature audits. Actual send/serve-static resolution, Unicode,
+malformed surrogates, redirects and header-injection boundaries are tested.
+Unrelated cookie/body-parser/API adapters are not application dependencies.
 
-The local archive at `vendor/qs-6.17.2-webops.4.tgz` is a source installation
-input for development-tool dependencies. Avasan publishes static files only;
-the archive, compiler, dependencies and source are absent from the runtime.
-Its existing artifact layout and retained-release verification remain unchanged.
+Original-input signature checks cover every installed independent reference
+graph, including direct dependencies of otherwise leaf-only graphs. The
+standalone-prefix audit keeps the graph root in scope; application workspace
+exclusion would omit its outgoing edges. Each reference manifest is verified
+to have no workspace declaration before that complete audit.
 
-Avasan has no backend or standalone TypeScript compiler command. Vue and
-typescript-eslint require the TypeScript 6.0.3 compiler API. The current
-`vue-tsc@3.3.14` uses `typescript/lib/tsc`, which TypeScript 7 no longer exports;
-typescript-eslint also declares support below 6.1. Preserve that genuine API
-boundary and the full real Vue typecheck rather than installing an unused
-backend compiler. Workspace installation declares the matching Vue SFC compiler
-directly, with parsing and version regressions. No compiler is packaged.
+Puppeteer25.17's reviewed browser-downloader lifecycle stays explicitly disabled.
+Browser provisioning remains an explicit test-environment operation, with real
+browser fixtures required independently of installation success.
 
-Nuxt uses 4.6.4. The existing version-scoped exception retains `unimport@7.0.1` while
-7.0.2's advertised npm provenance endpoint returns 404. Version 7.0.1 has
-retrievable provenance. Full registry-signature and provenance verification
-remain required; the unavailable attestation is not treated as a pass.
+Hash-bound compiler adapters retain their exact reviewed source bytes during
+formatting. The specific adapter paths excluded from style rewriting remain
+covered by reproducible-archive, installed-byte, compiler, browser and security
+regressions in the mandatory validation command.
 
-The upstream patch changes class-export declaration generation and an unused
-TypeScript parameter. Clean installation, Nuxt auto-import/type checking,
-application tests and the generated site must pass with this scoped exception.
-Remove the exception after a compatible successor has verifiable provenance.
+## Source provenance and security regressions
 
-The frontend's c12 dependency remains on the stable 3.3 API required by its Nitro 2 dependency.
-The newer 4.0.0-rc.4 distribution is a prerelease outside that parent range;
-evaluate it with a compatible framework update rather than forcing its API.
+The advertised unimport7.0.2 registry attestation currently returns404.
+This failure remains recorded; it is not a successful registry verification.
+The maintained compiler is independently rebuilt from the verified signed
+upstream source with separately locked build/runtime graphs. Original source,
+tag/signing identity, input inventory, two-build reproducibility, public APIs,
+auto-import/type generation and confined copied-runtime failure/recovery checks
+remain required. Source provenance does not claim the registry endpoint works.
 
-The local deepmerge fork preserves both published entrypoints while defining
-destination keys as own data properties. Its package provenance and compatibility
-boundary are recorded in `vendor/deepmerge/UPSTREAM.md`; the security regressions
-and complete consumer-lock assertions remain part of `npm test`.
+The qs patch retains original input-copy prototype protection and fixes
+cross-realm coercion. Required regressions cover serialization/custom encoders,
+large indexes, merged and shifted containers, sparse modes, getter sequencing,
+coercion-driven mutation, cycles, aliases and original exceptions across
+installed CommonJS and all browser interfaces. The deepmerge patch retains
+published entrypoints and safe own-data-property definitions.
 
-Glob 14.0.3 and Minimatch 11.0.5 replace vulnerable older transitive majors.
-Nitro 2.13.6 now uses Archiver 8's named `ZipArchive` API directly. Unmodified
-Archiver 8.0.0 replaces the obsolete local default-factory bridge. Both the root
-and actual Nitro consumer resolve the reviewed modern version and create real
-ZIP/TAR streams in the regressions. Complete graph, file-matching, Nuxt build
-and artifact checks remain required across this major-version integration.
-The root workspace lock covers all build and development dependencies; there
-is no backend workspace or separate backend graph. Both full and production
-root and vendored-qs audits are required before artifact packaging. Shared API,
-worker, Netlify and service-promotion surfaces are intentionally inapplicable.
-The existing static attestation, snippet and retained-artifact recovery gates
-remain authoritative, with no new scan schedules or host topology changes.
+Packaging changes normalize only disposable copies, preserving private source
+permissions and original bytes/licenses. Checks retain private-mode/0077-umask,
+bounded-memory, modified-input and archive/installed-file rejection controls.
+Nitro uses Archiver8's supported named interfaces; genuine ZIP/TAR and glob
+consumer behavior remains required. The existing narrowly scoped Nitro/H3
+warning policy preserves unrelated warnings rather than broadly suppressing
+dependency failures.
+
+## Required delivery gates
+
+Prepare the independently rebuilt compiler, run a clean locked application
+install, then install all independent original/compiler reference graphs.
+Complete `npm run validate`, full/production/signature audits and all applicable
+real-browser/accessibility fixtures. Audit unavailability is incomplete evidence.
+
+The exact clean annotated source must match main for Linux ARM64 artifact
+creation. Verify independently required files, the full inventory, copied and
+unpacked static routes/assets, missing-asset rejection, source/SDK harness hashes,
+GitHub provenance, snippets and retained-artifact promotion/recovery fixtures.
+Preserve host topology and dual-stack identity. A published source artifact and
+verified production activation remain separate.
