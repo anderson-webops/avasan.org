@@ -3737,5 +3737,178 @@
         "mode": 420
       }
     }
+  },
+  "@nuxt/vite-builder": {
+    "schemaVersion": 1,
+    "archive": "upstream/nuxt-vite-builder-4.6.4.tgz",
+    "patchedVersion": "4.6.4+webops.1",
+    "registryIntegrity": "sha512-D4sKiqos2l/96DjeuaaahPEUMdrsr7LIkorJOUCgefYFzJFssaa051tcUg6KFAU0EaCeosDRRXBXTLutiSlp7g==",
+    "registryArchiveSha256": "1e3c425177e8db28812318efbcccaf4532e7001e8de12a454b82e05fa7a072f7",
+    "package": {
+      "name": "@nuxt/vite-builder",
+      "version": "4.6.4",
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nuxt/nuxt.git",
+        "directory": "packages/vite"
+      },
+      "description": "Vite bundler for Nuxt",
+      "homepage": "https://nuxt.com",
+      "license": "MIT",
+      "type": "module",
+      "types": "./dist/index.d.mts",
+      "exports": {
+        ".": "./dist/index.mjs",
+        "./package.json": "./package.json"
+      },
+      "imports": {
+        "#ssr-sourcemap": "./dist/ssr-sourcemap.mjs",
+        "#vite-node": "./dist/vite-node.mjs",
+        "#vite-node-entry": "./dist/vite-node-entry.mjs",
+        "#vite-node-runner": "./dist/vite-node-runner.mjs",
+        "#vite-node-warmup": "./dist/vite-node-warmup.mjs"
+      },
+      "files": [
+        "dist"
+      ],
+      "dependencies": {
+        "@nuxt/kit": "4.6.4",
+        "@vitejs/plugin-vue": "^6.0.10",
+        "@vitejs/plugin-vue-jsx": "^5.1.6",
+        "autoprefixer": "^10.6.2",
+        "clickable-path": "^0.1.1",
+        "consola": "^3.4.2",
+        "cssnano": "^9.9.0",
+        "defu": "^6.1.7",
+        "escape-string-regexp": "^5.0.0",
+        "exsolve": "^1.2.0",
+        "generic-names": "^4.0.0",
+        "get-port-please": "^3.2.0",
+        "js-tokens": "^10.0.0",
+        "knitwork": "^1.3.0",
+        "mocked-exports": "^0.1.1",
+        "my-bad": "^0.2.11",
+        "pathe": "^2.0.3",
+        "pkg-types": "^2.4.0",
+        "postcss": "^8.5.32",
+        "rolldown-string": "^0.3.1",
+        "seroval": "^1.7.6",
+        "std-env": "^4.3.0",
+        "ufo": "^1.6.4",
+        "unenv": "^2.0.0-rc.24",
+        "vite": "^8.3.5",
+        "vite-node": "^6.0.0",
+        "vite-plugin-checker": "^0.14.5",
+        "vue-bundle-renderer": "^2.4.0"
+      },
+      "devDependencies": {
+        "@babel/plugin-proposal-decorators": "8.0.2",
+        "@babel/plugin-syntax-jsx": "8.0.1",
+        "@nuxt/schema": "4.6.4",
+        "h3": "1.15.11",
+        "h3-next": "npm:h3@2.0.2",
+        "nitropack": "2.13.6",
+        "rolldown": "~1.2.15",
+        "rollup": "4.67.4",
+        "rollup-plugin-visualizer": "7.1.1",
+        "tsdown": "0.23.2",
+        "vue": "^3.5.44"
+      },
+      "peerDependencies": {
+        "@babel/plugin-proposal-decorators": "^7.25.0 || ^8.0.0",
+        "@babel/plugin-syntax-jsx": "^7.25.0 || ^8.0.0",
+        "nuxt": "4.6.4",
+        "rolldown": "^1.0.0",
+        "rollup-plugin-visualizer": "^6.0.0 || ^7.0.1",
+        "vue": "^3.3.4"
+      },
+      "peerDependenciesMeta": {
+        "@babel/plugin-proposal-decorators": {
+          "optional": true
+        },
+        "@babel/plugin-syntax-jsx": {
+          "optional": true
+        },
+        "rolldown": {
+          "optional": true
+        },
+        "rollup-plugin-visualizer": {
+          "optional": true
+        }
+      },
+      "engines": {
+        "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+      },
+      "scripts": {
+        "build": "tsdown",
+        "test:attw": "node ../../scripts/test-attw.ts"
+      }
+    },
+    "files": {
+      "LICENSE": {
+        "sha256": "947a111b1c5797180b92547c6498358fd812b0f133090844dae324eb3fb2efc7",
+        "mode": 420
+      },
+      "package.json": {
+        "sha256": "260a870640297a1142e7ad0b398d54d6150e086348616f4f32b31788f6f9bf99",
+        "mode": 420
+      },
+      "README.md": {
+        "sha256": "a6f16b191d3d1cbb6c567152484e032cb69f6934d62bed187a15696ef5bcc034",
+        "mode": 420
+      },
+      "dist/index.mjs": {
+        "sha256": "f4dd80aa14936e191809b189481f73fa2ea88ff03eb6cd3c056bdf1a4bef90d8",
+        "mode": 420
+      },
+      "dist/ssr-sourcemap.mjs": {
+        "sha256": "de1157110c3c336500c35f936ef97c770f292e7e1660efc115b88d40eac26d5e",
+        "mode": 420
+      },
+      "dist/vite-node-entry.mjs": {
+        "sha256": "21762d2d916420e8d440f9710980959e681c02ff177f72ef33ccd4d41f0019e5",
+        "mode": 420
+      },
+      "dist/vite-node-runner.mjs": {
+        "sha256": "9b19e17eeb14dfa5ef00ed18a4d9988ff6caf0693994c9e0797efe95c8ef565f",
+        "mode": 420
+      },
+      "dist/vite-node-warmup.mjs": {
+        "sha256": "c5cdcc85e3f4beecc9802ae4081bd8dcdfae933eab5dc7fff34b95fb27e14a21",
+        "mode": 420
+      },
+      "dist/vite-node.mjs": {
+        "sha256": "cc779c15470870dd115c0df62719281ee85eee73fe1eb094000378cc62321c53",
+        "mode": 420
+      },
+      "dist/index.d.mts": {
+        "sha256": "db31881aa4593b66e2329c4bc9f2340d891440997cb65478d8fd89806021032f",
+        "mode": 420
+      },
+      "dist/ssr-sourcemap.d.mts": {
+        "sha256": "5720bfab3e74628126e3398e68ef4438fbf661886ad169753a0a454cb4e002a4",
+        "mode": 420
+      },
+      "dist/vite-node-entry.d.mts": {
+        "sha256": "d60c746e8121209f6a98ea43eb5e81452f620c7330f2a1cca69f4affc06a2d6b",
+        "mode": 420
+      },
+      "dist/vite-node-runner-BLL3YBPY.d.mts": {
+        "sha256": "0056a6df6d0d76adaa22b33fabc0de2851ef0640ed7bade96d34f76125b0dd75",
+        "mode": 420
+      },
+      "dist/vite-node-runner.d.mts": {
+        "sha256": "adeb8adc9b5d3bdaea0f8931b2d94bc0127c81256a2b532c132cc0ac0e9fe5b7",
+        "mode": 420
+      },
+      "dist/vite-node-warmup.d.mts": {
+        "sha256": "b2c89f8e998ff9d73cc30aeda1242eb4af21d255e96dacbd23436b8eb234a214",
+        "mode": 420
+      },
+      "dist/vite-node.d.mts": {
+        "sha256": "6095811d131b20fc98b99df4382533de2b4663568f6f0051900ed73585f39940",
+        "mode": 420
+      }
+    }
   }
 }

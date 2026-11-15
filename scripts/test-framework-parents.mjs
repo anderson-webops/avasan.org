@@ -55,11 +55,12 @@ test('all actual framework consumers bind the qualified providers and complete o
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   const original = JSON.parse(readFileSync(path.join(root, 'vendor/framework-parents/upstream/package-lock.json'), 'utf8')).packages
   for (const [name, version] of Object.entries({
-    vite: '8.3.8+webops.1',
-    nuxt: '4.6.4+webops.2',
-    nitropack: '2.13.6+webops.1',
-    rolldown: '1.3.2',
-    c12: '4.0.0-rc.4',
+    'vite': '8.3.8+webops.1',
+    'nuxt': '4.6.4+webops.2',
+    '@nuxt/vite-builder': '4.6.4+webops.1',
+    'nitropack': '2.13.6+webops.1',
+    'rolldown': '1.3.2',
+    'c12': '4.0.0-rc.4',
   })) {
     const matches = Object.entries(lock).filter(([filename]) => filename.endsWith(`node_modules/${name}`))
     assert.ok(matches.length, name)
@@ -67,11 +68,12 @@ test('all actual framework consumers bind the qualified providers and complete o
       assert.equal(metadata.version, version, filename)
   }
   for (const [name, version] of Object.entries({
-    vite: '8.3.8',
-    nuxt: '4.6.4',
-    nitropack: '2.13.6',
-    rolldown: '1.2.19',
-    c12: '3.3.4',
+    'vite': '8.3.8',
+    'nuxt': '4.6.4',
+    '@nuxt/vite-builder': '4.6.4',
+    'nitropack': '2.13.6',
+    'rolldown': '1.2.19',
+    'c12': '3.3.4',
   }))
     assert.equal(original[`node_modules/${name}`].version, version)
   for (const name of ['vite', 'nuxt', '@nuxt/vite-builder']) {
