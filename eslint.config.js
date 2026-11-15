@@ -17,6 +17,7 @@ export default antfu(
       'vendor/magicast/babel8.js',
       'vendor/unplugin-remove/index.js',
       'vendor/vite-plugin-checker/babel8.js',
+      'build-toolchain/compat/*/compat.cjs',
     ],
   },
   {

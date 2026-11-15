@@ -12,6 +12,7 @@ test('hash-bound adapter style exceptions retain mandatory archive and runtime v
     'vendor/magicast/babel8.js',
     'vendor/unplugin-remove/index.js',
     'vendor/vite-plugin-checker/babel8.js',
+    'build-toolchain/compat/*/compat.cjs',
   ])
     assert.ok(configuration.includes(`'${relative}'`), relative)
   for (const command of [
@@ -19,6 +20,7 @@ test('hash-bound adapter style exceptions retain mandatory archive and runtime v
     'check:magicast-package',
     'check:remove-package',
     'check:checker-package',
+    'check:toolchain-package',
     'test',
   ])
     assert.ok(manifest.scripts.validate.includes(`npm run ${command}`), command)
@@ -27,6 +29,7 @@ test('hash-bound adapter style exceptions retain mandatory archive and runtime v
     'test:magicast',
     'test:remove',
     'test:checker',
+    'test:toolchain-package',
   ])
     assert.ok(manifest.scripts.test.includes(`npm run ${command}`), command)
 })
