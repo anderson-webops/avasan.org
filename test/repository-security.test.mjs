@@ -4,6 +4,36 @@ import test from 'node:test'
 
 const readText = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
 
+test('hash-bound adapter style exceptions retain mandatory archive and runtime verification', () => {
+  const configuration = readText('eslint.config.js')
+  const manifest = JSON.parse(readText('package.json'))
+  for (const relative of [
+    'vendor/http-compat/*/compat.cjs',
+    'vendor/magicast/babel8.js',
+    'vendor/unplugin-remove/index.js',
+    'vendor/vite-plugin-checker/babel8.js',
+    'build-toolchain/compat/*/compat.cjs',
+  ])
+    assert.ok(configuration.includes(`'${relative}'`), relative)
+  for (const command of [
+    'check:encodeurl',
+    'check:magicast-package',
+    'check:remove-package',
+    'check:checker-package',
+    'check:toolchain-package',
+    'test',
+  ])
+    assert.ok(manifest.scripts.validate.includes(`npm run ${command}`), command)
+  for (const command of [
+    'test:encodeurl',
+    'test:magicast',
+    'test:remove',
+    'test:checker',
+    'test:toolchain-package',
+  ])
+    assert.ok(manifest.scripts.test.includes(`npm run ${command}`), command)
+})
+
 test('repository pins the approved runtime, lifecycle, and CI supply chain', () => {
   const packageJson = JSON.parse(readText('package.json'))
   const workflow = readText('.github/workflows/ci.yml')
@@ -19,14 +49,14 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools'], '0.8.2')
   assert.equal(frontendPackage.devDependencies['@vitejs/devtools-kit'], '0.8.2')
   assert.deepEqual(packageJson.engines, {
-    node: '>=26.13.0 <27',
+    node: '>=26.13.1 <27',
     npm: '>=12.2.2 <13',
   })
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.2': true,
     'fsevents@2.3.3': true,
-    'puppeteer@25.16.0': false,
-    'simple-git-hooks@2.14.0': true,
+    'puppeteer@25.17.0': false,
+    'simple-git-hooks': false,
     'unrs-resolver@1.12.2': true,
   })
   assert.match(readText('.npmrc'), /^include=optional$/mu)
@@ -74,7 +104,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.equal(existsSync(new URL('../Dockerfile', import.meta.url)), false)
   assert.equal(existsSync(new URL('../.dockerignore', import.meta.url)), false)
   assert.match(readText('deploy/direct/prepare-static-release.sh'), /checkout-based preparation is retired/u)
-  assert.match(readme, /release toolchain are Node\s+26\.13\.0 with npm 12\.2\.2/u)
+  assert.match(readme, /release toolchain are Node\s+26\.13\.1 with npm 12\.2\.2/u)
   assert.match(readme, /checkout-based preparation and promotion commands now fail closed/u)
   assert.doesNotMatch(readme, /sudo env NODE_BIN_DIR=/u)
   assert.match(staticArtifact, /openSync\(path, constants\.O_RDONLY \| constants\.O_NOFOLLOW \| constants\.O_NONBLOCK\)/u)

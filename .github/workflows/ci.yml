@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -37,8 +37,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Lint
         run: npm run lint
@@ -53,7 +59,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -62,8 +68,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Typecheck
         run: npm run typecheck
@@ -78,7 +90,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -87,8 +99,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Tests
         run: npm test
@@ -103,7 +121,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -112,8 +130,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Full dependency audit
         run: npm run audit
@@ -140,7 +164,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -149,8 +173,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Build and verify static deployment
         run: npm run build
@@ -165,7 +195,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -174,11 +204,30 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
 
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
+
       - name: Axe accessibility smoke checks
         run: npm run a11y
+
+      - name: Real shared-provider browser compatibility
+        run: |
+          npm run test:jsx-browser
+          npm run test:router-browser
+          npm run test:remove-host
+          npm run test:magicast-browser
+          npm run test:vue-compiler-browser
+          npm run test:checker-browser
+          npm run test:rollup-browser
+          npm run test:nitro-tools-browser
+          npm run test:nuxt-watcher-browser
+          npm run test:framework-browser
 
   native-arm64:
     runs-on: ubuntu-24.04-arm
@@ -191,7 +240,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -200,8 +249,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install ARM64 dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Verify ARM64 native bindings
         run: npm run verify:native-bindings
@@ -233,7 +288,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 26.13.0
+          node-version: 26.13.1
           cache: npm
 
       - name: Prepare independently locked build tools
@@ -242,8 +297,14 @@ jobs:
           printf '%s\n' "$bin" >> "$GITHUB_PATH"
           "$bin/node" scripts/check-build-toolchain.mjs
 
+      - name: Verify independently rebuilt compiler source
+        run: npm run prepare:unimport-source
+
       - name: Install dependencies
         run: npm ci --include=optional --strict-allow-scripts
+
+      - name: Install original-version and compiler fixtures
+        run: npm run prepare:compiler-fixtures
 
       - name: Build direct static release
         env:

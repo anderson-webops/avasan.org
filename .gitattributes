@@ -1,4 +1,4 @@
-* text=auto
+* text=auto eol=lf
 
 *.cjs text eol=lf
 *.cts text eol=lf
@@ -35,3 +35,6 @@ vendor/qs/dist/qs.js.LICENSES.txt text eol=lf
 *.jpg binary
 *.png binary
 *.webp binary
+*.woff2 binary
+*.git binary
+*.gpg binary

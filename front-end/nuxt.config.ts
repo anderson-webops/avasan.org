@@ -10,7 +10,9 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: process.env.CI !== 'true' && process.env.NUXT_A11Y_SCAN !== 'true',
+    enabled: process.env.NODE_ENV !== 'production'
+      && process.env.CI !== 'true'
+      && process.env.NUXT_A11Y_SCAN !== 'true',
   },
 
   app: {
@@ -41,7 +43,7 @@ export default defineNuxtConfig({
     typedPages: true,
   },
 
-  compatibilityDate: '2024-08-14',
+  compatibilityDate: '2026-07-24',
 
   nitro: {
     esbuild: {

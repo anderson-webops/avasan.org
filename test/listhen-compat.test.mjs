@@ -43,7 +43,7 @@ test('local listhen fork keeps ESM, CommonJS, HTTPS and PFX behavior without nod
   const rootPackage = JSON.parse(await readFile(join(projectRoot, 'package.json'), 'utf8'))
   const forkPackage = JSON.parse(await readFile(join(projectRoot, 'vendor/listhen/package.json'), 'utf8'))
   const lockfile = JSON.parse(await readFile(join(projectRoot, 'package-lock.json'), 'utf8'))
-  assert.equal(rootPackage.devDependencies.listhen, 'file:vendor/listhen')
+  assert.equal(rootPackage.devDependencies.listhen, 'file:vendor/listhen-1.10.1-webops.3.tgz')
   assert.equal(rootPackage.overrides.listhen, '$listhen')
   assert.equal(forkPackage.dependencies['node-forge'], undefined)
   assert.equal(forkPackage.dependencies.selfsigned, '5.5.0')

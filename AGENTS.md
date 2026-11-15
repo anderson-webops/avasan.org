@@ -58,7 +58,7 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 
 ## Build, Test, and Development Commands
 
-- Prepare the independently locked npm profile with `node scripts/build-toolchain.mjs --print-bin`; select its returned directory on PATH. `npm ci` then installs the committed workspace dependencies with Node 26.13.0 and npm 12.2.2. Use npm at the repo root; do not mix package managers for normal
+- Prepare the independently locked npm profile with `node scripts/build-toolchain.mjs --print-bin`; select its returned directory on PATH. `npm ci` then installs the committed workspace dependencies with Node 26.13.1 and npm 12.2.2. Use npm at the repo root; do not mix package managers for normal
   development.
 - `npm run dev` starts the Nuxt front-end on port `3333`.
 - `npm run typecheck` runs the Nuxt TypeScript check.
@@ -91,7 +91,8 @@ Shared Sites policy (`../AGENTS.md` when available) applies. These essentials al
 ## Dependency & Lockfile Discipline
 
 - Keep the root `package-lock.json` aligned with every workspace manifest. For dependency changes, review production and development packages, regenerate and include the lockfile, and run a clean root `npm ci` (not an install fallback), both audits, and the validation gates above.
-- Vue and its checker retain the TypeScript 6 compiler API. Frontend DevTools 0.8.2 and the original plugin's separate 0.7 dependencies must pass the complete peer graph and real host fixtures without altered peer metadata. Build-time Archiver 8 uses the framework's supported named exports; no application backend is present.
+- Vue and ESLint retain the TypeScript 6 compiler API; the independently named TypeScript 7 CLI validates modern library fixtures. The maintained Unhead/Vue DevTools adapters support the selected DevTools 0.8.2 host, preserving their original upstream metadata and licenses separately. Verify the complete peer graph, original-input hashes, real host/MCP fixtures and browser behavior; an override alone is not compatibility evidence. Build-time Archiver 8 uses supported named exports; no application backend is present.
+- Verify the signed-source auto-import compiler with `npm run prepare:unimport-source` before a clean locked application install, then install the independent original/compiler graphs with `npm run prepare:compiler-fixtures`. Use `npm run validate`, the full/production/signature audits and applicable real-browser fixtures. Preserve the original registry-attestation limitation separately from source-build provenance.
 
 ## Static artifact and recovery acceptance
 
