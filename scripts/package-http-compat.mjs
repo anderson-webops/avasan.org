@@ -9,8 +9,13 @@ import { gunzipSync } from 'node:zlib'
 const root = path.resolve(import.meta.dirname, '..')
 const source = path.join(root, 'vendor/http-compat')
 const inputs = JSON.parse(await readFile(path.join(source, 'UPSTREAM.json'), 'utf8'))
-const packages = inputs.packages.filter(input => input.name === 'encodeurl')
-assert.deepEqual(packages.map(input => input.name), ['encodeurl'])
+const packages = inputs.packages
+assert.deepEqual(packages.map(input => input.name), [
+  'cookie',
+  'encodeurl',
+  'raw-body',
+  'type-is',
+])
 const check = process.argv[2] === '--check'
 const intake = process.argv[2] === '--intake'
   ? path.resolve(process.argv[3])
@@ -118,9 +123,12 @@ try {
       const reviewed = await readFile(target)
       assert.ok(gunzipSync(reviewed, { maxOutputLength: 4 * 1024 * 1024 }).equals(gunzipSync(archive, { maxOutputLength: 4 * 1024 * 1024 })), `${archiveName} must reproduce from the original library and reviewed bridge`)
       const archiveIntegrity = `sha512-${createHash('sha512').update(reviewed).digest('base64')}`
-      for (const lockfile of ['package-lock.json']) {
+      const lockfiles = ['vendor/framework-parents/upstream/package-lock.json']
+      if (input.name === 'encodeurl')
+        lockfiles.push('package-lock.json')
+      for (const lockfile of lockfiles) {
         const lock = JSON.parse(await readFile(path.join(root, lockfile), 'utf8'))
-        assert.equal(lock.packages[`node_modules/${input.name}`]?.integrity, archiveIntegrity, `${input.name} must match the immutable application lockfile input`)
+        assert.equal(lock.packages[`node_modules/${input.name}`]?.integrity, archiveIntegrity, `${input.name} must match the immutable scoped lockfile input`)
       }
     }
     else {
@@ -137,4 +145,4 @@ finally {
   await rm(scratch, { recursive: true })
 }
 
-console.log(check ? 'The encoder archive reproduces from unchanged modern input and the application lock.' : 'The encoder archive was generated from verified modern library input.')
+console.log(check ? 'All four HTTP archives reproduce from unchanged modern inputs and scoped consuming locks.' : 'The HTTP archives were generated from verified modern library inputs.')

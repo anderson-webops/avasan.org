@@ -57,7 +57,11 @@ The modern URL encoder uses the unchanged encodeurl3 implementation with the
 canonical callable CommonJS bridge. Its separate original-registry lock receives
 full/production/signature audits. Actual send/serve-static resolution, Unicode,
 malformed surrogates, redirects and header-injection boundaries are tested.
-Unrelated cookie/body-parser/API adapters are not application dependencies.
+Cookie, body-parser and media-type adapters are restricted to the independent
+framework comparison; they remain absent from application dependencies. Their
+exact archives also reproduce from the preserved modern inputs and scoped locks.
+Every declared local input is checked on disk, and every locked local archive is
+hash-verified before installation, independently of package-manager caches.
 
 Original-input signature checks cover every installed independent reference
 graph, including direct dependencies of otherwise leaf-only graphs. The

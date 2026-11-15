@@ -2,6 +2,7 @@
 set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd -- "$root"
+node scripts/check-local-inputs.mjs
 python3 -B scripts/check-unimport-source.py
 npm ci --prefix vendor/unimport/build --workspaces=false --include=optional --strict-allow-scripts
 npm audit --prefix vendor/unimport/build --workspaces=false --audit-level=low

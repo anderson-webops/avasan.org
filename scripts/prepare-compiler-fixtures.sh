@@ -2,6 +2,7 @@
 set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd -- "$root"
+node scripts/check-local-inputs.mjs
 for graph in \
   vendor/http-compat/reference \
   vendor/schema-parents/tools \
