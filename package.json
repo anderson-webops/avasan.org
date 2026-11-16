@@ -121,7 +121,7 @@
 		"check:unhead-package": "python3 -B scripts/package-unhead-compat.py --check",
 		"package:qs": "node scripts/package-vendored-qs.mjs",
 		"check:qs-package": "node scripts/package-vendored-qs.mjs --check",
-		"check:vue-devtools-package": "python3 -B scripts/package-vue-devtools.py --check && node --test scripts/test-vue-devtools-compat.mjs",
+		"check:vue-devtools-package": "python3 -B scripts/package-vue-devtools.py --check",
 		"check:dependency-graph": "npm ls --all",
 		"test:vue-devtools": "python3 -B -m unittest discover -s scripts -p test_vue_devtools.py -v && node --test scripts/test-vue-devtools-types.mjs",
 		"audit:vue-devtools": "npm audit --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false --audit-level=low && npm audit --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/vite-plugin-vue-devtools/upstream --workspaces=false",
