@@ -101,8 +101,10 @@ test('all parent consumers resolve the actual current native versions without le
     assert.equal(consumer.resolve('unconfig'), require.resolve('unconfig'))
   }
   for (const [filename, metadata] of Object.entries(lock)) {
-    if (/(?:^|\/)node_modules\/(?:@unocss\/[^/]+|unocss)$/.test(filename))
-      assert.match(metadata.version, /^66\.13\.0(?:-webops\.1)?$/, filename)
+    if (/(?:^|\/)node_modules\/(?:@unocss\/[^/]+|unocss)$/.test(filename)) {
+      const name = filename.slice(filename.lastIndexOf('node_modules/') + 'node_modules/'.length)
+      assert.equal(metadata.version, records[name]?.patchedVersion ?? '66.13.0', filename)
+    }
   }
 })
 
