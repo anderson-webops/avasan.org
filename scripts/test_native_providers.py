@@ -76,8 +76,8 @@ class NativeProviderPackages(unittest.TestCase):
 
     def test_native_family_upgrade_rejects_previous_ranges_and_maintained_identities(self):
         previous = {
-            "eslint-plugin-format": ("^0.77.0", "2.0.1-webops.1"),
-            "@unocss/transformer-attributify-jsx": ("^0.157.0", "66.12.0-webops.1"),
+            "eslint-plugin-format": ("^0.78.0", "2.0.1-webops.2"),
+            "@unocss/transformer-attributify-jsx": ("^0.158.0", "66.13.0-webops.1"),
         }
         for name, payload, record in self.originals():
             if name not in previous:

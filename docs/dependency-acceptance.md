@@ -33,14 +33,14 @@ locked installation remain required alongside full source and dependency checks.
 ## Schema and identifier parents
 
 The application graph uses Ajv 8.20.0, Fast URI 4.2.3 and NanoID 6.0.2.
-Maintained ESLint 10.14.0+webops.2 selects the native Ajv 8 engine with the
+Maintained ESLint 10.15.0+webops.2 selects the native Ajv 8 engine with the
 official draft-04 adapter and format plugin. It preserves ESLint's previous
 default of ignoring OpenAPI's `nullable` extension. Ajv's typed, per-instance
 `allowNullable` option keeps ordinary Ajv behavior unchanged; the ESLint factory
 translates its existing opt-in. Rule schemas, references, defaults and input
 data remain intact. Unresolved references fail closed.
 
-Ajv 8.20.0+webops.2 declares Fast URI 4, and PostCSS 8.5.32+webops.1 declares
+Ajv 8.20.0+webops.2 declares Fast URI 4, and PostCSS 8.5.33+webops.1 declares
 NanoID 6. PostCSS's synchronous CommonJS import uses the qualified Node 26
 runtime, reflected in its maintained engine requirement. Registry originals,
 licenses and all 942 original files and permissions remain bound by
@@ -48,6 +48,12 @@ licenses and all 942 original files and permissions remain bound by
 retains Ajv 6 only inside unmodified registry ESLint, outside the application
 graph. Both reference and compilation graphs have independent locked installs,
 full/production audits and signature checks.
+
+Standalone signature checks use `npm audit signatures --prefix <graph>` with
+their complete installed graph. In npm 12.2.2, the `--workspaces=false` signature
+filter omits direct root edges and leaves a single-package compiler graph
+without auditable dependencies. Full and production vulnerability audits retain
+their explicit standalone workspace scope.
 
 The reproducible producer checks every original byte and permits only declared
 metadata and source changes. Three Ajv CommonJS modules and their source maps
@@ -117,12 +123,12 @@ trusted file-source identities, with strict script review retained.
 
 ## Native parser and formatter consumers
 
-The application uses Oxc parser 0.158.0 and Oxfmt 0.78.0 through qualified
+The application uses Oxc parser 0.159.0 and Oxfmt 0.79.0 through qualified
 UnoCSS and ESLint parents. `vendor/native-providers/UPSTREAM.json` binds the
 complete original package inventories and registry archives. Reproduce and
 verify the maintained distributions with `npm run check:native-providers`.
-Their identities are ESLint-format 2.0.1-webops.2, UnoCSS attributify-JSX
-66.13.0-webops.1, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
+Their identities are ESLint-format 2.0.1-webops.3, UnoCSS attributify-JSX
+66.13.0-webops.2, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
 All application UnoCSS consumers use the 66.13.0 family, including Nuxt,
 presets, ESLint integration and the updated Vite pipeline/configuration loader.
 The formatter and JSX-transformer use new maintained archive identities for
@@ -671,7 +677,7 @@ and production audits also cover the independent original comparison graph.
 
 ## File-tracer provider acceptance
 
-The maintained `@vercel/nft@1.11.1-webops.1` distribution uses the original
+The maintained `@vercel/nft@1.11.7-webops.1` distribution uses the original
 native `estree-walker@3.0.3` implementation. Its existing asynchronous analysis
 boundary imports the ESM walker before traversal. Its synchronous wrapper
 preprocessor uses the qualified Rollup utility cohort's reproducibly built
@@ -693,6 +699,9 @@ warnings, exclusions and reason chains with the original parent. It exercises
 concurrent delayed I/O, repeat/cache and failure recovery, strict positive and
 negative TypeScript 6/7 consumers, and actual CLI tracing/copying. The copied
 synthetic application runs repeatedly with read access limited to its output.
+The current upstream's import metadata, `#/` package imports and nested
+CommonJS asset dependencies are compared against the exact original release
+with explicit required-file assertions.
 Existing compiled Nitro and browser checks remain separate required gates.
 
 ## Vite checker and native Babel 8 code frames

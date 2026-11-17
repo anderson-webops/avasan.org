@@ -17,18 +17,19 @@ MAX_EXPANDED = 16 * 1024 * 1024
 PACKAGES = {
     "eslint-plugin-format": {
         "version": "2.0.1",
-        "revision": 2,
+        "revision": 3,
         "dependency": "oxfmt",
         "originalRange": "^0.35.0",
-        "qualifiedRange": "^0.78.0",
+        "qualifiedRange": "^0.79.0",
         "fileCount": 10,
         "required": {"LICENSE", "dist/index.mjs", "dist/index.d.mts", "dts/rule-options.d.ts", "workers/oxfmt.cjs", "workers/prettier.cjs", "workers/dprint.cjs"},
     },
     "@unocss/transformer-attributify-jsx": {
         "version": "66.13.0",
+        "revision": 2,
         "dependency": "oxc-parser",
         "originalRange": "^0.153.0",
-        "qualifiedRange": "^0.158.0",
+        "qualifiedRange": "^0.159.0",
         "fileCount": 4,
         "required": {"README.md", "dist/index.mjs", "dist/index.d.mts"},
     },
