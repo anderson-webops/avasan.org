@@ -129,6 +129,13 @@ complete original package inventories and registry archives. Reproduce and
 verify the maintained distributions with `npm run check:native-providers`.
 Their identities are ESLint-format 2.0.1-webops.3, UnoCSS attributify-JSX
 66.13.0-webops.2, UnoCSS Vite 66.13.0-webops.1 and Unconfig 7.5.0-webops.1.
+
+Nuxt explicit-imports 0.1.0-webops.1 also selects Oxc 0.159. Its ten original
+files, executable CLI, module declarations and packaged guidance remain intact.
+The existing independent framework graph supplies the original comparison.
+Native analysis compares implicit references, shadowing, TypeScript type usage
+and Vue templates; the application's strict module mode remains active during
+complete source builds and browser acceptance.
 All application UnoCSS consumers use the 66.13.0 family, including Nuxt,
 presets, ESLint integration and the updated Vite pipeline/configuration loader.
 The formatter and JSX-transformer use new maintained archive identities for

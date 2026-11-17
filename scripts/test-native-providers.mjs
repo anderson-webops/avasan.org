@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import process from 'node:process'
 import test from 'node:test'
 import { pathToFileURL } from 'node:url'
 import { originalPositionFor, TraceMap } from '@jridgewell/trace-mapping'
@@ -17,6 +19,7 @@ import MagicString from 'magic-string'
 const root = path.resolve(import.meta.dirname, '..')
 const require = createRequire(import.meta.url)
 const original = createRequire(path.join(root, 'vendor/native-providers/upstream/package.json'))
+const originalFramework = createRequire(path.join(root, 'vendor/framework-parents/upstream/package.json'))
 const records = JSON.parse(readFileSync(path.join(root, 'vendor/native-providers/UPSTREAM.json'), 'utf8'))
 const load = (name, resolver = require) => import(pathToFileURL(resolver.resolve(name)))
 const formatter = await load('oxfmt')
@@ -110,6 +113,7 @@ test('all parent consumers resolve the actual current native versions without le
 
 test('maintained parents preserve all original payload bytes except the two exact reviewed corrections', () => {
   const dependencyNames = {
+    'nuxt-explicit-imports': 'oxc-parser',
     'eslint-plugin-format': 'oxfmt',
     '@unocss/transformer-attributify-jsx': 'oxc-parser',
     'unconfig': 'unconfig-core',
@@ -117,7 +121,10 @@ test('maintained parents preserve all original payload bytes except the two exac
   }
   for (const [name, record] of Object.entries(records)) {
     const directory = path.resolve(path.dirname(require.resolve(name)), '..')
-    const originalDirectory = path.resolve(path.dirname(original.resolve(name)), '..')
+    const resolver = name === 'nuxt-explicit-imports'
+      ? originalFramework
+      : original
+    const originalDirectory = path.resolve(path.dirname(resolver.resolve(name)), '..')
     for (const [filename, digest] of Object.entries(record.files)) {
       const source = readFileSync(path.join(originalDirectory, filename))
       assert.equal(createHash('sha256').update(source).digest('hex'), digest)
@@ -133,6 +140,56 @@ test('maintained parents preserve all original payload bytes except the two exac
     expected.private = true
     expected.dependencies[dependencyNames[name]] = record.qualifiedRange
     assert.deepEqual(JSON.parse(readFileSync(path.join(directory, 'package.json'), 'utf8')), expected)
+  }
+})
+
+test('the explicit-import analyzer preserves native scope, type and Vue-template decisions', async () => {
+  const directory = path.dirname(require.resolve('nuxt-explicit-imports'))
+  const originalDirectory = path.dirname(originalFramework.resolve('nuxt-explicit-imports'))
+  const { f: analyze } = await import(pathToFileURL(path.join(directory, 'report-BKPqp4bg.mjs')))
+  const { f: baseline } = await import(pathToFileURL(path.join(originalDirectory, 'report-BKPqp4bg.mjs')))
+  const consumer = createRequire(require.resolve('nuxt-explicit-imports'))
+  assert.equal(consumer.resolve('oxc-parser'), require.resolve('oxc-parser'))
+  assert.equal(execFileSync(process.execPath, [
+    path.join(directory, 'cli.mjs'),
+    '--version',
+  ], { encoding: 'utf8' }).trim(), '0.1.0')
+  const project = {
+    sideOf: () => 'client',
+    getImports: async () => [
+      { name: 'ref', from: 'vue' },
+      { name: 'Ref', from: 'vue', type: true },
+    ],
+    sourceFor: item => item.from,
+    getComponents: () => [],
+    typescript: true,
+  }
+  for (const [filename, source, expected] of [
+    [
+      'implicit.ts',
+      'const value: Ref<number> = ref(1)',
+      ['Ref', 'ref'],
+    ],
+    [
+      'shadowed.ts',
+      'const ref = () => 1; ref()',
+      [],
+    ],
+    [
+      'typed.vue',
+      '<script setup lang="ts">const value: Ref<number> = ref(1)</script><template>{{ value }}</template>',
+      ['Ref', 'ref'],
+    ],
+    [
+      'template.vue',
+      '<template>{{ ref(1) }}</template>',
+      ['ref'],
+    ],
+  ]) {
+    const actual = await analyze(project, filename, source)
+    const previous = await baseline(project, filename, source)
+    assert.deepEqual(actual.usages, previous.usages, filename)
+    assert.deepEqual(actual.usages.map(item => item.name).sort(), expected, filename)
   }
 })
 

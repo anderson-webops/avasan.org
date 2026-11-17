@@ -204,6 +204,7 @@
 		"nanoid": "6.0.2",
 		"nitropack": "file:vendor/nitropack-2.13.6-webops.1.tgz",
 		"nuxt": "file:vendor/nuxt-4.6.4-webops.2.tgz",
+		"nuxt-explicit-imports": "file:vendor/nuxt-explicit-imports-0.1.0-webops.1.tgz",
 		"oxc-parser": "0.159.0",
 		"oxfmt": "0.79.0",
 		"picomatch": "file:vendor/picomatch-4.0.7-webops.1.tgz",
@@ -239,6 +240,7 @@
 		"pre-commit": "npm run lint"
 	},
 	"overrides": {
+		"nuxt-explicit-imports": "$nuxt-explicit-imports",
 		"content-disposition": "3.0.0",
 		"content-type": "3.1.1",
 		"cookie": "$cookie",
