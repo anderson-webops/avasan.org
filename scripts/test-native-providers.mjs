@@ -150,10 +150,13 @@ test('the explicit-import analyzer preserves native scope, type and Vue-template
   const { f: baseline } = await import(pathToFileURL(path.join(originalDirectory, 'report-BKPqp4bg.mjs')))
   const consumer = createRequire(require.resolve('nuxt-explicit-imports'))
   assert.equal(consumer.resolve('oxc-parser'), require.resolve('oxc-parser'))
-  assert.equal(execFileSync(process.execPath, [
-    path.join(directory, 'cli.mjs'),
+  const versionOutput = location => execFileSync(process.execPath, [
+    path.join(location, 'cli.mjs'),
     '--version',
-  ], { encoding: 'utf8' }).trim(), '0.1.0')
+  ], { encoding: 'utf8' })
+  const output = versionOutput(directory)
+  assert.equal(output, versionOutput(originalDirectory))
+  assert.match(output, /^nuxt-explicit-imports\/0\.1\.0(?:\s|$)/)
   const project = {
     sideOf: () => 'client',
     getImports: async () => [
