@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.36",
+	"version": "2.1.37",
 	"private": true,
 	"packageManager": "npm@12.2.2",
 	"engines": {
@@ -54,8 +54,8 @@
 		"test:local-libraries": "python3 -B -m unittest discover -s scripts -p test_local_libraries.py -v && node --test scripts/test-local-library-install.mjs",
 		"package:unimport-source": "python3 -B scripts/build-unimport-source.py",
 		"check:unimport-source": "python3 -B scripts/build-unimport-source.py --check --installed",
-		"test:unimport-source": "node --test --test-concurrency=1 scripts/test-unimport-source.mjs && node scripts/test-unimport-artifact.mjs && python3 -B -m unittest discover -s scripts -p test_unimport_source.py -v",
-		"audit:unimport-source": "npm audit --prefix vendor/unimport/build --workspaces=false --audit-level=low && npm audit --prefix vendor/unimport/build --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/unimport/build --workspaces=false && npm audit --prefix vendor/unimport/runtime --workspaces=false --audit-level=low && npm audit --prefix vendor/unimport/runtime --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/unimport/runtime --workspaces=false",
+		"test:unimport-source": "python3 -B scripts/build-unimport-source.py --check --installed --validate-upstream && node --test --test-concurrency=1 scripts/test-unimport-source.mjs && node scripts/test-unimport-artifact.mjs && python3 -B -m unittest discover -s scripts -p test_unimport_source.py -v",
+		"audit:unimport-source": "npm audit --prefix vendor/unimport/build --workspaces=false --audit-level=low && npm audit --prefix vendor/unimport/build --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/unimport/build && npm audit --prefix vendor/unimport/runtime --workspaces=false --audit-level=low && npm audit --prefix vendor/unimport/runtime --workspaces=false --omit=dev --audit-level=low && npm audit signatures --prefix vendor/unimport/runtime",
 		"check:watcher-inputs": "python3 -B scripts/check-watcher-inputs.py && python3 -B scripts/package-jiti-compat.py --check",
 		"audit:watchers": "npm audit --prefix vendor/watchers/upstream --workspaces=false --audit-level=low && npm audit --prefix vendor/watchers/upstream --workspaces=false --omit=dev --audit-level=low",
 		"check:nft-package": "python3 -B scripts/package-nft-compat.py --check",
@@ -218,7 +218,7 @@
 		"type-is": "file:back-end/vendor/type-is-3.0.0-webops.2.tgz",
 		"typescript": "^6.0.3",
 		"unconfig": "file:vendor/unconfig-7.5.0-webops.1.tgz",
-		"unimport": "file:vendor/unimport-7.0.2-webops.3.tgz",
+		"unimport": "file:vendor/unimport-7.0.3-webops.1.tgz",
 		"unplugin": "^3.7.0",
 		"unplugin-remove": "file:vendor/unplugin-remove-1.0.3-webops.1.tgz",
 		"unwasm": "file:vendor/unwasm-0.6.3-webops.1.tgz",

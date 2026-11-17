@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useHead } from '#app'
+import { useColorMode } from '#imports'
+
 const color = useColorMode()
 const toggleLabel = computed(() => color.value === 'dark'
   ? 'Switch to light theme'

@@ -399,14 +399,25 @@ both legacy API consumers. Full production installation and runtime inventory
 checks reject both compiler packages; Linux ARM64 binding and artifact checks
 remain required.
 
-Nuxt 4.6.4 requires `unimport ^7.0.2`. Its locked and installed provider must
-satisfy that original API contract. The maintained `7.0.2+webops.3` provider is
-independently rebuilt from the complete signed v7.0.2 source tree. Both signed
-Git objects, the public signer, all 224 source files, the independent audited
+Nuxt 4.6.4 requires `unimport ^7.0.2`; `nuxt-explicit-imports@0.1.0` requires
+`^7.0.3`. Their locked and installed provider must satisfy both original API
+contracts. The maintained `7.0.3+webops.1` provider is independently rebuilt
+from the complete signed v7.0.3 source tree. Both signed Git objects, the public
+signer, all 226 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.
-The original registry package's advertised attestation still returns HTTP 404;
-that failed provenance receipt remains distinct from this source rebuild.
+The official 7.0.3 registry reference separately passed exact-version signature
+and SLSA subject verification. Historical 7.0.2 provenance failures remain
+historical evidence; this new reference does not retrospectively certify them.
 See `vendor/unimport/README.md` for the reproducible build and exact scope.
+
+Antfu upstream `a5bb2968ff3562be8d7a01921572a2021c122852` introduces explicit
+Nuxt imports. The maintained frontend enables the module's strict mode and
+imports its composables and components explicitly while preserving the
+independent Express API, static generation, themes and same-origin health call.
+The icon preset loads its two declared local collections explicitly. A compiled
+browser flow exposed absent icon CSS and a zero-size theme control despite a
+successful build. Deployment-output checks now require the six essential icon
+rules, alongside real browser counter, theme, navigation and health checks.
 
 All actual unscoped application consumers use that qualified major-7 provider,
 with native Nuxt/Nitro, source, browser and strict core/addon declaration tests.

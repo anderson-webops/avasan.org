@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { definePageMeta } from '#app/composables/pages'
+import { ClientOnly } from '#components'
+import BackendStatus from '~/components/BackendStatus.vue'
+import InputEntry from '~/components/InputEntry.vue'
+import Logos from '~/components/Logos.vue'
+
 definePageMeta({
   layout: 'home',
 })

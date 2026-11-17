@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { useRouter } from '#app'
+
 const name = ref('')
 const normalizedName = computed(() => name.value.trim().slice(0, 80))
 

@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useRequestFetch, useRuntimeConfig } from '#app'
+
 const runtimeConfig = useRuntimeConfig()
+const request = useRequestFetch()
 const status = ref<'loading' | 'online' | 'offline'>('loading')
 
 onMounted(async () => {
   try {
     const apiBaseUrl = runtimeConfig.public.apiBaseUrl.replace(/\/$/, '')
-    const response = await $fetch<{ ok: boolean }>(`${apiBaseUrl}/health`, {
+    const response = await request<{ ok: boolean }>(`${apiBaseUrl}/health`, {
       retry: 0,
       timeout: 5_000,
     })

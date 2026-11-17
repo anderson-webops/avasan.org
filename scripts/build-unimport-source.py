@@ -18,7 +18,7 @@ SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 ROOT = SOURCE.ROOT
 BUILD = SOURCE.SOURCE / "build"
-TARGET = ROOT / "vendor/unimport-7.0.2-webops.3.tgz"
+TARGET = ROOT / "vendor/unimport-7.0.3-webops.1.tgz"
 CONFIG = ROOT / "scripts/unimport-build.config.mjs"
 
 
@@ -119,7 +119,7 @@ def build_once(original, check_upstream):
     metadata = json.loads(original["package.json"])
     for key in ["devDependencies", "scripts", "packageManager", "resolutions"]:
         metadata.pop(key, None)
-    metadata.update(version="7.0.2+webops.3", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.1 <27"})
+    metadata.update(version="7.0.3+webops.1", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.1 <27"})
     for filename in ["LICENSE", "README.md", *sorted(name for name in original if "/" not in name and name.endswith(".d.ts"))]:
         output["package/" + filename] = original[filename]
     output["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
@@ -143,7 +143,7 @@ def verify_installed(data, prefix):
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
         files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
     for name, info in consumers:
-        SOURCE.require(info["version"] == "7.0.2+webops.3" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
+        SOURCE.require(info["version"] == "7.0.3+webops.1" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
         directory = prefix / name
         SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
         for filename, content in files.items():
@@ -155,9 +155,10 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--installed", action="store_true")
     parser.add_argument("--installed-prefix", type=Path)
+    parser.add_argument("--validate-upstream", action="store_true")
     args = parser.parse_args()
     original = SOURCE.verify_source()
-    first = build_once(original, True)
+    first = build_once(original, args.validate_upstream)
     second = build_once(original, False)
     SOURCE.require(first == second, "Independent source builds are not reproducible")
     if args.check:
