@@ -1,7 +1,7 @@
 # Signed-source auto-import compiler
 
-The maintained `unimport-7.0.3-webops.1.tgz` is compiled from upstream's complete
-signed v7.0.3 source tree. Its package version `7.0.3+webops.1` preserves the
+The maintained `unimport-7.0.3-webops.2.tgz` is compiled from upstream's complete
+signed v7.0.3 source tree. Its package version `7.0.3+webops.2` preserves the
 upstream API version and identifies this independently built derivative.
 The original npm package's registry signatures and exact-version SLSA subject
 were independently verified. `UPSTREAM.json` records that separate reference;
@@ -49,6 +49,11 @@ read restrictions with the source checkout and development tools denied. A
 required runtime-module deletion must fail; restoring that exact module must
 recover in a fresh process. The earlier `.1` archive remains a historical
 comparison artifact and is absent from the current consuming locks.
+
+The compiler graph selects the reviewed local Picomatch archive. The emitted
+package declares its exact maintained version without embedding that local
+path. Consuming application and runtime graphs supply that same archive;
+source checks bind its digest and reject unexpected local runtime dependencies.
 
 Compiled core and addon declarations receive strict NodeNext consumer checks
 with `skipLibCheck: false`. The unplugin entrypoint retains its upstream

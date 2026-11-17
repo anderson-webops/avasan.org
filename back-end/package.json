@@ -1,6 +1,6 @@
 {
   "name": "back-end",
-  "version": "2.1.38",
+  "version": "2.1.39",
   "private": true,
   "description": "Minimal Express API for the vitesse-nuxt monorepo template.",
   "type": "module",
@@ -48,9 +48,10 @@
     "path-to-regexp": "9.0.0",
     "raw-body": "$raw-body",
     "type-is": "$type-is",
-    "minimatch": "11.0.8",
+    "minimatch": "11.0.9",
     "nanoid@^3": "3.3.20",
-    "qs": "$qs"
+    "qs": "$qs",
+    "picomatch": "$picomatch"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
@@ -61,6 +62,7 @@
     "tsx": "^4.23.15",
     "typescript-eslint": "^8.73.0",
     "typescript-native": "npm:typescript@7.0.2",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "picomatch": "file:../vendor/picomatch-4.0.7-webops.1.tgz"
   }
 }

@@ -405,7 +405,7 @@ remain required.
 
 Nuxt 4.6.4 requires `unimport ^7.0.2`; `nuxt-explicit-imports@0.1.0` requires
 `^7.0.3`. Their locked and installed provider must satisfy both original API
-contracts. The maintained `7.0.3+webops.1` provider is independently rebuilt
+contracts. The maintained `7.0.3+webops.2` provider is independently rebuilt
 from the complete signed v7.0.3 source tree. Both signed Git objects, the public
 signer, all 226 source files, the independent audited
 compiler lock, source patch and resulting installed bytes are verified.

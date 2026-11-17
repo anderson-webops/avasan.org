@@ -119,7 +119,23 @@ class UnimportSourceTests(unittest.TestCase):
         with tarfile.open(BUILD.TARGET, mode="r:gz") as archive:
             self.assertEqual(archive.extractfile("package/LICENSE").read(), original["LICENSE"])
             self.assertEqual(archive.extractfile("package/UPSTREAM-PACKAGE.json").read(), original["package.json"])
-            self.assertEqual(json.load(archive.extractfile("package/package.json"))["version"], "7.0.3+webops.1")
+            metadata = json.load(archive.extractfile("package/package.json"))
+            self.assertEqual(metadata["version"], "7.0.3+webops.2")
+            self.assertEqual(metadata["dependencies"]["picomatch"], "4.0.7-webops.1")
+            self.assertTrue(all(not specification.startswith("file:") for specification in metadata["dependencies"].values()))
+
+    def test_runtime_provider_translation_preserves_the_compiler_graph_and_rejects_drift(self):
+        manifest = json.loads((BUILD.BUILD / "package.json").read_text())
+        unchanged = copy.deepcopy(manifest)
+        dependencies = BUILD.runtime_dependencies(manifest)
+        self.assertEqual(manifest, unchanged)
+        self.assertEqual(dependencies["picomatch"], "4.0.7-webops.1")
+        for name, specification in [("picomatch", "^4.0.7"), ("magic-string", "file:../unexpected")]:
+            with self.subTest(name=name):
+                changed = copy.deepcopy(manifest)
+                changed["dependencies"][name] = specification
+                with self.assertRaises(ValueError):
+                    BUILD.runtime_dependencies(changed)
 
     def test_upstream_checks_run_once_when_requested_and_both_builds_always_run(self):
         for arguments, expected in [([], [False, False]), (["--validate-upstream"], [True, False])]:

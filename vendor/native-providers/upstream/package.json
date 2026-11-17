@@ -17,10 +17,14 @@
     "unconfig": "7.5.0"
   },
   "overrides": {
-    "minimatch": "11.0.5",
-    "tinypool": "2.2.0"
+    "minimatch": "11.0.9",
+    "tinypool": "2.2.0",
+    "picomatch": "$picomatch"
   },
   "allowScripts": {
     "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "picomatch": "file:../../picomatch-4.0.7-webops.1.tgz"
   }
 }

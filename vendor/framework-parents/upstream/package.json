@@ -57,7 +57,7 @@
     "nanoid@^3": "3.3.20",
     "qs": "$qs",
     "glob": "14.0.4",
-    "minimatch": "11.0.5",
+    "minimatch": "11.0.9",
     "esbuild": "^0.28.2",
     "launch-editor": {
       ".": "2.14.2",
@@ -100,7 +100,7 @@
     "serialize-javascript": "7.1.4",
     "postcss": "8.5.32",
     "svgo": "4.1.0",
-    "tar": "7.5.22",
+    "tar": "7.5.23",
     "valibot": "1.5.0",
     "devalue@^5": "5.9.4",
     "simple-git@^3": "3.36.0",
@@ -113,7 +113,8 @@
     "unconfig": "$unconfig",
     "@unocss/vite": "$@unocss/vite",
     "rolldown": "1.2.19",
-    "c12": "3.3.4"
+    "c12": "3.3.4",
+    "picomatch": "$picomatch"
   },
   "allowScripts": {
     "file:../../../vendor/rollup-plugin-inject-5.0.5-webops.1.tgz": false,
@@ -122,5 +123,8 @@
     "esbuild@0.28.2": true,
     "fsevents@2.3.3": true,
     "unrs-resolver@1.12.2": true
+  },
+  "devDependencies": {
+    "picomatch": "file:../../picomatch-4.0.7-webops.1.tgz"
   }
 }
