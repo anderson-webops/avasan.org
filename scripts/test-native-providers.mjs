@@ -64,6 +64,24 @@ async function transform(parent, generator, source, options = {}, filename = 'fi
 }
 
 function reviewedSource(name, filename, source) {
+  if (name === 'nuxt-explicit-imports' && filename === 'dist/report-BKPqp4bg.mjs') {
+    const original = source.toString()
+    const start = original.indexOf('function findRefs(')
+    const end = original.indexOf('function importsByName(')
+    assert.ok(start >= 0 && end > start)
+    let body = original.slice(start, end)
+    for (const [before, after] of [
+      ['const refs = /* @__PURE__ */ new Map();', 'const refs = /* @__PURE__ */ new Map();\n\tlet typeQueryDepth = 0;'],
+      ['enter(node, parent) {', 'enter(node, parent) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth += 1;'],
+      ['const value = isReferenceIdentifier(node, parent, { mode: "value" });', 'const value = typeQueryDepth === 0 && isReferenceIdentifier(node, parent, { mode: "value" });'],
+      ['if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" })) return;', 'if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" }) || typeQueryDepth > 0 && scopeTracker.isDeclared(node.name, { mode: "value" })) return;'],
+      ['\n\t\t}\n\t});', '\n\t\t},\n\t\tleave(node) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth -= 1;\n\t\t}\n\t});'],
+    ]) {
+      assert.equal(body.split(before).length, 2)
+      body = body.replace(before, after)
+    }
+    return Buffer.from(original.slice(0, start) + body + original.slice(end))
+  }
   if (name === 'unconfig' && filename === 'dist/index.d.mts')
     return Buffer.from(source.toString().replace('[force?: Args[0] | undefined]', '[force?: boolean | undefined]'))
   if (name === '@unocss/vite' && filename === 'dist/index.mjs') {
@@ -111,7 +129,7 @@ test('all parent consumers resolve the actual current native versions without le
   }
 })
 
-test('maintained parents preserve all original payload bytes except the two exact reviewed corrections', () => {
+test('maintained parents preserve all original payload bytes except exact reviewed corrections', () => {
   const dependencyNames = {
     'nuxt-explicit-imports': 'oxc-parser',
     'eslint-plugin-format': 'oxfmt',
