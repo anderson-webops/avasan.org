@@ -379,7 +379,7 @@ outside its declared range, and neither dependency warnings nor checks are
 suppressed. The host test selects 0.8 explicitly through its public integration
 API rather than falling back to a legacy peer provider.
 
-The private qs 6.17.2-webops.4 patch is based on current upstream 6.17.1.
+The private qs 6.17.2-webops.5 patch is based on current upstream 6.17.1.
 It retains that release's input-copy prototype protection and fixes native
 comma-array coercion across realms. The source, license and compatibility
 boundary are in `vendor/qs/UPSTREAM.md`. The installed CommonJS files and all

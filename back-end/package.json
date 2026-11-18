@@ -36,7 +36,7 @@
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.3",
     "helmet": "^8.3.0",
-    "qs": "file:vendor/qs-6.17.2-webops.4.tgz",
+    "qs": "file:vendor/qs-6.17.2-webops.5.tgz",
     "raw-body": "file:vendor/raw-body-4.0.0-webops.2.tgz",
     "type-is": "file:vendor/type-is-3.0.0-webops.2.tgz"
   },
