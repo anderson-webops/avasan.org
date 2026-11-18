@@ -1,7 +1,7 @@
 {
 	"name": "vitesse-nuxt-monorepo",
 	"type": "module",
-	"version": "2.1.40",
+	"version": "2.1.41",
 	"private": true,
 	"packageManager": "npm@12.2.2",
 	"engines": {
@@ -204,7 +204,7 @@
 		"nanoid": "6.0.2",
 		"nitropack": "file:vendor/nitropack-2.13.6-webops.1.tgz",
 		"nuxt": "file:vendor/nuxt-4.6.4-webops.2.tgz",
-		"nuxt-explicit-imports": "file:vendor/nuxt-explicit-imports-0.1.0-webops.1.tgz",
+		"nuxt-explicit-imports": "file:vendor/nuxt-explicit-imports-0.1.0-webops.2.tgz",
 		"oxc-parser": "0.159.0",
 		"oxfmt": "0.79.0",
 		"picomatch": "file:vendor/picomatch-4.0.7-webops.1.tgz",

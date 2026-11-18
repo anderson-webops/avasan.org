@@ -1,5 +1,15 @@
 # Dependency acceptance
 
+## Explicit type queries
+
+The maintained explicit-import checker 0.1.0-webops.2 recognizes declared
+type-only imports inside TypeScript `typeof` queries, including qualified
+namespace queries. Executable references still require value imports. The
+focused regression checks both forms and a runtime call after a type query.
+The deterministic producer changes only that reviewed analyzer boundary and
+package identity; the original CLI, other original files and earlier archives
+remain intact. Complete source, browser and native release checks still apply.
+
 ## Immutable maintained local libraries
 
 The application installs maintained Braces 3.0.4-webops.3, Deepmerge

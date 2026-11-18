@@ -194,6 +194,19 @@ test('the explicit-import analyzer preserves native scope, type and Vue-template
     assert.deepEqual(actual.usages, previous.usages, filename)
     assert.deepEqual(actual.usages.map(item => item.name).sort(), expected, filename)
   }
+  for (const source of [
+    'import type { ref } from "vue"; type Value = typeof ref',
+    'import type * as ref from "vue"; type Value = typeof ref.value',
+    'const ref = { value: 1 }; type Value = typeof ref.value',
+    'function ref() {} type Value = typeof ref',
+    'const Ref = ["one"] as const; type Value = typeof Ref[number]',
+  ]) {
+    const actual = await analyze(project, 'type-query.ts', source)
+    assert.deepEqual(actual.usages, [])
+  }
+  const mixed = await analyze(project, 'runtime-after-type-query.ts', 'import type { ref } from "vue"; type Value = typeof ref; ref(1)')
+  assert.deepEqual(mixed.usages.map(item => item.name), ['ref'])
+  assert.equal(mixed.usages[0].specs[0].type, false)
 })
 
 test('UnoCSS virtual CSS identities preserve queries and remain idempotent', async () => {
