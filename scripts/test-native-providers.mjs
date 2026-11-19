@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import { Buffer } from 'node:buffer'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import process from 'node:process'
 import test from 'node:test'
 import { pathToFileURL } from 'node:url'
 import { originalPositionFor, TraceMap } from '@jridgewell/trace-mapping'
@@ -17,6 +19,7 @@ import MagicString from 'magic-string'
 const root = path.resolve(import.meta.dirname, '..')
 const require = createRequire(import.meta.url)
 const original = createRequire(path.join(root, 'vendor/native-providers/upstream/package.json'))
+const originalFramework = createRequire(path.join(root, 'vendor/framework-parents/upstream/package.json'))
 const records = JSON.parse(readFileSync(path.join(root, 'vendor/native-providers/UPSTREAM.json'), 'utf8'))
 const load = (name, resolver = require) => import(pathToFileURL(resolver.resolve(name)))
 const formatter = await load('oxfmt')
@@ -61,6 +64,24 @@ async function transform(parent, generator, source, options = {}, filename = 'fi
 }
 
 function reviewedSource(name, filename, source) {
+  if (name === 'nuxt-explicit-imports' && filename === 'dist/report-BKPqp4bg.mjs') {
+    const original = source.toString()
+    const start = original.indexOf('function findRefs(')
+    const end = original.indexOf('function importsByName(')
+    assert.ok(start >= 0 && end > start)
+    let body = original.slice(start, end)
+    for (const [before, after] of [
+      ['const refs = /* @__PURE__ */ new Map();', 'const refs = /* @__PURE__ */ new Map();\n\tlet typeQueryDepth = 0;'],
+      ['enter(node, parent) {', 'enter(node, parent) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth += 1;'],
+      ['const value = isReferenceIdentifier(node, parent, { mode: "value" });', 'const value = typeQueryDepth === 0 && isReferenceIdentifier(node, parent, { mode: "value" });'],
+      ['if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" })) return;', 'if (scopeTracker.isDeclared(node.name, { mode: value ? "value" : "type" }) || typeQueryDepth > 0 && scopeTracker.isDeclared(node.name, { mode: "value" })) return;'],
+      ['\n\t\t}\n\t});', '\n\t\t},\n\t\tleave(node) {\n\t\t\tif (node.type === "TSTypeQuery") typeQueryDepth -= 1;\n\t\t}\n\t});'],
+    ]) {
+      assert.equal(body.split(before).length, 2)
+      body = body.replace(before, after)
+    }
+    return Buffer.from(original.slice(0, start) + body + original.slice(end))
+  }
   if (name === 'unconfig' && filename === 'dist/index.d.mts')
     return Buffer.from(source.toString().replace('[force?: Args[0] | undefined]', '[force?: boolean | undefined]'))
   if (name === '@unocss/vite' && filename === 'dist/index.mjs') {
@@ -82,8 +103,8 @@ function reviewedSource(name, filename, source) {
 test('all parent consumers resolve the actual current native versions without legacy application copies', () => {
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8')).packages
   for (const [name, provider, version] of [
-    ['eslint-plugin-format', 'oxfmt', '0.78.0'],
-    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.158.0'],
+    ['eslint-plugin-format', 'oxfmt', '0.79.0'],
+    ['@unocss/transformer-attributify-jsx', 'oxc-parser', '0.159.0'],
   ]) {
     const parent = createRequire(require.resolve(name))
     assert.equal(parent.resolve(provider), require.resolve(provider))
@@ -101,13 +122,16 @@ test('all parent consumers resolve the actual current native versions without le
     assert.equal(consumer.resolve('unconfig'), require.resolve('unconfig'))
   }
   for (const [filename, metadata] of Object.entries(lock)) {
-    if (/(?:^|\/)node_modules\/(?:@unocss\/[^/]+|unocss)$/.test(filename))
-      assert.match(metadata.version, /^66\.13\.0(?:-webops\.1)?$/, filename)
+    if (/(?:^|\/)node_modules\/(?:@unocss\/[^/]+|unocss)$/.test(filename)) {
+      const name = filename.slice(filename.lastIndexOf('node_modules/') + 'node_modules/'.length)
+      assert.equal(metadata.version, records[name]?.patchedVersion ?? '66.13.0', filename)
+    }
   }
 })
 
-test('maintained parents preserve all original payload bytes except the two exact reviewed corrections', () => {
+test('maintained parents preserve all original payload bytes except exact reviewed corrections', () => {
   const dependencyNames = {
+    'nuxt-explicit-imports': 'oxc-parser',
     'eslint-plugin-format': 'oxfmt',
     '@unocss/transformer-attributify-jsx': 'oxc-parser',
     'unconfig': 'unconfig-core',
@@ -115,7 +139,10 @@ test('maintained parents preserve all original payload bytes except the two exac
   }
   for (const [name, record] of Object.entries(records)) {
     const directory = path.resolve(path.dirname(require.resolve(name)), '..')
-    const originalDirectory = path.resolve(path.dirname(original.resolve(name)), '..')
+    const resolver = name === 'nuxt-explicit-imports'
+      ? originalFramework
+      : original
+    const originalDirectory = path.resolve(path.dirname(resolver.resolve(name)), '..')
     for (const [filename, digest] of Object.entries(record.files)) {
       const source = readFileSync(path.join(originalDirectory, filename))
       assert.equal(createHash('sha256').update(source).digest('hex'), digest)
@@ -132,6 +159,72 @@ test('maintained parents preserve all original payload bytes except the two exac
     expected.dependencies[dependencyNames[name]] = record.qualifiedRange
     assert.deepEqual(JSON.parse(readFileSync(path.join(directory, 'package.json'), 'utf8')), expected)
   }
+})
+
+test('the explicit-import analyzer preserves native scope, type and Vue-template decisions', async () => {
+  const directory = path.dirname(require.resolve('nuxt-explicit-imports'))
+  const originalDirectory = path.dirname(originalFramework.resolve('nuxt-explicit-imports'))
+  const { f: analyze } = await import(pathToFileURL(path.join(directory, 'report-BKPqp4bg.mjs')))
+  const { f: baseline } = await import(pathToFileURL(path.join(originalDirectory, 'report-BKPqp4bg.mjs')))
+  const consumer = createRequire(require.resolve('nuxt-explicit-imports'))
+  assert.equal(consumer.resolve('oxc-parser'), require.resolve('oxc-parser'))
+  const versionOutput = location => execFileSync(process.execPath, [
+    path.join(location, 'cli.mjs'),
+    '--version',
+  ], { encoding: 'utf8' })
+  const output = versionOutput(directory)
+  assert.equal(output, versionOutput(originalDirectory))
+  assert.match(output, /^nuxt-explicit-imports\/0\.1\.0(?:\s|$)/)
+  const project = {
+    sideOf: () => 'client',
+    getImports: async () => [
+      { name: 'ref', from: 'vue' },
+      { name: 'Ref', from: 'vue', type: true },
+    ],
+    sourceFor: item => item.from,
+    getComponents: () => [],
+    typescript: true,
+  }
+  for (const [filename, source, expected] of [
+    [
+      'implicit.ts',
+      'const value: Ref<number> = ref(1)',
+      ['Ref', 'ref'],
+    ],
+    [
+      'shadowed.ts',
+      'const ref = () => 1; ref()',
+      [],
+    ],
+    [
+      'typed.vue',
+      '<script setup lang="ts">const value: Ref<number> = ref(1)</script><template>{{ value }}</template>',
+      ['Ref', 'ref'],
+    ],
+    [
+      'template.vue',
+      '<template>{{ ref(1) }}</template>',
+      ['ref'],
+    ],
+  ]) {
+    const actual = await analyze(project, filename, source)
+    const previous = await baseline(project, filename, source)
+    assert.deepEqual(actual.usages, previous.usages, filename)
+    assert.deepEqual(actual.usages.map(item => item.name).sort(), expected, filename)
+  }
+  for (const source of [
+    'import type { ref } from "vue"; type Value = typeof ref',
+    'import type * as ref from "vue"; type Value = typeof ref.value',
+    'const ref = { value: 1 }; type Value = typeof ref.value',
+    'function ref() {} type Value = typeof ref',
+    'const Ref = ["one"] as const; type Value = typeof Ref[number]',
+  ]) {
+    const actual = await analyze(project, 'type-query.ts', source)
+    assert.deepEqual(actual.usages, [])
+  }
+  const mixed = await analyze(project, 'runtime-after-type-query.ts', 'import type { ref } from "vue"; type Value = typeof ref; ref(1)')
+  assert.deepEqual(mixed.usages.map(item => item.name), ['ref'])
+  assert.equal(mixed.usages[0].specs[0].type, false)
 })
 
 test('UnoCSS virtual CSS identities preserve queries and remain idempotent', async () => {

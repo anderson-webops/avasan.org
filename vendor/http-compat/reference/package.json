@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "cookie": "2.0.2",
-    "encodeurl": "3.0.0",
+    "encodeurl": "3.0.1",
     "raw-body": "4.0.0",
     "type-is": "3.0.0"
   }

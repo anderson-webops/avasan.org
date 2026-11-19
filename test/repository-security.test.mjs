@@ -46,8 +46,8 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.equal(packageJson.packageManager, 'npm@12.2.2')
   assert.equal(packageJson.overrides['unimport@7.0.2'], undefined)
   const frontendPackage = JSON.parse(readText('front-end/package.json'))
-  assert.equal(frontendPackage.devDependencies['@vitejs/devtools'], '0.8.2')
-  assert.equal(frontendPackage.devDependencies['@vitejs/devtools-kit'], '0.8.2')
+  assert.equal(frontendPackage.devDependencies['@vitejs/devtools'], '0.8.3')
+  assert.equal(frontendPackage.devDependencies['@vitejs/devtools-kit'], '0.8.3')
   assert.deepEqual(packageJson.engines, {
     node: '>=26.13.1 <27',
     npm: '>=12.2.2 <13',
@@ -55,7 +55,7 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   assert.deepEqual(packageJson.allowScripts, {
     'esbuild@0.28.2': true,
     'fsevents@2.3.3': true,
-    'puppeteer@25.17.0': false,
+    'puppeteer@25.18.1': false,
     'simple-git-hooks': false,
     'unrs-resolver@1.12.2': true,
   })

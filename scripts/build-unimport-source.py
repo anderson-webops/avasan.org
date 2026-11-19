@@ -18,13 +18,35 @@ SOURCE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SOURCE)
 ROOT = SOURCE.ROOT
 BUILD = SOURCE.SOURCE / "build"
-TARGET = ROOT / "vendor/unimport-7.0.2-webops.3.tgz"
+TARGET = ROOT / "vendor/unimport-7.0.3-webops.3.tgz"
 CONFIG = ROOT / "scripts/unimport-build.config.mjs"
+FORMATTING = SOURCE.SOURCE / "source-formatting.json"
 
 
 def replace_once(source, original, replacement):
     SOURCE.require(source.count(original) == 1, "Changed source patch anchor requires review")
     return source.replace(original, replacement)
+
+
+def apply_formatting(files):
+    record = json.loads(SOURCE.regular_bytes(FORMATTING))
+    SOURCE.require(record["schemaVersion"] == 1, "Review changed source formatting schema")
+    output = dict(files)
+    seen = set()
+    for entry in record["files"]:
+        filename = entry["path"]
+        SOURCE.require(filename in output and filename not in seen, "Unexpected source formatting target")
+        seen.add(filename)
+        SOURCE.require(hashlib.sha256(output[filename]).hexdigest() == entry["inputSha256"], "Source formatting input differs from reviewed bytes")
+        source = output[filename].decode()
+        boundary = len(source)
+        for start, end, replacement in reversed(entry["edits"]):
+            SOURCE.require(0 <= start <= end <= boundary and isinstance(replacement, str), "Invalid source formatting edit")
+            source = source[:start] + replacement + source[end:]
+            boundary = start
+        output[filename] = source.encode()
+        SOURCE.require(hashlib.sha256(output[filename]).hexdigest() == entry["outputSha256"], "Source formatting output differs from reviewed bytes")
+    return output
 
 
 def maintained_source(files):
@@ -48,7 +70,16 @@ def maintained_source(files):
     source = replace_once(source, "resolveModule('@vueuse/core/indexes.json')", "resolveModule('@vueuse/core/indexes.json', { paths })")
     source = replace_once(source, "resolveModule('@vueuse/metadata/index.json')", "resolveModule('@vueuse/metadata/index.json', { paths })")
     output[filename] = source.encode()
-    return output
+    filename = "test/auto-extract.test.ts"
+    source = files[filename].decode()
+    source = replace_once(source, "import { describe, expect, it } from 'vitest'", "import * as h3 from 'h3'\nimport { describe, expect, it } from 'vitest'")
+    source = replace_once(source, "    expect(result1).toEqual(result2)", "    const expected = Object.keys(h3)\n      .filter(name => name !== 'isStream' && !/^[A-Z]/.test(name) && !/^[a-z]*$/.test(name) && name.length > 8)\n      .sort()\n      .map(name => ({ from: 'h3', name }))\n\n    expect(result1).toEqual(expected)\n    expect(result1).toEqual(result2)")
+    original_exports = ["appendCorsHeaders", "appendCorsPreflightHeaders", "appendHeader", "appendHeaders", "appendResponseHeader"]
+    current_exports = ["appendAcceptQuery", "appendCorsHeaders", "appendCorsPreflightHeaders", "appendHeader", "appendHeaders"]
+    for original_name, current_name in zip(original_exports, current_exports):
+        source = replace_once(source, f'"name": "{original_name}"', f'"name": "{current_name}"')
+    output[filename] = source.encode()
+    return apply_formatting(output)
 
 
 def pack_files(files):
@@ -79,6 +110,18 @@ def run(command, directory, environment):
     subprocess.run(command, cwd=directory, env=environment, timeout=300, check=True)
 
 
+def runtime_dependencies(manifest):
+    dependencies = dict(manifest["dependencies"])
+    provider = json.loads(SOURCE.regular_bytes(ROOT / "vendor/picomatch/UPSTREAM.json"))
+    archive = ROOT / "vendor" / f"picomatch-{provider['patchedVersion']}.tgz"
+    expected = "file:" + os.path.relpath(archive, BUILD)
+    SOURCE.require(dependencies["picomatch"] == expected, "Review changed compiler provider specification")
+    SOURCE.require(hashlib.sha256(SOURCE.regular_bytes(archive)).hexdigest() == provider["archiveSha256"], "Compiler provider differs from reviewed source")
+    dependencies["picomatch"] = provider["patchedVersion"]
+    SOURCE.require(all(not specification.startswith(("file:", "link:", "workspace:")) for specification in dependencies.values()), "Built runtime dependencies must be portable")
+    return dependencies
+
+
 def build_once(original, check_upstream):
     node = shutil.which("node")
     SOURCE.require(node is not None, "The qualified Node build profile is required")
@@ -86,6 +129,7 @@ def build_once(original, check_upstream):
     manifest = json.loads(SOURCE.regular_bytes(BUILD / "package.json"))
     lock = json.loads(SOURCE.regular_bytes(BUILD / "package-lock.json"))
     SOURCE.require(lock["packages"][""]["dependencies"] == manifest["dependencies"] and lock["packages"][""]["devDependencies"] == manifest["devDependencies"], "Source-build lock does not match its manifest")
+    runtime = runtime_dependencies(manifest)
     parent = ROOT / ".ai-work/runs"
     parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="unimport-build-", dir=parent) as temporary:
@@ -103,7 +147,7 @@ def build_once(original, check_upstream):
         environment = {**os.environ, "CI": "true", "TMPDIR": str(scratch), "TMP": str(scratch), "TEMP": str(scratch), "XDG_CACHE_HOME": str(directory / "cache"), "XDG_CONFIG_HOME": str(directory / "config")}
         run([node, tool("tsdown", "0.23.7"), "--config", str(CONFIG)], working, environment)
         if check_upstream:
-            run([node, tool("vitest", "5.1.0"), "run"], working, environment)
+            run([node, tool("vitest", manifest["devDependencies"]["vitest"]), "run"], working, environment)
             run([node, tool("vue-tsc"), "--noEmit"], working, environment)
             run([node, tool("eslint"), "."], working, environment)
         for filename, data in prepared.items():
@@ -119,7 +163,7 @@ def build_once(original, check_upstream):
     metadata = json.loads(original["package.json"])
     for key in ["devDependencies", "scripts", "packageManager", "resolutions"]:
         metadata.pop(key, None)
-    metadata.update(version="7.0.2+webops.3", private=True, dependencies=manifest["dependencies"], engines={"node": ">=26.13.1 <27"})
+    metadata.update(version="7.0.3+webops.3", private=True, dependencies=runtime, engines={"node": ">=26.13.1 <27"})
     for filename in ["LICENSE", "README.md", *sorted(name for name in original if "/" not in name and name.endswith(".d.ts"))]:
         output["package/" + filename] = original[filename]
     output["package/package.json"] = (json.dumps(metadata, indent=2) + "\n").encode()
@@ -127,7 +171,7 @@ def build_once(original, check_upstream):
     record = json.loads((SOURCE.SOURCE / "UPSTREAM.json").read_text())
     provenance = {
         "schemaVersion": 2, "source": record,
-        "build": {"node": "26.13.1", "tool": "tsdown@0.23.7", "lockSha256": hashlib.sha256((BUILD / "package-lock.json").read_bytes()).hexdigest(), "configSha256": hashlib.sha256(CONFIG.read_bytes()).hexdigest(), "producerSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "sourceVerifierSha256": hashlib.sha256((ROOT / "scripts/check-unimport-source.py").read_bytes()).hexdigest()},
+        "build": {"node": "26.13.1", "tool": "tsdown@0.23.7", "lockSha256": hashlib.sha256((BUILD / "package-lock.json").read_bytes()).hexdigest(), "configSha256": hashlib.sha256(CONFIG.read_bytes()).hexdigest(), "producerSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "sourceVerifierSha256": hashlib.sha256((ROOT / "scripts/check-unimport-source.py").read_bytes()).hexdigest(), "formattingSha256": hashlib.sha256(SOURCE.regular_bytes(FORMATTING)).hexdigest()},
         "patches": {name: hashlib.sha256(prepared[name]).hexdigest() for name in sorted(original) if original[name] != prepared[name]},
         "outputSha256": {name.removeprefix("package/"): hashlib.sha256(data).hexdigest() for name, data in sorted(output.items())},
     }
@@ -143,7 +187,7 @@ def verify_installed(data, prefix):
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as archive:
         files = {member.name.removeprefix("package/"): archive.extractfile(member).read() for member in archive}
     for name, info in consumers:
-        SOURCE.require(info["version"] == "7.0.2+webops.3" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
+        SOURCE.require(info["version"] == "7.0.3+webops.3" and info["integrity"] == integrity, "Consuming source-built provider identity mismatch")
         directory = prefix / name
         SOURCE.require(not directory.is_symlink(), "Source-built consumer must remain local")
         for filename, content in files.items():
@@ -155,9 +199,10 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--installed", action="store_true")
     parser.add_argument("--installed-prefix", type=Path)
+    parser.add_argument("--validate-upstream", action="store_true")
     args = parser.parse_args()
     original = SOURCE.verify_source()
-    first = build_once(original, True)
+    first = build_once(original, args.validate_upstream)
     second = build_once(original, False)
     SOURCE.require(first == second, "Independent source builds are not reproducible")
     if args.check:
