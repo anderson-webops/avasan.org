@@ -3,7 +3,10 @@
 ## Application boundary
 
 Avasan remains one tracker-free static homepage. The source integration reviews
-canonical template v2.1.33 at `2d8b4023ad031f779265c843759791d8ffa26e41`.
+canonical template v2.1.42 at `35149594adff3ee7f92aa9ccf6208f06ada3ec9d`,
+including the updated Nuxt DevTools pair, explicit imports and the locked
+producer dependency updates. Avasan's shared dependency archives are under
+`vendor/` because this site does not have a backend workspace.
 Generic API services, workers, Netlify functions, example routes and their runtime
 promotion helpers are inapplicable. Avasan's static artifact, attestation,
 Nginx-snippet and retained-release recovery contracts remain authoritative.
@@ -47,8 +50,8 @@ positive and negative cases, without replacing those compiler APIs or creating
 an application backend. Declared compiler/type peers must resolve inside this
 locked application rather than an ancestor installation.
 
-The maintained Unhead and Vue DevTools distributions declare the selected0.8.2
-host/kit compatibility contract. Their original0.7 peer metadata and payload
+The maintained Unhead and Vue DevTools distributions retain the `^0.8.2`
+host/kit compatibility contract for the selected 0.8.3 pair. Their original0.7 peer metadata and payload
 hashes remain preserved separately. Real plugin, UI/dock, HMR/MCP and browser
 fixtures establish supported integration; complete installed peers must pass
 `npm ls --all` without ignored or forced ranges.
@@ -84,7 +87,7 @@ standalone-prefix audit keeps the graph root in scope; application workspace
 exclusion would omit its outgoing edges. Each reference manifest is verified
 to have no workspace declaration before that complete audit.
 
-Puppeteer25.17's reviewed browser-downloader lifecycle stays explicitly disabled.
+The Puppeteer 25.18.1 browser-downloader lifecycle stays explicitly disabled.
 Browser provisioning remains an explicit test-environment operation, with real
 browser fixtures required independently of installation success.
 
@@ -95,8 +98,8 @@ regressions in the mandatory validation command.
 
 ## Source provenance and security regressions
 
-The advertised unimport7.0.2 registry attestation currently returns404.
-This failure remains recorded; it is not a successful registry verification.
+The advertised unimport 7.0.2 registry attestation returned 404. Preserve that
+historical failure separately from verification of the selected 7.0.3 input.
 The maintained compiler is independently rebuilt from the verified signed
 upstream source with separately locked build/runtime graphs. Original source,
 tag/signing identity, input inventory, two-build reproducibility, public APIs,

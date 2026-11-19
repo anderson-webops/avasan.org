@@ -20,6 +20,6 @@ test('the maintained Unhead kit contract preserves original metadata and matches
   assert.equal(bundlerManifest.peerDependencies['@vitejs/devtools-kit'], '^0.8.2')
   assert.equal(original.version, '3.4.3')
   assert.equal(original.peerDependencies['@vitejs/devtools-kit'], '^0.7.6')
-  assert.equal(frontendKit.version, '0.8.2')
+  assert.equal(frontendKit.version, '0.8.3')
   assert.equal(bundlerKit.version, frontendKit.version)
 })

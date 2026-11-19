@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useHead, useSeoMeta } from '#app'
+import { NuxtLayout, NuxtPage } from '#components'
 import { appDescription, appName } from '~/constants'
 
 useHead({

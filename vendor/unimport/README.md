@@ -1,14 +1,15 @@
 # Signed-source auto-import compiler
 
-The maintained `unimport-7.0.2-webops.2.tgz` is compiled from upstream's complete
-signed v7.0.2 source tree. Its package version `7.0.2+webops.2` preserves the
+The maintained `unimport-7.0.3-webops.3.tgz` is compiled from upstream's complete
+signed v7.0.3 source tree. Its package version `7.0.3+webops.3` preserves the
 upstream API version and identifies this independently built derivative.
-The original npm package's advertised attestation returns HTTP 404. That failed
-registry-provenance result remains recorded in `UPSTREAM.json`.
+The original npm package's registry signatures and exact-version SLSA subject
+were independently verified. `UPSTREAM.json` records that separate reference;
+the maintained archive is authenticated and reproduced from signed source.
 
 `check-unimport-source.py` checks both original Git object identities, verifies
 the tag and commit with a pinned public signer, and reconstructs the entire
-224-file Git tree from `source.tgz`. It uses an isolated public-only keyring;
+226-file Git tree from `source.tgz`. It uses an isolated public-only keyring;
 GnuPG's `gpgv` is required. No private signing material is involved.
 `commit.git` and `tag.git` use Git's compressed loose-object format so their
 signed original bytes, including mandatory signature-header whitespace, remain
@@ -18,8 +19,16 @@ The independent `build/` lock selects Node 26, TypeScript 6 and tsdown 0.23.7.
 Unbuild 3.6.1's TypeScript peer range excludes TypeScript 6, so this build uses
 tsdown's supported TypeScript 6 declaration generator instead of overriding
 that incompatible peer. Original source, tests, declarations and license inputs
-remain available in the verified archive. H3 1.15.11 is the original upstream
-test fixture, matching the signed lock, rather than an application runtime.
+remain available in the verified archive. The maintained test graph uses
+H3 2.0.8. Its export-discovery fixture compares every filtered result with the
+actual module namespace and retains cache equivalence and a reviewed snapshot.
+The original H3 1 fixture remains intact in the signed source archive.
+
+ESLint config10's newline rules are applied through the hash-bound
+`source-formatting.json` delta. Its31 changed maintained files preserve the
+reviewed executable structure, comments and documentation prose; the signed
+originals and published package's original README remain intact. Input and
+output hashes, edit bounds and archive provenance bind the formatting delta.
 
 The reviewed source patch anchors implicit package export scanning to the
 working project's package URL. Upstream's implicit resolution can otherwise
@@ -31,8 +40,11 @@ context. VueUse metadata uses the working project's explicit package URL.
 Both retain their legitimate installed providers when parent directories are
 unreadable or contain a different version.
 
-`build-unimport-source.py` runs all 254 upstream tests, native type and lint
-checks, and produces byte-identical archives from two fresh source directories.
+`build-unimport-source.py` produces byte-identical archives from two fresh source
+directories. `npm run test:unimport-source` requests `--validate-upstream` once
+per full qualification, running the complete upstream tests, native type and
+lint checks. Preparation and archive verification retain both independent
+rebuilds without repeating that same upstream suite at each dispatch point.
 The archive records the signed source identity, applied source patch, compiler
 configuration, independent build lock and every output hash. `--check --installed`
 also verifies each actual unscoped consumer's locked and installed bytes.
@@ -45,6 +57,11 @@ read restrictions with the source checkout and development tools denied. A
 required runtime-module deletion must fail; restoring that exact module must
 recover in a fresh process. The earlier `.1` archive remains a historical
 comparison artifact and is absent from the current consuming locks.
+
+The compiler graph selects the reviewed local Picomatch archive. The emitted
+package declares its exact maintained version without embedding that local
+path. Consuming application and runtime graphs supply that same archive;
+source checks bind its digest and reject unexpected local runtime dependencies.
 
 Compiled core and addon declarations receive strict NodeNext consumer checks
 with `skipLibCheck: false`. The unplugin entrypoint retains its upstream
