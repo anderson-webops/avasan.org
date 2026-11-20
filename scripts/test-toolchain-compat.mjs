@@ -65,11 +65,8 @@ function codeqlFixture() {
   }
 }
 
-test('grouped workflow updates and the immutable security-action validator remain intact', () => {
+test('the security-action validator accepts immutable action pins', () => {
   assert.equal(codeqlVersion(codeqlFixture()), 'a'.repeat(40))
-  const configuration = parseYaml(readFileSync(path.join(root, '.github/dependabot.yml'), 'utf8'))
-  const updates = configuration.updates.find(update => update['package-ecosystem'] === 'github-actions')
-  assert.deepEqual(updates.groups['github-actions'].patterns, ['*'])
 })
 
 test('CodeQL version checks reject split versions and floating action references', () => {

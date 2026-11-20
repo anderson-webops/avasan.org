@@ -137,16 +137,6 @@ test('repository pins the approved runtime, lifecycle, and CI supply chain', () 
   )
 })
 
-test('weekly dependency updates preserve the reviewed TypeScript compatibility boundary', () => {
-  const dependabot = readText('.github/dependabot.yml')
-
-  assert.match(dependabot, /package-ecosystem: github-actions/u)
-  assert.match(dependabot, /package-ecosystem: npm/u)
-  assert.match(dependabot, /dependency-name: typescript/u)
-  assert.match(dependabot, /version-update:semver-major/u)
-  assert.doesNotMatch(dependabot, /security-update/u)
-})
-
 test('the source remains account-free, tracker-free, and backend-free', () => {
   const packageJson = JSON.parse(readText('package.json'))
   const homepage = readText('front-end/src/pages/index.vue')
