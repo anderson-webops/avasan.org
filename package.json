@@ -1,7 +1,7 @@
 {
   "name": "avasan-org",
   "type": "module",
-  "version": "1.2.26",
+  "version": "1.2.27",
   "private": true,
   "packageManager": "npm@12.2.2",
   "engines": {
@@ -157,7 +157,7 @@
     "taze": "^21.3.0",
     "typescript": "^6.0.3",
     "@types/node": "^26.6.6",
-    "@typescript-eslint/types": "^8.73.0",
+    "@typescript-eslint/types": "^8.74.0",
     "@unocss/eslint-plugin": "^66.13.0",
     "archiver": "^8.0.0",
     "esbuild": "^0.28.2",
@@ -182,8 +182,8 @@
     "@unhead/bundler": "file:vendor/unhead-bundler-3.4.3-webops.1.tgz",
     "@vitejs/plugin-vue-jsx": "file:vendor/plugin-vue-jsx-5.1.6-webops.1.tgz",
     "@vue-macros/common": "file:vendor/vue-macros-common-3.1.4-webops.1.tgz",
-    "@vue/compiler-core": "file:vendor/vue-compiler-core-3.5.45-webops.1.tgz",
-    "@vue/compiler-sfc": "file:vendor/vue-compiler-sfc-3.5.45-webops.1.tgz",
+    "@vue/compiler-core": "file:vendor/vue-compiler-core-3.5.46-webops.1.tgz",
+    "@vue/compiler-sfc": "file:vendor/vue-compiler-sfc-3.5.46-webops.1.tgz",
     "@vue/babel-plugin-jsx": "^3.0.0",
     "encodeurl": "file:vendor/encodeurl-3.0.1-webops.2.tgz",
     "jiti": "file:vendor/jiti-2.7.0-webops.1.tgz",
@@ -203,7 +203,7 @@
     "oxfmt": "0.79.0",
     "unconfig": "file:vendor/unconfig-7.5.0-webops.1.tgz",
     "@unocss/vite": "file:vendor/unocss-vite-66.13.0-webops.1.tgz",
-    "nuxt": "file:vendor/nuxt-4.6.4-webops.2.tgz",
+    "nuxt": "file:vendor/nuxt-4.7.0-webops.1.tgz",
     "rolldown": "1.3.2",
     "c12": "4.0.0-rc.4",
     "dotenv": "18.0.10",
@@ -216,7 +216,7 @@
     "typescript-native": "npm:typescript@7.0.2",
     "@jridgewell/trace-mapping": "^0.3.31",
     "@jest/types": "file:vendor/jest-types-30.5.1-webops.1.tgz",
-    "@nuxt/vite-builder": "file:vendor/nuxt-vite-builder-4.6.4-webops.1.tgz",
+    "@nuxt/vite-builder": "4.7.0",
     "@poppinss/dumper": "file:vendor/poppinss-dumper-0.7.0-webops.1.tgz",
     "@sindresorhus/is": "8.1.0",
     "balanced-match": "5.0.0",
@@ -227,7 +227,11 @@
     "minimizer-webpack-plugin": "file:vendor/minimizer-webpack-plugin-5.14.0-webops.1.tgz",
     "supports-color": "11.0.0",
     "nuxt-explicit-imports": "file:vendor/nuxt-explicit-imports-0.1.0-webops.2.tgz",
-    "picomatch": "file:vendor/picomatch-4.0.7-webops.1.tgz"
+    "picomatch": "file:vendor/picomatch-4.0.7-webops.1.tgz",
+    "@nuxt/nitro-server": "4.7.0",
+    "@nuxt/nitro-v3-server": "4.7.0",
+    "@nuxt/vite-server": "4.7.0",
+    "vue": "3.5.46"
   },
   "simple-git-hooks": {
     "pre-commit": "test -x ./node_modules/.bin/lint-staged || { echo 'lint-staged is not installed. Run npm install.'; exit 1; }; ./node_modules/.bin/lint-staged"
@@ -302,13 +306,13 @@
     "@unocss/transformer-attributify-jsx": "$@unocss/transformer-attributify-jsx",
     "unconfig": "$unconfig",
     "@unocss/vite": "$@unocss/vite",
-    "nuxt": "$nuxt",
-    "rolldown": "$rolldown",
     "c12": "$c12",
     "ajv": "$ajv",
     "eslint": "$eslint",
     "nanoid": "$nanoid",
-    "@nuxt/vite-builder": "$@nuxt/vite-builder",
+    "@nuxt/vite-builder": {
+      "nuxt": "$nuxt"
+    },
     "balanced-match": "$balanced-match",
     "@poppinss/dumper": "$@poppinss/dumper",
     "@sindresorhus/is": "$@sindresorhus/is",
@@ -318,8 +322,23 @@
     "minimizer-webpack-plugin": "$minimizer-webpack-plugin",
     "chalk": "$chalk",
     "supports-color": "$supports-color",
-    "nuxt-explicit-imports": "$nuxt-explicit-imports",
-    "picomatch": "$picomatch"
+    "nuxt-explicit-imports": {
+      ".": "$nuxt-explicit-imports",
+      "nuxt": "$nuxt"
+    },
+    "picomatch": "$picomatch",
+    "@nuxt/nitro-server": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/nitro-v3-server": {
+      "nuxt": "$nuxt"
+    },
+    "@nuxt/vite-server": {
+      "nuxt": "$nuxt"
+    },
+    "@vueuse/nuxt": {
+      "nuxt": "$nuxt"
+    }
   },
   "allowScripts": {
     "simple-git-hooks": false,

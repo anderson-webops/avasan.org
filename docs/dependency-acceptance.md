@@ -3,9 +3,8 @@
 ## Application boundary
 
 Avasan remains one tracker-free static homepage. The source integration reviews
-canonical template v2.1.42 at `35149594adff3ee7f92aa9ccf6208f06ada3ec9d`,
-including the updated Nuxt DevTools pair, explicit imports and the locked
-producer dependency updates. Avasan's shared dependency archives are under
+canonical template v2.1.43 at `2c817e65168493f44f66c6d14aa25558f5ce2117`,
+including Nuxt 4.7.0 and Vue 3.5.46. Avasan's shared dependency archives are under
 `vendor/` because this site does not have a backend workspace.
 Generic API services, workers, Netlify functions, example routes and their runtime
 promotion helpers are inapplicable. Avasan's static artifact, attestation,
@@ -68,8 +67,8 @@ hash-verified before installation, independently of package-manager caches.
 
 The official vite-plugin-checker1.0.0 archive replaces the maintained0.14.5
 bridge. CURRENT.json preserves its registry identity alongside the historical
-original and reproducible bridge. The reviewed Nuxt4.6.4 Vite-builder parent
-admits checker1 and its current overlay entrypoint. Validate real Nuxt/Vite
+original and reproducible bridge. Nuxt 4.7.0 uses the official Vite builder.
+Validate its overlay entrypoint, real Nuxt/Vite
 diagnostics, worker repair/reconnection and rejected type-error production
 builds, preserving the source locations and native public declarations.
 
