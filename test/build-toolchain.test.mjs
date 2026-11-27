@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import test from 'node:test'
+import { parse } from 'yaml'
 import { selectedNpmCli, toolchainMetadata, verifyBuildToolchain } from '../scripts/build-toolchain-state.mjs'
 
 test('the locked Nuxt provider satisfies its original unimport API floor', () => {
@@ -39,7 +40,14 @@ test('every maintained Node workflow uses the independently locked npm profile',
     assert.doesNotMatch(workflow, /npm install --global/u)
     assert.match(workflow, /node scripts\/build-toolchain\.mjs --print-bin/u)
     assert.match(workflow, /scripts\/check-build-toolchain\.mjs/u)
-    assert.equal(workflow.match(/uses: actions\/setup-node@/gu)?.length, workflow.match(/- name: Prepare independently locked build tools/gu)?.length)
+    for (const [job, { steps }] of Object.entries(parse(workflow).jobs)) {
+      const firstUse = steps.findIndex(step => /^\s*npm\s/mu.test(step.run || ''))
+      if (firstUse < 0)
+        continue
+      const setup = steps.findIndex(step => step.run === 'bash scripts/stage-ci-node.sh')
+      const qualification = steps.findIndex(step => step.run?.includes('node scripts/build-toolchain.mjs --print-bin') && step.run.includes('scripts/check-build-toolchain.mjs'))
+      assert.ok(setup >= 0 && setup < qualification && qualification < firstUse, `${name}: ${job} must verify Node and select the locked builder before npm runs`)
+    }
   }
 })
 

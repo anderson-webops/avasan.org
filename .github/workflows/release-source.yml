@@ -26,19 +26,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Stage the checksum-verified ARM64 Node release
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          stage="$(mktemp -d "$RUNNER_TEMP/avasan-node.XXXXXXXX")"
-          distribution=node-v26.13.1-linux-arm64
-          archive="$stage/$distribution.tar.xz"
-          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --retry 3 --max-time 90 \
-            --output "$archive" "https://nodejs.org/dist/v26.13.1/$distribution.tar.xz"
-          printf '%s  %s\n' 89e1853138db51e8b82d3e98ba9c0d3f2956a28e5e55ea1b7e12d25aae92d5dd "$archive" | sha256sum --check --strict
-          tar -xJf "$archive" -C "$stage" --no-same-owner --no-same-permissions
-          printf '%s\n' "$stage/$distribution/bin" >> "$GITHUB_PATH"
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |

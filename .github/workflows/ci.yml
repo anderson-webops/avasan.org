@@ -26,10 +26,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -57,10 +55,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -88,10 +84,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -119,10 +113,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -162,10 +154,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -193,10 +183,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -238,10 +226,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
@@ -286,10 +272,8 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 26.13.1
-          cache: npm
+      - name: Stage verified Node for this runner
+        run: bash scripts/stage-ci-node.sh
 
       - name: Prepare independently locked build tools
         run: |
