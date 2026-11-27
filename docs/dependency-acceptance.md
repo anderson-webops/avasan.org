@@ -13,7 +13,7 @@ Preserve linear-history source delivery and the exact reviewed upstream identity
 
 ## Independently locked build tools
 
-Use Node26.13.1 and the independently locked npm12.2.2 build-only profile.
+Use Node26.13.1 and the independently locked npm12.2.3 build-only profile.
 `build-toolchain/UPSTREAM.json`, its lock, original source inventory and
 `PAYLOAD.json` bind the original npm CLI/licenses and maintained private graph.
 The selected paired npm/npx/Node commands must pass complete payload, input,
@@ -86,7 +86,7 @@ standalone-prefix audit keeps the graph root in scope; application workspace
 exclusion would omit its outgoing edges. Each reference manifest is verified
 to have no workspace declaration before that complete audit.
 
-The Puppeteer 25.18.1 browser-downloader lifecycle stays explicitly disabled.
+The Puppeteer 25.19.0 browser-downloader lifecycle stays explicitly disabled.
 Browser provisioning remains an explicit test-environment operation, with real
 browser fixtures required independently of installation success.
 

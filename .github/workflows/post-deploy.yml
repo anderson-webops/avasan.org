@@ -37,7 +37,7 @@ jobs:
       - name: Verify pinned toolchain
         run: |
           test "$(node --version)" = "v26.13.1"
-          test "$(npm --version)" = "12.2.2"
+          test "$(npm --version)" = "12.2.3"
 
       - name: Verify avasan.org production
         env:

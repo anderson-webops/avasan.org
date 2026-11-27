@@ -18,7 +18,7 @@ spec.loader.exec_module(packager)
 class BuildToolchainPackageTests(unittest.TestCase):
     def fixture(self, extra=None):
         members = [
-            ("package/package.json", json.dumps({"name": "npm", "version": "12.2.2", "bundleDependencies": ["fixture"], "dependencies": {"fixture": "1.0.0"}}).encode()),
+            ("package/package.json", json.dumps({"name": "npm", "version": "12.2.3", "bundleDependencies": ["fixture"], "dependencies": {"fixture": "1.0.0"}}).encode()),
             ("package/LICENSE", b"original license\n"),
             ("package/bin/npm-cli.js", b"original CLI code\n"),
             ("package/node_modules/fixture/index.js", b"bundled dependency\n"),
@@ -33,7 +33,7 @@ class BuildToolchainPackageTests(unittest.TestCase):
             if extra is not None:
                 archive.addfile(extra)
         original = output.getvalue()
-        metadata = {"npm": "12.2.2", "upstreamIntegrity": "sha512-" + base64.b64encode(hashlib.sha512(original).digest()).decode()}
+        metadata = {"npm": "12.2.3", "upstreamIntegrity": "sha512-" + base64.b64encode(hashlib.sha512(original).digest()).decode()}
         return original, metadata
 
     def rebuild(self, original, metadata):

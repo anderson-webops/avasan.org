@@ -25,7 +25,7 @@ npm run dev
 ```
 
 The committed package manager and production release toolchain are Node
-26.13.1 with npm 12.2.2. The independently locked build-only profile preserves
+26.13.1 with npm 12.2.3. The independently locked build-only profile preserves
 upstream npm CLI bytes while maintaining its dependency graph. The stock npm
 bundled with Node may bootstrap that profile; application and release checks
 require its verified npm, npx and Node commands. Both the app and build tools

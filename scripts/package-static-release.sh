@@ -5,7 +5,7 @@ cd -- "$root"
 test "$(uname -s)" = Linux
 test "$(uname -m)" = aarch64
 test "$(node --version)" = v26.13.1
-test "$(npm --version)" = 12.2.2
+test "$(npm --version)" = 12.2.3
 node scripts/check-build-toolchain.mjs
 test -z "$(git status --porcelain)"
 output=$(realpath "${1:?Pass an empty owned output directory under .ai-work/runs}")
