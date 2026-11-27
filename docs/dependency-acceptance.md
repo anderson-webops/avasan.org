@@ -65,9 +65,9 @@ exact archives also reproduce from the preserved modern inputs and scoped locks.
 Every declared local input is checked on disk, and every locked local archive is
 hash-verified before installation, independently of package-manager caches.
 
-The official vite-plugin-checker1.0.0 archive replaces the maintained0.14.5
-bridge. CURRENT.json preserves its registry identity alongside the historical
-original and reproducible bridge. Nuxt 4.7.0 uses the official Vite builder.
+The official vite-plugin-checker 1.1.0 archive is selected by Nuxt 4.7.0's
+official Vite builder. `CURRENT.json` binds its registry identity, including
+the Swedish locale files; historical inputs and the 0.14.5 bridge are retained.
 Validate its overlay entrypoint, real Nuxt/Vite
 diagnostics, worker repair/reconnection and rejected type-error production
 builds, preserving the source locations and native public declarations.
